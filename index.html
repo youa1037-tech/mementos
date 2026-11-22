@@ -444,6 +444,21 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .rstamp b{display:block;font-family:var(--hd);font-weight:400;font-size:20px;line-height:1.25}
 .rstamp.bad b::before{content:'✕ ';color:var(--red)}.rstamp.good b::before{content:'✓ ';color:#1f8a4c}
 .rstamp.anim{animation:arrive .35s var(--snap) both}
+.roomwrap{background:#000;padding:0;display:flex;justify-content:center;box-shadow:8px 8px 0 var(--red);border:3px solid var(--ink);margin:4px 0 14px}
+.roomwrap canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:manipulation;cursor:pointer}
+.roomwrap.view{margin:4px 0 14px}.roomwrap.view canvas{cursor:default}
+.rbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--p);padding:10px 12px}
+.rbar>div:first-child{flex:1 1 200px;display:flex;flex-direction:column}
+.rbar b{font-family:var(--en);font-weight:400;font-size:20px;letter-spacing:.03em;color:var(--gold)}
+.rbar span{font-size:13px;color:var(--mut)}
+.rbar .row{gap:6px}.rbar .nud{min-width:44px;padding:8px 0}
+.rh{font-family:var(--en);font-weight:400;font-size:20px;letter-spacing:.04em;margin:18px 0 8px}
+.rh small{font:700 13px 'Noto Sans KR',sans-serif;color:var(--mut);margin-left:6px;letter-spacing:0}
+.tray{display:flex;flex-wrap:wrap;gap:8px}
+.titem{min-height:44px;min-width:88px;background:var(--p);border:2px solid transparent;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.titem.on{border-color:var(--gold)}.titem img,.pimg img{image-rendering:pixelated;display:block}
+.titem b{font-family:var(--en);font-weight:400;font-size:13px;letter-spacing:.03em}
+.pimg{width:56px;display:grid;place-items:center}.pimg img{max-width:56px;height:auto}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -521,6 +536,186 @@ const PROPS=[
  {id:'dart',en:'DART BOARD',name:'다트 보드',cost:4000,eff:'교류·협동 성공률 상승',unlock:'안·카스미·마코토 내기 후일담',
   after:[{who:'ann',q:'다트 내기! 진 사람이 크레이프 사기다?'},{who:'kasumi',q:'좋아요! 저 이런 거 자신 있어요!'},{who:'makoto',q:'…정확한 각도만 계산하면 질 리가 없어.'}],
   svg:'<circle cx="30" cy="30" r="25" fill="#141012" stroke="#d9d2cc" stroke-width="3"/><circle cx="30" cy="30" r="17" fill="#e5191c"/><circle cx="30" cy="30" r="10" fill="#f6f1ea"/><circle cx="30" cy="30" r="4" fill="#e5191c"/><path d="M30 30 52 10" stroke="#f5b942" stroke-width="3"/>'}];
+
+/* ============ 다락방 꾸미기 (sprite-catalog 매니페스트: docs/art/manifest.md) ============ */
+const ART=(()=>{
+/* ============ 픽셀 아트 (art-bible: palette-lock · 16px 타일 · 빛은 왼쪽 위 창문에서) ============ */
+const PAL=['#141012','#2a1e22','#3b2b2f','#4a2a22','#6e4430','#9a6440','#c48a58','#e8b98a',
+ '#4a0e12','#7a1418','#b3161b','#e5191c','#ff6b6b','#f6f1ea','#d9d2cc','#b9aca5',
+ '#6b5f5a','#f5b942','#ffe08a','#59c3ff','#1b2140','#2e3a6e','#2f6b4a','#4f9a5a','#8fd18a'];
+/* 이름 → 팔레트 번호 (0 = 투명이므로 +1 해서 저장) */
+const C={ink:0,sh:1,sh2:2,w0:3,w1:4,w2:5,w3:6,w4:7,r0:8,r1:9,r2:10,r3:11,r4:12,cr:13,g0:14,g1:15,g2:16,au:17,au2:18,sky:19,n0:20,n1:21,l0:22,l1:23,l2:24};
+const TILE=16,RW=11,RH=8,WALL=3,W=RW*TILE,H=RH*TILE,FY=WALL*TILE;
+function buf(w,h){const a=new Uint8Array(w*h);const B={w,h,a,
+ p(x,y,c){x|=0;y|=0;if(x>=0&&y>=0&&x<w&&y<h)a[y*w+x]=c+1},
+ g(x,y){return x>=0&&y>=0&&x<w&&y<h?a[y*w+x]-1:-1},
+ r(x,y,ww,hh,c){for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)B.p(x+i,y+j,c)},
+ hl(x,y,l,c){B.r(x,y,l,1,c)},vl(x,y,l,c){B.r(x,y,1,l,c)},
+ e(cx,cy,rx,ry,c){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if((x*x)/(rx*rx+.01)+(y*y)/(ry*ry+.01)<=1)B.p(cx+x,cy+y,c)},
+ /* 불투명 픽셀 둘레에 잉크 외곽선 (art-bible: 모든 소품은 같은 1px 외곽선) */
+ o(c=C.ink){const s=a.slice();for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(s[y*w+x])continue;
+  if((x>0&&s[y*w+x-1])||(x<w-1&&s[y*w+x+1])||(y>0&&s[(y-1)*w+x])||(y<h-1&&s[(y+1)*w+x]))a[y*w+x]=c+1}return B}};return B}
+
+/* ---------- 방 배경 ---------- */
+function roomBase(){const b=buf(W,H);
+ // 벽지: 짙은 붉은 줄무늬 + 작은 다이아 무늬
+ for(let x=0;x<W;x++)for(let y=0;y<FY;y++){const st=(x>>3)%2;b.p(x,y,st?C.r0:C.sh)}
+ for(let x=4;x<W;x+=16)for(let y=6;y<FY-8;y+=12){b.p(x,y,C.r1);b.p(x-1,y+1,C.r1);b.p(x+1,y+1,C.r1);b.p(x,y+2,C.r1)}
+ // 경사 지붕 들보 (왼쪽 위, 오른쪽 위)
+ for(let y=0;y<30;y++){const l=30-y;b.r(0,y,l,1,C.w0);b.p(l,y,C.w1);b.p(l+1,y,C.w2);b.r(W-l,y,l,1,C.w0);b.p(W-l-1,y,C.w1);b.p(W-l-2,y,C.w2)}
+ for(let y=0;y<30;y+=6){b.hl(0,y,30-y-1,C.sh);b.hl(W-30+y+1,y,30-y-1,C.sh)}
+ // 가운데 둥근 창: 밤하늘 + 붉은 달
+ const cx=W/2|0,cy=17;b.e(cx,cy,11,11,C.w1);b.e(cx,cy,10,10,C.w2);b.e(cx,cy,8,8,C.n0);
+ for(let y=-8;y<=0;y++)for(let x=-8;x<=8;x++)if(b.g(cx+x,cy+y)===C.n0&&y<-2)b.p(cx+x,cy+y,C.n1);
+ b.e(cx-4,cy-4,2,2,C.r3);b.p(cx-5,cy-5,C.r4);[[-5,-1],[-2,-6],[5,2],[-6,4],[1,5]].forEach(([x,y])=>b.p(cx+x,cy+y,C.cr));
+ b.vl(cx,cy-8,17,C.w1);b.hl(cx-8,cy,17,C.w1);b.hl(cx-11,cy+11,23,C.w0);b.hl(cx-9,cy+12,19,C.sh);
+ // 창문 빛 웅덩이(벽 위)
+ // 징두리 판자
+ b.r(0,FY-6,W,6,C.w1);b.hl(0,FY-6,W,C.w3);b.hl(0,FY-1,W,C.w0);for(let x=7;x<W;x+=16)b.vl(x,FY-5,4,C.w0);
+ // 바닥 판자: 가로 판자, 엇갈린 이음매, 결
+ // 바닥 판자: 길고 가는 가로 판자, 드문 이음매, 점 몇 개로 결 표현
+ for(let row=0;row<(H-FY)/8;row++){const y0=FY+row*8,sh=row%2?C.w1:C.w2,hi=row%2?C.w2:C.w3;
+  b.r(0,y0,W,8,sh);b.hl(0,y0,W,C.w0);b.hl(0,y0+1,W,hi);
+  for(let x=(row*37)%56+12;x<W;x+=56){b.vl(x,y0+1,7,C.w0);b.vl(x+1,y0+1,7,hi)}
+  for(let x=(row*19)%23+5;x<W;x+=23){b.p(x,y0+4,C.w0);b.p(x+1,y0+4,sh===C.w1?C.w0:C.w1)}}
+
+ // 벽과 바닥 사이 그림자
+ b.hl(0,FY,W,C.sh);return b}
+
+/* ---------- 소품 ---------- */
+const SPR={
+ sofa(){const b=buf(34,24);
+  b.r(3,2,28,11,C.r1);b.hl(4,2,26,C.r3);b.hl(4,3,26,C.r2);for(let x=8;x<30;x+=8){b.vl(x,4,8,C.r0);b.p(x,6,C.r3)}// 등받이 단추
+  b.r(1,8,6,12,C.r1);b.r(27,8,6,12,C.r1);b.hl(1,8,6,C.r3);b.hl(27,8,6,C.r3);b.vl(1,9,10,C.r2);b.vl(27,9,10,C.r2);// 팔걸이
+  b.r(7,12,20,4,C.r2);b.hl(7,12,20,C.r3);b.vl(17,12,4,C.r1);// 방석
+  b.r(3,16,28,4,C.r0);b.hl(3,16,28,C.r1);// 앞판
+  b.r(4,20,2,2,C.w0);b.r(28,20,2,2,C.w0);return b.o()},
+ rug(){const b=buf(48,30);// 3×2칸 러그 (바닥에 평평하게)
+  for(let y=0;y<28;y++)for(let x=0;x<46;x++){const bd=x<3||x>42||y<3||y>24,in2=x<6||x>39||y<6||y>21;b.p(x+1,y+1,bd?C.r0:in2?C.au:((x+y)%6<3?C.r1:C.r2))}
+  for(let i=0;i<5;i++){const cx=23,cy=14;b.e(cx,cy,9-i*2,6-i,[C.r0,C.au,C.r2,C.cr,C.r3][i])}
+  for(let x=2;x<46;x+=3){b.p(x,0,C.cr);b.p(x,29,C.cr)}// 술 장식
+  return b},
+ plant(){const b=buf(18,26);
+  b.r(5,17,8,7,C.w0);b.r(4,16,10,2,C.w1);b.vl(6,18,5,C.w1);b.hl(5,23,8,C.sh);// 화분
+  const L=[[9,15,C.l0],[8,10,C.l1],[11,8,C.l1],[5,9,C.l1],[13,12,C.l1],[4,13,C.l0],[10,4,C.l2],[6,5,C.l1],[13,6,C.l0]];
+  L.forEach(([x,y,c])=>{b.e(x,y,3,2,c)});b.vl(9,6,10,C.l0);[[7,4],[11,3],[6,8],[13,9]].forEach(([x,y])=>b.p(x,y,C.l2));return b.o()},
+ lamp(){const b=buf(16,36);
+  b.r(3,2,10,8,C.au);b.hl(4,1,8,C.au2);b.hl(3,2,10,C.au2);b.vl(3,3,7,C.au2);b.hl(2,10,12,C.w1);b.r(5,4,2,4,C.au2);// 갓
+  b.vl(8,11,20,C.g2);b.vl(7,11,20,C.ink);b.r(4,31,8,2,C.g2);b.hl(4,33,8,C.sh);// 기둥·받침
+  return b.o()},
+ poster(){const b=buf(16,20);// 오리지널 포스터: 붉은 바탕, 금색 별, 줄무늬
+  b.r(1,1,14,18,C.r2);b.r(2,2,12,16,C.r3);
+  const s=[[7,4],[8,4],[6,6],[7,5],[8,5],[9,6],[4,7],[5,7],[6,7],[7,7],[8,7],[9,7],[10,7],[11,7],[5,8],[6,8],[7,8],[8,8],[9,8],[10,8],[6,9],[7,9],[8,9],[9,9],[5,10],[6,10],[9,10],[10,10],[5,11],[10,11]];
+  s.forEach(([x,y])=>b.p(x,y,C.au));b.hl(3,14,10,C.ink);b.hl(3,16,7,C.ink);b.p(7,1,C.g1);b.p(8,1,C.g1);return b.o()},
+ game(){const b=buf(18,26);// 낮은 TV장 위 브라운관 + 게임기
+  b.r(2,1,14,12,C.g2);b.r(3,2,12,10,C.sh2);b.r(4,3,10,8,C.n1);b.r(5,4,4,2,C.sky);b.p(12,9,C.r3);// 화면
+  b.r(6,13,6,1,C.g2);
+  b.r(1,14,16,9,C.w1);b.hl(1,14,16,C.w3);b.r(3,17,12,4,C.w0);b.r(4,18,7,2,C.g0);b.p(12,19,C.r3);b.p(13,19,C.au);// 장 + 게임기
+  b.r(2,23,2,2,C.w0);b.r(14,23,2,2,C.w0);return b.o()},
+ tea(){const b=buf(18,22);// 둥근 사이드 테이블 + 찻잔 두 개 + 주전자
+  b.e(9,11,8,3,C.w2);b.hl(2,10,14,C.w3);b.e(9,12,8,2,C.w1);b.vl(8,14,6,C.w0);b.vl(9,14,6,C.w1);b.hl(5,20,8,C.w0);
+  b.r(4,7,4,3,C.cr);b.p(8,8,C.cr);b.hl(4,7,4,C.g0);// 찻잔
+  b.r(10,4,5,5,C.cr);b.hl(10,4,5,C.g0);b.p(15,5,C.cr);b.p(16,6,C.cr);b.p(9,6,C.cr);b.r(11,3,3,1,C.g1);b.p(12,2,C.r3);// 주전자
+  b.p(5,5,C.g1);b.p(6,4,C.g1);b.p(12,1,C.g1);return b.o()},
+ easel(){const b=buf(18,32);// 이젤 + 캔버스
+  for(let y=0;y<14;y++){b.p(6-(y/3|0),16+y,C.w2);b.p(11+(y/3|0),16+y,C.w2)}b.vl(9,1,28,C.w1);b.hl(6,23,6,C.w1);
+  b.r(2,4,14,13,C.cr);b.r(3,5,12,11,C.g0);b.r(3,5,12,5,C.n1);b.r(3,10,12,6,C.r1);b.e(10,9,2,2,C.r3);b.hl(3,10,12,C.r2);// 그림: 밤하늘과 붉은 달
+  b.hl(1,17,16,C.w0);return b.o()},
+ cushion(){const b=buf(20,14);// 붉은 방석 + 참치캔
+  b.e(8,8,7,4,C.r1);b.e(8,7,6,3,C.r2);b.hl(4,5,8,C.r3);b.p(2,4,C.r1);b.p(3,3,C.r1);b.p(13,4,C.r1);b.p(14,3,C.r1);// 고양이 귀 모양
+  b.r(15,7,4,5,C.g0);b.hl(15,7,4,C.cr);b.hl(15,9,4,C.sky);return b.o()},
+ dart(){const b=buf(16,16);
+  b.e(8,8,7,7,C.ink);b.e(8,8,6,6,C.cr);for(let a=0;a<12;a++){const t=a/12*Math.PI*2;if(a%2)for(let r=1;r<6;r++)b.p(8+Math.cos(t)*r,8+Math.sin(t)*r,C.ink)}
+  b.e(8,8,4,4,C.r2);b.e(8,8,3,3,C.cr);b.e(8,8,1,1,C.r3);b.p(10,6,C.au);b.p(11,5,C.au);b.p(12,4,C.au2);return b}
+};
+
+return {PAL,C,TILE,RW,RH,WALL,W,H,FY,SPR,roomBase}})();
+/* layer: floor(가구) · rug(바닥 깔개, 가구와 겹쳐도 됨) · wall(벽 장식). w,h는 차지하는 칸 수 */
+const FURN=[
+ {id:'sofa',en:'VELVET SOFA',name:'벨벳 소파',cost:0,layer:'floor',w:2,h:1,desc:'처음부터 다락방에 있던 낡은 소파'},
+ {id:'plant',en:'HOUSE PLANT',name:'화분',cost:0,layer:'floor',w:1,h:1,desc:'처음부터 있던 작은 화분'},
+ {id:'rug',en:'RED RUG',name:'붉은 러그',cost:1500,layer:'rug',w:3,h:2,desc:'장식 전용 · 가구 밑에 깔 수 있어요'},
+ {id:'lamp',en:'FLOOR LAMP',name:'스탠드 조명',cost:1200,layer:'floor',w:1,h:1,desc:'장식 전용'},
+ {id:'poster',en:'STAR POSTER',name:'별 포스터',cost:800,layer:'wall',w:1,h:1,desc:'장식 전용 · 벽에 걸어요'},
+ {id:'game',layer:'floor',w:1,h:1},{id:'tea',layer:'floor',w:1,h:1},{id:'easel',layer:'floor',w:1,h:1},{id:'cushion',layer:'floor',w:1,h:1},{id:'dart',layer:'wall',w:1,h:1}];
+for(const f of FURN){const p=PROPS.find(x=>x.id===f.id);if(p)Object.assign(f,{en:p.en,name:p.name,cost:p.cost,desc:`${p.unlock} · ${p.eff}`,prop:1})}
+const FU=Object.fromEntries(FURN.map(f=>[f.id,f]));
+const STARTER=['sofa','plant'];
+const HOME={sofa:[4,1],plant:[0,0],rug:[3,2],lamp:[3,0],game:[8,0],tea:[7,3],easel:[9,2],cushion:[2,4],poster:[2,0],dart:[7,0]};
+const WROWS=2,WBLOCK=['0,0','1,0','9,0','10,0','5,0','5,1','0,1','10,1'];
+const FROWS=ART.RH-ART.WALL;
+function cellsOf(it){const f=FU[it.id],o=[];for(let j=0;j<f.h;j++)for(let i=0;i<f.w;i++)o.push([it.c+i,it.r+j]);return o}
+function fits(it,room,skip){const f=FU[it.id];if(!f)return false;const rows=f.layer==='wall'?WROWS:FROWS;
+ if(it.c<0||it.r<0||it.c+f.w>ART.RW||it.r+f.h>rows)return false;
+ if(f.layer==='wall'&&cellsOf(it).some(([c,r])=>WBLOCK.includes(c+','+r)))return false;
+ const mine=new Set(cellsOf(it).map(x=>x+''));
+ return !room.some(o=>o!==skip&&o.id!==it.id&&FU[o.id]&&FU[o.id].layer===f.layer&&cellsOf(o).some(x=>mine.has(x+'')))}
+function freeSpot(id,room){const f=FU[id],pref=HOME[id];if(pref&&fits({id,c:pref[0],r:pref[1]},room))return {c:pref[0],r:pref[1]};
+ const rows=f.layer==='wall'?WROWS:FROWS;for(let r=0;r<rows;r++)for(let c=0;c<ART.RW;c++)if(fits({id,c,r},room))return {c,r};return null}
+/* 저장된 배치 검증 (save-systems): 모르는 소품·안 가진 소품·중복·범위 밖·겹침은 창고로 돌린다 */
+function cleanRoom(list){const out=[];for(const x of Array.isArray(list)?list:[]){if(!x||!FU[x.id]||!S.props.includes(x.id)||out.some(o=>o.id===x.id))continue;
+  const it={id:x.id,c:x.c|0,r:x.r|0,f:x.f?1:0};if(fits(it,out))out.push(it)}return out}
+function ensureRoom(){for(const id of STARTER)if(!S.props.includes(id))S.props.push(id);
+ if(!Array.isArray(S.room)){const room=[];for(const id of S.props){if(!FU[id])continue;const sp=freeSpot(id,room);if(sp)room.push({id,...sp,f:0})}S.room=room}
+ S.room=cleanRoom(S.room)}
+/* 렌더링: 스프라이트는 한 번만 캔버스로 굽고 재사용 */
+const SPRB=Object.fromEntries(Object.keys(ART.SPR).map(k=>[k,ART.SPR[k]()]));
+const SPRC={};
+function bake(b,flip){const c=document.createElement('canvas');c.width=b.w;c.height=b.h;const x=c.getContext('2d'),im=x.createImageData(b.w,b.h);
+ for(let j=0;j<b.h;j++)for(let i=0;i<b.w;i++){const v=b.a[j*b.w+i];if(!v)continue;const hx=ART.PAL[v-1],k=(j*b.w+(flip?b.w-1-i:i))*4;
+  im.data[k]=parseInt(hx.slice(1,3),16);im.data[k+1]=parseInt(hx.slice(3,5),16);im.data[k+2]=parseInt(hx.slice(5,7),16);im.data[k+3]=255}
+ x.putImageData(im,0,0);return c}
+const sprC=(id,f)=>SPRC[id+f]||(SPRC[id+f]=bake(SPRB[id],f));
+let BASEC=null;
+const thumb=id=>SPRC['t'+id]||(SPRC['t'+id]=sprC(id,0).toDataURL());
+function rectOf(it){const f=FU[it.id],b=SPRB[it.id];
+ if(f.layer==='wall')return {x:it.c*16+((16-b.w)>>1),y:6+it.r*18+((18-b.h)>>1),w:b.w,h:b.h};
+ if(f.layer==='rug')return {x:it.c*16+((f.w*16-b.w)>>1),y:ART.FY+it.r*16+((f.h*16-b.h)>>1),w:b.w,h:b.h};
+ return {x:it.c*16+((f.w*16-b.w)>>1),y:ART.FY+(it.r+f.h)*16-b.h,w:b.w,h:b.h}}
+function drawOrder(room){const L={rug:0,wall:1,floor:2};return [...room].sort((a,b)=>L[FU[a.id].layer]-L[FU[b.id].layer]||(a.r+FU[a.id].h)-(b.r+FU[b.id].h)||a.c-b.c)}
+/* 탭한 칸 → 소품의 왼쪽 위 칸 (가로는 가운데, 세로는 탭한 줄이 소품의 앞줄) */
+function anchor(id,tc,tr){const f=FU[id];return {c:tc-((f.w-1)>>1),r:f.layer==='wall'?tr:tr-(f.h-1)}}
+function drawRoom(cv,edit){
+ const x=cv.getContext('2d');x.imageSmoothingEnabled=false;if(!BASEC)BASEC=bake(ART.roomBase(),0);x.drawImage(BASEC,0,0);
+ const sel=edit&&ui.rsel,room=S.room;
+ for(const it of drawOrder(room)){const f=FU[it.id],R0=rectOf(it);
+  if(sel&&sel.id===it.id&&sel.lift)continue;
+  if(f.layer==='floor'){x.fillStyle='rgba(20,16,18,.45)';const cx=it.c*16+f.w*8,cy=ART.FY+(it.r+f.h)*16-2,rx=f.w*7;for(let k=-2;k<=1;k++){const hw=Math.round(rx*Math.sqrt(1-(k*k)/5));x.fillRect(cx-hw,cy+k,hw*2,1)}}
+  x.drawImage(sprC(it.id,it.f),R0.x,R0.y);
+  if(sel&&sel.id===it.id){x.fillStyle=ART.PAL[ART.C.au];for(let i=0;i<R0.w+2;i+=2){x.fillRect(R0.x-1+i,R0.y-2,1,1);x.fillRect(R0.x-1+i,R0.y+R0.h+1,1,1)}for(let j=0;j<R0.h+2;j+=2){x.fillRect(R0.x-2,R0.y-1+j,1,1);x.fillRect(R0.x+R0.w+1,R0.y-1+j,1,1)}}}
+ if(sel){const f=FU[sel.id],rows=f.layer==='wall'?WROWS:FROWS,skip=room.find(o=>o.id===sel.id);
+  for(let tr=0;tr<rows;tr++)for(let tc=0;tc<ART.RW;tc++){const a=anchor(sel.id,tc,tr);if(!fits({id:sel.id,...a},room,skip))continue;
+   const px=tc*16+7,py=f.layer==='wall'?6+tr*18+8:ART.FY+tr*16+7;x.fillStyle=ART.PAL[ART.C.ink];x.fillRect(px-1,py-1,4,4);x.fillStyle=ART.PAL[ART.C.au];x.fillRect(px,py,2,2)}}}
+function roomTap(cv,ev){const b=cv.getBoundingClientRect(),lx=(ev.clientX-b.left)/b.width*ART.W,ly=(ev.clientY-b.top)/b.height*ART.H;
+ const sel=ui.rsel;
+ if(sel){const f=FU[sel.id],tc=Math.floor(lx/16),cur=S.room.find(o=>o.id===sel.id),hit=pickAt(lx,ly);
+  const onWall=ly<ART.FY,ok=f.layer==='wall'?onWall:!onWall;
+  const tr=f.layer==='wall'?clamp(Math.floor((ly-6)/18),0,WROWS-1):Math.floor((ly-ART.FY)/16);
+  const it=ok?{id:sel.id,...anchor(sel.id,tc,tr),f:sel.f}:null;
+  if(it&&fits(it,S.room,cur)){S.room=cleanRoom(S.room.filter(o=>o.id!==sel.id).concat(it));save();ui.rsel={id:sel.id,f:it.f};ui.rmsg='';render();return}
+  if(hit&&hit.id!==sel.id)return selectPlaced(hit);
+  return roomMsg(!ok?(f.layer==='wall'?'벽 장식은 벽에만 걸 수 있어요.':'가구는 바닥에 놓아요.'):'거기엔 놓을 수 없어요. 반짝이는 칸을 눌러 주세요.')}
+ const hit=pickAt(lx,ly);if(hit)selectPlaced(hit)}
+function pickAt(lx,ly){for(const it of drawOrder(S.room).reverse()){const R0=rectOf(it);if(lx<R0.x||ly<R0.y||lx>=R0.x+R0.w||ly>=R0.y+R0.h)continue;
+ const b=SPRB[it.id],i=Math.floor(lx-R0.x),j=Math.floor(ly-R0.y);if(b.a[j*b.w+(it.f?b.w-1-i:i)])return it}return null}
+function selectPlaced(it){ui.rsel={id:it.id,f:it.f};ui.rmsg='';render()}
+function roomMsg(m){ui.rmsg=m;render()}
+function vRoomEditor(){
+ const sel=ui.rsel,f=sel&&FU[sel.id],placed=sel&&S.room.some(o=>o.id===sel.id);
+ const store=FURN.filter(x=>S.props.includes(x.id)&&!S.room.some(o=>o.id===x.id));
+ const shop=FURN.filter(x=>!S.props.includes(x.id));
+ const img=id=>`<img src="${thumb(id)}" alt="" style="width:${SPRB[id].w*2}px">`;
+ const bar=sel?`<div class="rbar"><div><b>${f.en}</b><span>${placed?'반짝이는 칸을 누르면 옮겨요':'반짝이는 칸을 눌러 놓아요'}</span></div>
+  <div class="row">${placed?['◀:-1:0','▲:0:-1','▼:0:1','▶:1:0'].map(k=>{const [l,dx,dy]=k.split(':');return `<button class="btn ghost sm nud" data-act="rnud:${dx},${dy}" aria-label="${{'◀':'왼쪽','▲':'위','▼':'아래','▶':'오른쪽'}[l]}으로">${l}</button>`}).join(''):''}
+  <button class="btn ghost sm" data-act="rflip">FLIP</button>${placed?'<button class="btn ghost sm" data-act="rstore">STORE</button>':''}<button class="btn sm" data-act="rdone">DONE</button></div></div>`
+  :'<div class="rbar"><div><span>놓인 소품을 누르면 옮기거나 뒤집을 수 있어요. 창고의 소품을 눌러 방에 놓아요.</span></div></div>';
+ return `<div class="roomwrap"><canvas id="room" width="${ART.W}" height="${ART.H}" role="img" aria-label="다락방. 놓인 소품: ${S.room.map(o=>FU[o.id].name).join(', ')||'없음'}"></canvas></div>
+ ${ui.rmsg?`<p class="toast" role="status">${esc(ui.rmsg)}</p>`:''}${bar}
+ <h4 class="rh">STORAGE <small>창고 ${store.length}</small></h4>${store.length?`<div class="tray">${store.map(x=>`<button class="titem ${sel&&sel.id===x.id?'on':''}" data-act="rpick:${x.id}">${img(x.id)}<b>${x.en}</b></button>`).join('')}</div>`:'<p class="hint">창고가 비어 있어요. 가진 소품은 모두 방에 있어요.</p>'}
+ <h4 class="rh">SHOP <small>새 소품</small></h4>${shop.length?`<div class="shelf">${shop.map(x=>`<div class="prop"><span class="pimg">${img(x.id)}</span><div><b>${x.en}</b><p>${x.name} — ${x.desc}</p></div><button class="btn sm" data-act="buy:${x.id}" ${S.yen<x.cost?'disabled':''}>¥${fmt(x.cost)}</button></div>`).join('')}</div>`:'<p class="hint">모든 소품을 모았어요.</p>'}`}
+function sizeRooms(){for(const cv of document.querySelectorAll('canvas.rm,#room')){const w=cv.parentNode.clientWidth,k=Math.max(1,Math.min(5,Math.floor(w/ART.W)));cv.style.width=ART.W*k+'px';cv.style.height=ART.H*k+'px'}}
+addEventListener('resize',()=>sizeRooms());
+
 const BUS=[null,{eff:'기본 이동'},{cost:5000,eff:'버려진 플랫폼 상시 개방'},{cost:9000,eff:'함정 피해 절반 · 함정 돌파 선택지'},{cost:15000,eff:'존재하지 않는 역 진입 가능'}];
 const PICK=[0,2000,4000,7000];
 const MVPWHY={wild:'판을 뒤집는 한 수',analyst:'함정·리스크 사전 차단',support:'보물·단서 탐지',rush:'몸 사리지 않는 돌파'};
@@ -542,14 +737,19 @@ function rn(t){let h=7,d=0;const sp=[...t].map((c0,i)=>{let ch=c0;if(ch===' ')re
 const wpick=w=>{let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){if((r-=w[i])<0)return i}return w.length-1};
 
 /* ============ 저장 (LocalStorage) ============ */
-const KEY='todays-mementos-v1';
-const DEF=()=>({tut:false,tips:[],yen:1000,props:[],bus:1,pick:0,smoke:1,curry:1,codex:{combos:[],events:[],hidden:[],reports:0,best:0}});
+const KEY='todays-mementos-v1';/* 저장 키는 유지하고 문서 안 ver로 스키마를 구분 */
+const DEF=()=>({ver:2,room:null,tut:false,tips:[],yen:1000,props:[],bus:1,pick:0,smoke:1,curry:1,codex:{combos:[],events:[],hidden:[],reports:0,best:0}});
 let S=DEF();
-try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){S=Object.assign(DEF(),d);S.codex=Object.assign(DEF().codex,d.codex||{})}}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+try{const raw=localStorage.getItem(KEY),d=JSON.parse(raw||'null');
+ if(d&&typeof d==='object'){
+  if((d.ver||1)>2)throw new Error('newer save');/* 더 새 버전 세이브는 건드리지 않음 */
+  if(!d.ver){try{localStorage.setItem(KEY+'-v1-backup',raw)}catch(e){}d.ver=2;d.room=null}/* v1 → v2: 원본 백업 후 방 배치 새로 만듦 */
+  S=Object.assign(DEF(),d);S.codex=Object.assign(DEF().codex,d.codex||{})}}catch(e){S=DEF();S.readonly=!!(e&&e.message==='newer save')}
+const save=()=>{if(S.readonly)return;try{const{readonly,...o}=S;localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
 const has=p=>S.props.includes(p);
+ensureRoom();
 
-let ui={tip:null,tstep:0,tafter:'party',enter:true,screen:'main',sel:[],focus:'joker',tab:'props',msg:'',rc:false,reset:false,res:null,copy:''};
+let ui={rsel:null,rmsg:'',tip:null,tstep:0,tafter:'party',enter:true,screen:'main',sel:[],focus:'joker',tab:'props',msg:'',rc:false,reset:false,res:null,copy:''};
 let run=null,T=0;
 
 /* ============ 탐사 상태 헬퍼 ============ */
@@ -962,7 +1162,7 @@ function vResult(){const x=ui.res,an=!x.shown;x.shown=true;
  <div class="copyrow"><button class="btn ghost sm" data-act="copy">${ui.copy==='ok'?'COPIED!':'COPY REPORT'}</button></div>
  ${ui.copy==='fail'?`<textarea readonly aria-label="보고서 텍스트">${esc(reportText())}</textarea>`:''}
  ${x.newCombo?`<p class="newc">NEW COMBO! ${S.codex.combos.length} / 120 <small style="font:700 13px 'Noto Sans KR';margin-left:6px">도감 등록</small></p>`:''}
- <section class="after"><h3>${rn('BACK AT LEBLANC')}<span class="sub">르블랑 후일담</span></h3><ol>${x.after.map(l=>l.who?`<li style="--c:${CH[l.who].col}"><b>${CH[l.who].code}</b>“${esc(l.q)}”</li>`:`<li class="n">${esc(l.n)}</li>`).join('')}</ol></section>
+ <section class="after"><h3>${rn('BACK AT LEBLANC')}<span class="sub">르블랑 후일담</span></h3><div class="roomwrap view"><canvas class="rm" width="${ART.W}" height="${ART.H}" role="img" aria-label="꾸며 둔 다락방"></canvas></div><ol>${x.after.map(l=>l.who?`<li style="--c:${CH[l.who].col}"><b>${CH[l.who].code}</b>“${esc(l.q)}”</li>`:`<li class="n">${esc(l.n)}</li>`).join('')}</ol></section>
  <div class="actbar"><button class="btn" data-act="go:shop">INVEST</button><button class="btn ghost" data-act="go:party">GO AGAIN</button></div></main>`;
 }
 function vShop(){
@@ -971,7 +1171,7 @@ function vShop(){
  const buy=(act,cost,dis)=>`<button class="btn sm" data-act="${act}" ${S.yen<cost||dis?'disabled':''}>¥${fmt(cost)}</button>`;
  const tabs=[['props','HIDEOUT'],['bus','MONA BUS'],['tools','TOOLS']];
  let body='';
- if(t==='props')body=`<p class="hint">소품을 들이면 해당 멤버의 후일담과 패시브 효과가 열립니다.</p><div class="shelf">${PROPS.map(p=>item(p.svg,p.en,`${p.name} — ${p.unlock}<br>${p.eff}`,has(p.id)?'<span class="owned">PLACED</span>':buy('buy:'+p.id,p.cost),has(p.id))).join('')}</div>`;
+ if(t==='props')body=`<p class="hint">다락방을 직접 꾸며 보세요. 효과가 있는 소품은 창고에 있어도 효과가 그대로예요.</p>${vRoomEditor()}`;
  if(t==='bus')body=`<p class="hint">모나 버스를 튜닝하면 더 깊은 구역과 히든 역이 열립니다.</p><div class="busbox"><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=S.bus?'on':''}"></i>`).join('')}</div>
   <ul class="buslist">${[1,2,3,4].map(i=>`<li class="${i<=S.bus?'on':''}"><b>Lv.${i}</b>${BUS[i].eff}</li>`).join('')}</ul>
   ${nb?`<button class="btn" data-act="bus" ${S.yen<nb.cost?'disabled':''}>TUNE UP Lv.${S.bus+1} · ¥${fmt(nb.cost)}</button>`:'<span class="owned">MAX TUNED</span>'}</div>`;
@@ -1040,6 +1240,7 @@ function render(){
  const app=$('#app');app.innerHTML=({main:vMain,party:vParty,explore:vExplore,result:vResult,shop:vShop,codex:vCodex,tutorial:vTut})[ui.screen]();
  app.classList.toggle('scr-in',!!ui.enter&&!RM);ui.enter=false;
  const l=$('#log');if(l)l.scrollTop=stick?l.scrollHeight:top;
+ const rc=$('#room');if(rc)drawRoom(rc,true);document.querySelectorAll('canvas.rm').forEach(c=>drawRoom(c,false));sizeRooms();
  if(ui.screen==='explore'&&run){countYen();if(run.banner){showBanner(run.banner);run.banner=null}}
  const inc=$('#inc');if(inc&&inc.dataset.to)countTo(inc,0,+inc.dataset.to,1100,500);
 }
@@ -1075,6 +1276,7 @@ let sx=null;
 $('#app').addEventListener('pointerdown',e=>{if(ui.screen==='tutorial')sx=[e.clientX,e.clientY]});
 $('#app').addEventListener('pointerup',e=>{if(ui.screen!=='tutorial'||!sx)return;const dx=e.clientX-sx[0],dy=e.clientY-sx[1];sx=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)tutGo(dx<0?1:-1)});
 $('#app').addEventListener('click',e=>{
+ if(e.target.id==='room'){roomTap(e.target,e);return}
  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
  const [a,v]=b.dataset.act.split(':');
  if(a!=='retreat')ui.rc=false;if(a!=='reset')ui.reset=false;
@@ -1084,8 +1286,8 @@ $('#app').addEventListener('click',e=>{
  if(a==='tutprev'){tutGo(-1);return}
  if(a==='tutskip'){ui.tstep=TUT.length-1;tutGo(1);return}
  if(a==='tipok'){if(ui.tip){S.tips.push(ui.tip.id);save();ui.tip=null}if(run&&run.tipPause){run.paused=false;run.tipPause=false}render();schedule();return}
- if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
- if(a==='tab'){ui.tab=v;ui.msg='';render();return}
+ if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';ui.rsel=null;ui.rmsg='';render();window.scrollTo(0,0);return}
+ if(a==='tab'){ui.tab=v;ui.msg='';ui.rsel=null;ui.rmsg='';render();return}
  if(a==='sel'){ui.focus=v;const i=ui.sel.indexOf(v);if(i>=0)ui.sel.splice(i,1);else if(ui.sel.length<3)ui.sel.push(v);render();return}
  if(a==='random'){ui.sel=shuffle(CHARS.map(c=>c.id)).slice(0,3);render();return}
  if(a==='start'&&ui.sel.length===3){newRun([...ui.sel]);ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();return}
@@ -1099,12 +1301,18 @@ $('#app').addEventListener('click',e=>{
  if(a==='cashout'){if(run&&run.phase==='choose'){log({sys:1,text:'괴도단은 여기서 탐사를 접고 르블랑으로 돌아갔다.'});endRun('retreat')}return}
  if(a==='retreat'){if(!ui.rc){ui.rc=true;render();return}ui.rc=false;log({sys:1,text:'괴도단은 탐사를 접고 르블랑으로 돌아갔다.'});endRun('retreat');return}
  if(a==='copy'){const t=reportText();try{navigator.clipboard.writeText(t).then(()=>{ui.copy='ok';render()},()=>{ui.copy='fail';render()})}catch(err){ui.copy='fail';render()}return}
- if(a==='buy'){const p=PROPS.find(x=>x.id===v);if(p&&!has(p.id)&&spend(p.cost)){S.props.push(p.id);ui.msg=`${p.name} 배치 완료! ${p.unlock} 해금 · ${p.eff}`}save();render();return}
+ if(a==='buy'){const f=FU[v],p=PROPS.find(x=>x.id===v);if(f&&!has(v)&&spend(f.cost)){S.props.push(v);const sp=freeSpot(v,S.room);if(sp)S.room.push({id:v,...sp,f:0});S.room=cleanRoom(S.room);ui.rsel=sp?{id:v,f:0}:null;
+  ui.msg=`${f.name} ${sp?'배치 완료! 반짝이는 칸을 누르면 옮길 수 있어요.':'구입 완료! 방이 꽉 차서 창고에 넣었어요.'}${p?` ${p.unlock} 해금 · ${p.eff}`:''}`}save();render();return}
+ if(a==='rpick'){ui.rsel=ui.rsel&&ui.rsel.id===v?null:{id:v,f:0};ui.rmsg='';ui.msg='';render();return}
+ if(a==='rdone'){ui.rsel=null;ui.rmsg='';render();return}
+ if(a==='rflip'){const it=S.room.find(o=>o.id===(ui.rsel&&ui.rsel.id));if(it){it.f=it.f?0:1;ui.rsel.f=it.f;save()}else if(ui.rsel)ui.rsel.f=ui.rsel.f?0:1;render();return}
+ if(a==='rstore'){if(ui.rsel){S.room=S.room.filter(o=>o.id!==ui.rsel.id);save();ui.rmsg=`${FU[ui.rsel.id].name}${bat(FU[ui.rsel.id].name)?'을':'를'} 창고에 넣었어요.`;ui.rsel=null}render();return}
+ if(a==='rnud'){const it=S.room.find(o=>o.id===(ui.rsel&&ui.rsel.id));if(it){const [dx,dy]=v.split(',').map(Number),nx={...it,c:it.c+dx,r:it.r+dy};if(fits(nx,S.room,it)){Object.assign(it,nx);save();ui.rmsg=''}else ui.rmsg='그쪽으로는 더 못 움직여요.'}render();return}
  if(a==='bus'){const nb=BUS[S.bus+1];if(nb&&spend(nb.cost)){S.bus++;ui.msg=`모나 버스 Lv.${S.bus} 튜닝 완료! ${nb.eff}`}save();render();return}
  if(a==='pick'){const c=PICK[S.pick+1];if(c&&spend(c)){S.pick++;ui.msg=`자물쇠 따개 Lv.${S.pick} 강화 완료!`}save();render();return}
  if(a==='smoke'){if(S.smoke<9&&spend(600)){S.smoke++;ui.msg='연막탄을 하나 챙겼어요.'}save();render();return}
  if(a==='curry-buy'){if(S.curry<9&&spend(400)){S.curry++;ui.msg='르블랑 카레를 포장했어요.'}save();render();return}
- if(a==='reset'){if(!ui.reset){ui.reset=true;render();return}S=DEF();save();ui.reset=false;render();return}
+ if(a==='reset'){if(!ui.reset){ui.reset=true;render();return}S=DEF();ensureRoom();save();ui.reset=false;ui.rsel=null;render();return}
 });
 render();
 }

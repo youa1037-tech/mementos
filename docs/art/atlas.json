@@ -1,0 +1,200 @@
+{
+ "version": 1,
+ "cell": 16,
+ "palette": [
+  "#141012",
+  "#2a1e22",
+  "#3b2b2f",
+  "#4a2a22",
+  "#6e4430",
+  "#9a6440",
+  "#c48a58",
+  "#e8b98a",
+  "#4a0e12",
+  "#7a1418",
+  "#b3161b",
+  "#e5191c",
+  "#ff6b6b",
+  "#f6f1ea",
+  "#d9d2cc",
+  "#b9aca5",
+  "#6b5f5a",
+  "#f5b942",
+  "#ffe08a",
+  "#59c3ff",
+  "#1b2140",
+  "#2e3a6e",
+  "#2f6b4a",
+  "#4f9a5a",
+  "#8fd18a"
+ ],
+ "room": {
+  "w": 176,
+  "h": 128,
+  "cols": 11,
+  "rows": 8,
+  "wall_rows": 3
+ },
+ "frames": {
+  "sofa": {
+   "x": 2,
+   "y": 2,
+   "w": 34,
+   "h": 24,
+   "layer": "floor",
+   "footprint": [
+    2,
+    1
+   ],
+   "pivot": [
+    17,
+    24
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "rug": {
+   "x": 38,
+   "y": 2,
+   "w": 48,
+   "h": 30,
+   "layer": "rug",
+   "footprint": [
+    3,
+    2
+   ],
+   "pivot": [
+    24,
+    15
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "plant": {
+   "x": 88,
+   "y": 2,
+   "w": 18,
+   "h": 26,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    9,
+    26
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "lamp": {
+   "x": 108,
+   "y": 2,
+   "w": 16,
+   "h": 36,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    8,
+    36
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "poster": {
+   "x": 126,
+   "y": 2,
+   "w": 16,
+   "h": 20,
+   "layer": "wall",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    8,
+    10
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "game": {
+   "x": 144,
+   "y": 2,
+   "w": 18,
+   "h": 26,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    9,
+    26
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "tea": {
+   "x": 164,
+   "y": 2,
+   "w": 18,
+   "h": 22,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    9,
+    22
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "easel": {
+   "x": 184,
+   "y": 2,
+   "w": 18,
+   "h": 32,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    9,
+    32
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "cushion": {
+   "x": 204,
+   "y": 2,
+   "w": 20,
+   "h": 14,
+   "layer": "floor",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    10,
+    14
+   ],
+   "flip": "horizontal mirror at runtime"
+  },
+  "dart": {
+   "x": 226,
+   "y": 2,
+   "w": 16,
+   "h": 16,
+   "layer": "wall",
+   "footprint": [
+    1,
+    1
+   ],
+   "pivot": [
+    8,
+    8
+   ],
+   "flip": "horizontal mirror at runtime"
+  }
+ }
+}
