@@ -273,13 +273,26 @@ textarea{width:100%;max-width:520px;display:block;margin:14px auto 0;min-height:
 .prop p{margin:2px 0 0}
 .prop .owned{white-space:nowrap}
 .busbox{max-width:none}
-.wrap.res,.wrap.shop{min-height:100dvh;display:flex;flex-direction:column}
+.wrap.res,.wrap.shop,.wrap.codex{min-height:100dvh;display:flex;flex-direction:column}
 .actbar{position:sticky;bottom:0;margin:auto calc(-1*max(4vw,14px)) 0;padding:10px max(4vw,14px) calc(10px + env(safe-area-inset-bottom));background:rgba(15,11,12,.97);border-top:2px solid var(--red);display:flex;gap:10px;justify-content:center}
 .actbar .btn{flex:1 1 0;max-width:300px}
 .copyrow{display:flex;justify-content:center;margin-top:22px}
 .after,.shop section{margin-bottom:28px}
 .ctl{padding-inline:max(3vw,8px,calc((100% - 1180px)/2))}
-.wrap.res,.wrap.shop{padding-bottom:0}
+.wrap.res,.wrap.shop,.wrap.codex{padding-bottom:0}
+.codex section{margin:26px 0 6px}.codex h3{font-size:24px;line-height:1.2;margin-bottom:10px}.codex h3 .sub{margin-top:8px}
+.cxstat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.cxstat div{background:var(--p);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.cxstat b{font-family:var(--disp);font-weight:400;font-size:20px;color:var(--gold);white-space:nowrap}
+.cxstat span{font-size:13px;color:var(--mut)}
+.cxbar{margin:12px 0 0}.cxbar i{transform:none}
+.cxl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.cxl li{background:var(--p);padding:10px 12px;border-left:3px solid var(--line2);display:flex;flex-direction:column;gap:2px}
+.cxl li.got{border-left-color:var(--gold)}
+.cxl b{font-family:var(--en);font-weight:400;font-size:17px;letter-spacing:.03em}.cxl li:not(.got) b{color:var(--faint)}
+.cxl span{font-size:13px;color:var(--mut)}.cxl i{font-style:normal;font-family:var(--en);letter-spacing:.03em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{background:var(--p);padding:4px 8px;font-size:14px}.chip i{font-style:normal;font-family:var(--en);letter-spacing:.03em}
+@media(max-width:600px){.cxstat{grid-template-columns:repeat(2,minmax(0,1fr))}.cxl{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){.shelf,.tools{grid-template-columns:minmax(0,1fr)}.ctl .grp button{padding:6px 4px}.ctl .grp.r button{padding:6px 10px}}
 @media(max-width:600px){.hero{grid-template-columns:minmax(0,1fr)}.how{grid-template-columns:minmax(0,1fr)}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card .code{font-size:24px}.nm b{display:none}.map{height:170px}.bar h2{font-size:26px}.ctl button{font-size:13px;padding:6px 4px}}
 /* ===== v3: 예고장 레터링 · 계단 메뉴 · 붉은 슬랩 (원작 리소스 미사용, 기법만 참고) ===== */
@@ -421,6 +434,16 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .tipcard p{margin:0;flex:1;font-size:14px;line-height:1.45;font-weight:700}
 .tipcard .btn{flex:none}
 .evtip{margin:4px 0 6px;font-size:13px;font-weight:700;color:var(--gold)}
+.cash{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--p2);padding:8px 10px}
+.cash p{margin:0;flex:1 1 200px;font-size:13px;color:var(--mut);line-height:1.45}
+.cash p b{color:var(--ink)}
+.node small.rk{color:var(--gold)}
+.rstamp{position:fixed;left:0;right:0;margin:0 auto;top:122px;z-index:22;width:min(92vw,460px);transform:rotate(-1deg);background:var(--ink);color:#141012;padding:8px 14px 10px;box-shadow:6px 6px 0 var(--gold);pointer-events:none}
+.rstamp.bad{box-shadow:6px 6px 0 var(--red)}
+.rstamp small{display:block;font:700 13px 'Noto Sans KR',sans-serif;color:#6b5f5a}
+.rstamp b{display:block;font-family:var(--hd);font-weight:400;font-size:20px;line-height:1.25}
+.rstamp.bad b::before{content:'✕ ';color:var(--red)}.rstamp.good b::before{content:'✓ ';color:#1f8a4c}
+.rstamp.anim{animation:arrive .35s var(--snap) both}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -541,6 +564,10 @@ const moodL=m=>m>=65?{k:'good',l:'화기애애',en:'GOOD'}:m>=35?{k:'meh',l:'미
 const addMood=n=>{run.mood=clamp(run.mood+n,0,100)};
 const addTre=(a,b)=>{run.tre++;run.tval+=R(a,b)};
 const canEnter=z=>z!=='plat'||S.bus>=2||hasTag(CLUE);
+/* 위험 정책 risk-v2: 깊은 구역에서 보낸 턴만큼 위험도가 쌓이고, 승강장에서 쉬면 내려간다 */
+const HEAT_MAX=12,HEAT_GAIN=[-3,1,2,3];
+const heatL=h=>h>=8?{k:'bad',en:'DANGER',l:'매우 위험'}:h>=4?{k:'meh',en:'ALERT',l:'경계'}:{k:'good',en:'CALM',l:'잠잠'};
+const dmgMul=()=>1+run.heat*.13;
 
 function fx(m,list){const r=[];for(const f of list||[]){const i=f.indexOf(':'),k=i<0?f:f.slice(0,i),v=i<0?'':f.slice(i+1),n=+v;
  if(k==='yen'){const [a,b]=v.split('-').map(Number);const y=R(a,b||a);run.yen+=y;r.push(`+¥${fmt(y)}`)}
@@ -585,13 +612,13 @@ function actSocial(m){
 }
 function actSupport(m){
  const t=[...alive()].sort((a,b)=>a.hp-b.hp)[0];
- if(t.hp>=95||m.sp<4)return actExplore(m);
- const h=R(10,16)+(m.c.type==='support'?6:0);m.sp-=4;hp(t,h);m.mvp+=1;
+ if(t.hp>=80||m.sp<6)return actExplore(m);
+ const h=R(7,11)+(m.c.type==='support'?4:0);m.sp-=6;hp(t,h);m.mvp+=1;
  return {who:m.id,n:t===m?`${ig(m.c.name)} 숨을 고르며 상처를 돌봤다.`:`${ig(m.c.name)} ${t.c.name}의 상처를 돌봤다.`,q:say(m.c,'support',t),res:`${t.c.name} HP +${h}`};
 }
 function actProtect(m,t){
- hp(t,10);if(m.c.type==='rush')hp(m,-4);m.mvp+=2;
- return {who:m.id,n:`${ig(m.c.name)} 위태로운 ${ul(t.c.name)} 감싸며 앞으로 나섰다.`,q:say(m.c,'protect',t),res:`${t.c.name} HP +10`};
+ hp(t,6);if(m.c.type==='rush')hp(m,-4);m.mvp+=2;
+ return {who:m.id,n:`${ig(m.c.name)} 위태로운 ${ul(t.c.name)} 감싸며 앞으로 나섰다.`,q:say(m.c,'protect',t),res:`${t.c.name} HP +6`};
 }
 function actSolo(m){
  let pool=m.c.solo.filter(s=>!(s.fx.includes('clue')&&hasTag(CLUE)));if(!pool.length)pool=m.c.solo;
@@ -601,7 +628,7 @@ function actSolo(m){
 
 /* ============ 전투·회피 (이벤트 해결형) ============ */
 function winP(){let p=0;for(const m of alive()){p+=12+m.hp*.22;if(m.c.type==='rush')p+=6;if(m.id==='haru')p+=6;if(m.id==='makoto')p+=4}
- p+=run.mood>=65?8:run.mood<35?-8:0;const e=40+run.turn*5+ZONES[run.zone].risk*10;
+ p+=run.mood>=65?8:run.mood<35?-8:0;const e=40+run.turn*3+run.heat*3+ZONES[run.zone].risk*10;
  return clamp(.3+(p-e)/80+run.loss*.08,.12,.95)}
 const TAGOWN={'약점 간파':'joker','섀도 제압 준비':'haru','도발':'ann'};
 function fight(p,sp){
@@ -611,7 +638,7 @@ function fight(p,sp){
   out.push({who:m.id,n:`섀도를 쓰러뜨렸다! (${d.c.name} HP -${dmg})`,q:say(m.c,'win'),res:`+¥${fmt(y)}`});
   if(chance(.15+(has('cushion')?.05:0))){addTre(500,900);out.push({sys:1,text:'섀도가 반짝이는 무언가를 떨어뜨렸다.',res:'보물 +1'})}
  }else{run.loss++;const half=hasTag('신중 모드');if(half)delTag('신중 모드');
-  for(const m of shuffle(al).slice(0,2)){let d=R(14,26);if(half)d=Math.round(d/2);hp(m,-d);out.push({who:m.id,n:`섀도의 반격! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
+  for(const m of shuffle(al).slice(0,2)){let d=Math.round(R(14,26)*dmgMul());if(half)d=Math.round(d/2);hp(m,-d);out.push({who:m.id,n:`섀도의 반격! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
   addMood(-6);if(half)out.push({sys:1,text:'[신중 모드] 덕분에 피해가 절반으로 줄었다.'})}
  return out;
 }
@@ -632,19 +659,20 @@ function shadowChoices(){
 
 /* ============ 돌발 이벤트 (범용 골격 + 유형 분기 + 조합 특수) ============ */
 const EVENTS=[
-{id:'shadow',en:'SHADOW!',zones:['pass','lost','plat'],max:2,w:4,make(){const m=pick(alive());
+{id:'shadow',en:'SHADOW!',zones:['pass','lost','plat'],max:3,w:4,make(){const m=pick(alive());
  return {title:'섀도 조우',intro:pick(['선로 아래에서 섀도가 기어 나왔다!','천장에서 검은 그림자가 떨어졌다!','통로를 가로막은 섀도와 눈이 마주쳤다!']),who:m.id,q:say(m.c,'enemy'),choices:shadowChoices()}}},
 {id:'chest',en:'TREASURE CHEST',zones:['lost','plat'],w:4,make(){
  const al=alive(),ak=mem('akechi'),an=al.find(m=>m.c.type==='analyst'),su=al.find(m=>m.c.type==='support');
  const sp=ak||an||su||pick(al),op=mem('joker')||pick(al),inv=[an,su].find(m=>m&&m.sp>=10)||an||su;
  const p=clamp(.45+S.pick*.13,0,.9);
  return {title:'수상한 보물상자',intro:`${ig(op.c.name)} 구석의 보물상자 앞에 쪼그려 앉았다.`,who:sp.id,q:ak?'잠깐. 이 정도로 노골적이면 누군가 열어 주길 기다리고 있는 것 같지 않아?':say(sp.c,'trap'),choices:[
-  {label:'바로 연다',sub:`성공 확률 약 ${pct(p)}${S.pick?` · 자물쇠 따개 Lv.${S.pick}`:''}`,go:()=>{
-   if(chance(p)){run.tre+=2;run.tval+=R(800,1400);op.mvp+=2;return [{who:op.id,n:`${ig(op.c.name)} 상자를 열었다. 보물이 쏟아졌다!`,q:say(op.c,'treasure'),res:'보물 +2'}]}
-   const d=R(12,20);hp(op,-d);op.mis+=3;addTag('함정 발동',op.id);return [{sys:1,warn:1,text:`철컥! 상자에서 가시가 튀어나왔다. (${op.c.name} HP -${d})`},{who:op.id,n:'',q:say(op.c,'hurt'),res:'태그: 함정 발동'}]}},
-  {label:inv?`${inv.c.name}에게 조사를 맡긴다`:'조사를 맡긴다',sub:inv?(inv.sp>=10?'SP -10 · 함정 해제 + 추가 추리':'SP 부족'):'분석·지원형 멤버 필요',dis:!inv||inv.sp<10,go:()=>{
-   inv.sp-=10;inv.mvp+=3;addTre(700,1100);addTag('추리 단서');const y=R(200,400);run.yen+=y;
-   return [{who:inv.id,n:`${ig(inv.c.name)} 경첩에 걸린 가는 철사를 찾아 끊어냈다.`,q:say(inv.c,'treasure'),res:'보물 +1'},{sys:1,text:'상자 밑 발자국을 따라가자 숨겨진 선반이 나왔다.',res:`+¥${y} · 태그: 추리 단서`}]}},
+  {label:'바로 연다',sub:`성공 확률 약 ${pct(p)} · 성공하면 보물 2개${S.pick?` · 자물쇠 따개 Lv.${S.pick}`:''}`,go:()=>{
+   if(chance(p)){run.tre+=2;run.tval+=R(1300,2000);op.mvp+=2;return [{who:op.id,n:`${ig(op.c.name)} 상자를 열었다. 보물이 쏟아졌다!`,q:say(op.c,'treasure'),res:'보물 +2'}]}
+   const d=Math.round(R(12,20)*dmgMul());hp(op,-d);op.mis+=3;addTag('함정 발동',op.id);return [{sys:1,warn:1,text:`철컥! 상자에서 가시가 튀어나왔다. (${op.c.name} HP -${d})`},{who:op.id,n:'',q:say(op.c,'hurt'),res:'태그: 함정 발동'}]}},
+  {label:inv?`${inv.c.name}에게 조사를 맡긴다`:'조사를 맡긴다',sub:inv?(inv.sp>=15?'SP -15 · 안전하게 보물 1개 · 60% 확률로 추가 추리':'SP 부족'):'분석·지원형 멤버 필요',dis:!inv||inv.sp<15,go:()=>{
+   inv.sp-=15;inv.mvp+=3;addTre(500,800);const out=[{who:inv.id,n:`${ig(inv.c.name)} 경첩에 걸린 가는 철사를 찾아 끊어냈다.`,q:say(inv.c,'treasure'),res:'보물 +1'}];
+   if(chance(.6)){addTag('추리 단서');out.push({sys:1,text:'상자 밑 발자국이 어딘가로 이어져 있었다.',res:'태그: 추리 단서'})}
+   return out}},
   {label:'무시하고 지나간다',sub:'위험 회피 · 탐색 기회 소멸',go:()=>[{sys:1,text:'괴도단은 상자를 등지고 걸음을 옮겼다.'}]}]}}},
 {id:'vend',en:'VENDING MACHINE',zones:['pass','lost'],w:3,make(){const r=mem('ryuji'),m=r||pick(alive());
  return {title:'낡은 자판기',intro:'먼지 쌓인 자판기가 아직 희미하게 불빛을 낸다.',who:m.id,q:r?'야, 이거 아직 돌아가냐?!':say(m.c,'find'),choices:[
@@ -666,7 +694,7 @@ const EVENTS=[
  return {title:'함정 바닥',intro:'선로 사이 바닥이 수상하게 꺼져 있다.',who:sm.id,q:say(sm.c,'trap'),choices:[
   {label:`${j.c.name}의 신호로 뛰어넘는다`,sub:`성공 확률 약 ${pct(p)}`,go:()=>{
    if(chance(p)){j.mvp+=2;return [{who:j.id,n:`${ig(j.c.name)} 먼저 뛰어넘고 손을 내밀었다.`,q:say(j.c,'win')}]}
-   const out=[],half=S.bus>=3;for(const m of shuffle(alive()).slice(0,2)){const d=Math.round(R(10,18)*(half?.5:1));hp(m,-d);out.push({who:m.id,n:`바닥이 꺼졌다! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
+   const out=[],half=S.bus>=3;for(const m of shuffle(alive()).slice(0,2)){const d=Math.round(R(10,18)*dmgMul()*(half?.5:1));hp(m,-d);out.push({who:m.id,n:`바닥이 꺼졌다! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
    j.mis+=1;if(half)out.push({sys:1,text:'튜닝된 모나 버스 서스펜션이 충격을 덜어 줬다.'});return out}},
   {label:'멀리 우회한다',sub:'안전 · 분위기 -3',go:()=>{addMood(-3);return [{sys:1,text:'한참을 돌아가느라 다리가 뻐근해졌다.',res:'분위기 -3'}]}},
   {label:'모나 버스로 돌파한다',sub:S.bus>=3?'버스 Lv.3 서스펜션 · 무피해':'모나 버스 Lv.3 필요',dis:S.bus<3,go:()=>{const mo=mem('mona');
@@ -677,7 +705,7 @@ const EVENTS=[
    const h=18+(mem('haru')?6:0),s=has('tea')?16:8;for(const x of alive()){hp(x,h);x.sp=clamp(x.sp+s,0,x.msp)}addMood(6);
    return [{sys:1,text:'괴도단은 벤치에 나란히 앉아 숨을 돌렸다.',res:`전원 HP +${h} · SP +${s}`}]}},
   {label:'바로 출발한다',sub:'자율 행동 1회 추가',go:()=>[{sys:1,text:'쉴 틈 없이 다시 움직인다.'},{fn:autoAction}]}]}}},
-{id:'quarrel',en:'CLASH',min:2,w:5,req:()=>run.mood<45&&alive().length>=2,make(){
+{id:'quarrel',en:'CLASH',min:2,w:5,req:()=>run.mood<50&&alive().length>=2,make(){
  const al=alive();let a=al.find(m=>m.c.type==='analyst'),b=al.find(m=>m.c.type==='rush');if(!a||!b)[a,b]=shuffle(al);
  const jk=mem('joker'),med=jk&&jk!==a&&jk!==b?jk:null,p=med?1:clamp(.6+(has('dart')?.15:0),0,1);
  return {title:'의견 충돌',intro:`${wa(a.c.name)} ${b.c.name}의 의견이 엇갈렸다.`,who:a.id,q:say(a.c,'argue'),after:{who:b.id,q:say(b.c,'argue')},choices:[
@@ -753,7 +781,7 @@ function openEvent(e){
 function newRun(ids){
  run={party:ids.map(id=>({id,c:CH[id],hp:100,sp:has('tea')?55:50,msp:has('tea')?55:50,mvp:0,mis:0,bub:'',face:'',bat:-1,down:false})),
   turn:1,zone:'gate',mood:clamp(60+(has('game')?15:0),0,100),yen:0,tre:0,tval:0,tags:[],used:{},q:[],phase:'running',log:[],beat:0,clock:180+R(0,40),
-  speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0};
+  speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0,heat:0,stamp:null};
  const key=[...ids].sort().join('+');run.newCombo=!S.codex.combos.includes(key);
  if(run.newCombo){S.codex.combos.push(key);save()}
  log({sys:1,text:`${ids.map(i=>CH[i].name).join(' · ')} 파티가 메멘토스에 진입했다.${has('game')?' (레트로 게임기 효과: 분위기 +15)':''}`});
@@ -761,13 +789,19 @@ function newRun(ids){
 }
 function enterZone(z){const Z=ZONES[z];
  run.q.push({sys:1,turn:1,arrive:z,text:`T${run.turn} · ${Z.name} — ${pick(Z.arr)}`});
+ if(Z.risk&&chance(Math.min(.85,run.heat*.12)))run.q.push({fn:ambush});
  for(let i=0;i<Z.acts;i++)run.q.push({fn:autoAction});
  run.q.push({fn:maybeEvent});
  if(Z.acts>2&&chance(.5))run.q.push({fn:autoAction});
  run.q.push({fn:endTurnFn});
 }
+function ambush(){
+ const al=alive();if(!al.length)return null;const out=[{sys:1,warn:1,text:pick(['어둠 속에서 섀도가 기습했다!','등 뒤에서 섀도의 손톱이 스쳤다!','천장에서 섀도가 떨어져 내렸다!'])}];
+ for(const m of shuffle(al).slice(0,run.heat>=6?2:1)){const d=Math.round(R(10,15)*dmgMul());hp(m,-d);out.push({who:m.id,n:`(${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
+ return out}
 function endTurnFn(){
- const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 —`};run.turn++;
+ const z=ZONES[run.zone],h0=run.heat;run.heat=clamp(run.heat+HEAT_GAIN[z.risk],0,HEAT_MAX);addMood(-5);
+ const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})`};run.turn++;
  if(run.turn>7)run.q.push({sys:1,text:'7턴 탐사 완료. 모나 버스가 귀환 준비를 마쳤다.'},{fn:()=>{endRun('complete');return null}});
  else run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 구역을 골라 주세요.`}}});
  return b;
@@ -799,13 +833,21 @@ function step(){
 function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual)return;T=setTimeout(()=>{step();schedule()},run.speed===2?600:1200)}
 function move(z){if(run.phase!=='choose'||!canEnter(z))return;run.zone=z;run.phase='running';enterZone(z);step();schedule()}
 function choose(i){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';
- log({sys:1,text:`▶ 선택: ${c.label}`});run.q.unshift(...c.go());step();schedule()}
+ log({sys:1,text:`▶ 선택: ${c.label}`});const out=c.go();run.stamp=resultStamp(c.label,out);run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
+/* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
+function resultStamp(label,out){const bl=out.filter(b=>!b.fn),txt=b=>(b.n||'')+(b.text||'')+(b.res||'');
+ const bad=bl.some(b=>b.warn||/HP -|실패|-¥|분위기 -/.test(txt(b))),good=bl.some(b=>/\+/.test(b.res||''));
+ let sum=bl.map(b=>b.res).filter(Boolean).join(' · ');const w=bl.find(b=>b.warn);if(w)sum=w.text+(sum?' · '+sum:'');if(!sum){const f=bl.find(b=>b.text||b.n);sum=f?(f.text||f.n):'…'}
+ return {label,sum:sum.length>60?sum.slice(0,59)+'…':sum,k:bad?'bad':good?'good':'',until:Date.now()+2600,shown:false}}
+function vStamp(){const x=run.stamp;if(!x||Date.now()>x.until)return '';const an=!x.shown;x.shown=true;
+ return `<div class="rstamp ${x.k} ${an?'anim':''}" role="status"><small>▶ ${esc(x.label)}</small><b>${esc(x.sum)}</b></div>`}
 function useCurry(){if(!run||S.curry<1||run.phase==='done')return;S.curry--;save();
  for(const m of run.party){if(m.hp<=0){m.hp=30;m.down=false}else hp(m,30);m.sp=clamp(m.sp+10,0,m.msp)}
  log({sys:1,text:'르블랑 카레를 나눠 먹었다. 든든하다!',res:'전원 HP +30 · SP +10'});render()}
 
 function endRun(reason){
- clearTimeout(T);const r=run;r.phase='done';
+ if(!run||run.phase==='done'||run.settled)return;/* 정산은 한 판에 한 번만 (game-state-flow) */
+ clearTimeout(T);const r=run;r.phase='done';r.settled=true;
  let inc=r.yen+r.tval;if(reason==='forced')inc=Math.floor(inc*.5);
  let st=inc<2000?1:inc<4000?2:inc<6500?3:inc<9500?4:5;if(reason==='forced')st=Math.max(1,st-1);if(r.hidden)st=Math.min(5,st+1);
  const mvp=[...r.party].sort((a,b)=>b.mvp-a.mvp)[0],mis=[...r.party].sort((a,b)=>b.mis-a.mis)[0];
@@ -855,7 +897,7 @@ function poster(){
 function vMain(){
  return `<section class="split"><div class="split-in"><div class="ttl"><h1 class="boil">${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1>
  <ul class="stair"><li style="--n:0"><button class="primary" data-act="go:party">${rn('INFILTRATE')}</button></li>
- <li style="--n:1"><button data-act="go:shop">${rn('LEBLANC')}</button></li><li style="--n:2"><button data-act="howto">${rn('HOW TO PLAY')}</button></li></ul></div></div></section>
+ <li style="--n:1"><button data-act="go:shop">${rn('LEBLANC')}</button></li><li style="--n:2"><button data-act="go:codex">${rn('CODEX')}<small>도감 · 조합 ${S.codex.combos.length} / 120</small></button></li><li style="--n:3"><button data-act="howto">${rn('HOW TO PLAY')}</button></li></ul></div></div></section>
 `;
 }
 function vParty(){
@@ -879,10 +921,10 @@ function vMap(){
  const r=run,opts=r.phase==='choose'?[r.zone,...ZONES[r.zone].links]:[];
  const lines=LINKS.map(([a,b])=>`<line x1="${ZONES[a].x}" y1="${ZONES[a].y}" x2="${ZONES[b].x}" y2="${ZONES[b].y}" vector-effect="non-scaling-stroke" class="${a===r.zone||b===r.zone?'hot':''}"/>`).join('');
  const nodes=Object.entries(ZONES).map(([id,z])=>{const cur=id===r.zone,op=opts.includes(id),ok=canEnter(id);
-  const st=`left:${z.x}%;top:${z.y}%`,sub=cur?(r.phase==='choose'?'머무르기':'현재 위치'):!ok?'잠김 · 버스 Lv.2 또는 단서':z.name;
-  return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b><small>${sub}</small></button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b><small>${sub}</small></div>`}).join('');
+  const st=`left:${z.x}%;top:${z.y}%`,g=HEAT_GAIN[z.risk],sub=cur?(r.phase==='choose'?'머무르기':'현재 위치'):!ok?'잠김 · 버스 Lv.2 또는 단서':z.name,rk=op&&ok?`<small class="rk">위험도 ${g>0?'+'+g:g}</small>`:'';
+  return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b><small>${sub}</small>${rk}</button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b><small>${sub}</small></div>`}).join('');
  const strip=`<ol class="strip" aria-label="현재 위치">${['gate','pass','lost','plat'].map(id=>`<li class="${id===r.zone?'cur':''} ${canEnter(id)?'':'lock'}">${ZONES[id].esh}</li>`).join('')}</ol>`;
- return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?'<p class="mhint">다음 구역을 고르세요. 선로로 이어진 곳만 갈 수 있어요.</p>':''}`;
+ return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">다음 구역을 고르세요. 깊은 구역일수록 위험도가 쌓여요.</p><div class="cash"><p>지금 귀환하면 <b>¥${fmt(r.yen+r.tval)}</b>(보물 포함) 확보. 전원이 쓰러지면 절반만 건져요.</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
 }
 function vLog(){
  return run.log.map(b=>{const c=b.who?CH[b.who]:null,cls=[b.sys?'sys':'',b.ev?'ev':'',b.turn?'turn':'',b.warn?'warn':''].join(' ');
@@ -894,7 +936,7 @@ function vEvent(){const d=run.ev,c=d.who?CH[d.who]:null,en=run.evIn?'':'enter';r
  ${d.choices.map((x,i)=>`<button class="ch" style="--i:${i};--d:${[160,260,327,393][i]}ms" data-act="choice:${i}" ${x.dis?'disabled':''}><span class="k">${'ABCD'[i]}</span><span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small></span></button>`).join('')}</div></div>`;
 }
 function vExplore(){
- const r=run,Z=ZONES[r.zone],ml=moodL(r.mood),run_=r.phase==='running';
+ const r=run,Z=ZONES[r.zone],ml=moodL(r.mood),hl=heatL(r.heat),run_=r.phase==='running';
  const tiles=r.party.map(m=>{const mt=r.tags.filter(t=>t.w===m.id),hl=m.hp<=35?'low':'';
   const dh=m.hp-(m.rh??m.hp),fr=m.bat===r.beat;m.rh=m.hp;
   return `<div class="tile ${m.hp<=0?'down':''} ${dh<0?'hit':dh>0?'heal':''}" style="--c:${m.c.col}"><div class="bub ${fr?'fresh':''}"><span>${m.bub?esc(m.bub):'…'}</span></div>
@@ -902,12 +944,12 @@ function vExplore(){
   <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
- return `<main class="ex"><header class="xbar"><div class="tn">T${Math.min(r.turn,7)}<small>/7</small></div><div class="zn"><b>${Z.en}</b><small>${Z.name} · ${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" title="분위기 ${ml.l}">MOOD: ${ml.en}</span></div></header>
+ return `<main class="ex"><header class="xbar"><div class="tn">T${Math.min(r.turn,7)}<small>/7</small></div><div class="zn"><b>${Z.en}</b><small>${Z.name} · ${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><span class="tag mood m-${hl.k}" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></header>
  ${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
  <section class="party">${tiles}</section>
  <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox"><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
  ${r.phase==='event'?vEvent():(r.evIn=false,'')}
- ${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
+ ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
  return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})\n정산 수익: ¥${fmt(x.inc)} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
@@ -944,6 +986,23 @@ function vShop(){
  <button class="reset" data-act="reset">${ui.reset?'TAP AGAIN TO RESET ALL DATA':'RESET DATA'}</button>
  <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
 }
+/* ============ 도감 (screen id: codex · parent: main · 탐사 밖에서만 열림) ============ */
+function vCodex(){
+ const cx=S.codex,nc=cx.combos.length,pc=COMBOS.map(e=>{const got=cx.events.includes(e.id);
+  return `<li class="${got?'got':''}"><b>${got?esc(e.name):'???'}</b><span>${e.combo.map((id,i)=>got||i===0?`<i style="color:${CH[id].col}">${CH[id].code}</i>`:'<i>?</i>').join(' + ')}</span></li>`}).join('');
+ const HID=[['sign','존재하지 않는 역 · 표지판','플랫폼에서 이상한 표지판을 기록'],['ghost','존재하지 않는 역 · 진입','버스 Lv.4나 [추리 단서]가 있어야 들어갈 수 있다']];
+ const hid=HID.map(([id,n,h])=>{const got=cx.hidden.includes(id);return `<li class="${got?'got':''}"><b>${got?n:'???'}</b><span>${got?'발견함':h}</span></li>`}).join('');
+ const props=PROPS.map(p=>`<li class="${has(p.id)?'got':''}"><b>${has(p.id)?p.en:'???'}</b><span>${has(p.id)?p.unlock:`르블랑에서 ¥${fmt(p.cost)}`}</span></li>`).join('');
+ const chips=cx.combos.map(k=>`<span class="chip">${k.split('+').map(id=>`<i style="color:${CH[id].col}">${CH[id].code}</i>`).join(' ')}</span>`).join('');
+ return `<main class="wrap codex"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('CODEX')}<span class="sub">괴도단 도감</span></h2><span class="pill">${nc} / 120</span></header>
+ <div class="cxstat"><div><b>${cx.reports}</b><span>탐사 보고서</span></div><div><b>${'★'.repeat(cx.best)||'-'}</b><span>최고 평가</span></div><div><b>${cx.events.length} / ${COMBOS.length}</b><span>조합 이벤트</span></div><div><b>${cx.hidden.length} / 2</b><span>히든</span></div></div>
+ <div class="lv cxbar"><i class="on" style="flex:${Math.max(nc,.001)}"></i><i style="flex:${120-nc}"></i></div>
+ <section><h3>${rn('COMBO EVENTS')}<span class="sub">특정 두 사람이 같이 가면 일어나는 사건. 한 명은 공개돼 있어요.</span></h3><ul class="cxl">${pc}</ul></section>
+ <section><h3>${rn('HIDDEN')}<span class="sub">숨겨진 역</span></h3><ul class="cxl">${hid}</ul></section>
+ <section><h3>${rn('HIDEOUT')}<span class="sub">르블랑 소품과 후일담</span></h3><ul class="cxl">${props}</ul></section>
+ <section><h3>${rn('PARTIES')}<span class="sub">출격해 본 조합 ${nc}개</span></h3>${nc?`<div class="chips">${chips}</div>`:'<p class="hint">아직 출격 기록이 없어요.</p>'}</section>
+ <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
+}
 /* ============ 첫 판 팁 ============ */
 const TIPS={
  start:'괴도단은 알아서 움직여요. 캐릭터 말풍선과 아래 로그를 지켜보세요.',
@@ -965,7 +1024,7 @@ const TUT=[
   vis:()=>`<ol class="strip demo">${['gate','pass','lost','plat'].map((id,i)=>`<li class="${i===1?'cur':''} ${i===3?'lock':''}">${ZONES[id].esh}</li>`).join('')}</ol>
   <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -10 · 함정 해제 + 추가 추리</small></span></div>
   <div class="ptags"><span class="tag">[함정 의심]</span><span class="tag">[수상한 음료]</span><span class="tag">[100엔 손실]</span></div>`},
- {t:'CONTROLS',kr:'조작',body:'HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 절반만 들고 돌아와요. 위험하면 미리 ESCAPE 하세요.',
+ {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아져요. HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 절반만 들고 돌아와요. 구역을 고를 때 <b>RETURN NOW</b>로 번 걸 챙겨 돌아올 수 있어요.',
   vis:()=>`<ul class="keys">${[['PAUSE','진행을 멈추고 천천히 읽기'],['1x · 2x','진행 속도'],['AUTO · MANUAL','수동이면 NEXT로 한 줄씩 넘기기'],['CURRY','르블랑 카레로 전원 회복'],['ESCAPE','지금까지 번 것을 들고 귀환']].map(([k,d])=>`<li><b>${k}</b><span>${d}</span></li>`).join('')}</ul>`},
  {t:'INVEST',kr:'르블랑',body:'돌아오면 <b>활동 보고서</b>와 르블랑 후일담이 나와요. 번 엔으로 소품(새 후일담 + 버프), 모나 버스(깊은 구역 개방), 잠입 도구를 사서 다음 탐사를 준비하세요.',
   vis:()=>`<div class="invest">${PROPS.slice(0,3).map(p=>`<div><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg><b>${p.en}</b></div>`).join('')}</div><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=2?'on':''}"></i>`).join('')}</div><p class="sub" style="margin:0">MONA BUS Lv.2 — 버려진 플랫폼 개방</p>`}];
@@ -977,9 +1036,10 @@ function vTut(){
 }
 function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;save();ui.screen=ui.tafter;ui.enter=true;render();window.scrollTo(0,0);return}ui.tstep=n;ui.enter=true;render();window.scrollTo(0,0)}
 function render(){
- const app=$('#app');app.innerHTML=({main:vMain,party:vParty,explore:vExplore,result:vResult,shop:vShop,tutorial:vTut})[ui.screen]();
+ const ol=$('#log'),stick=!ol||ol.scrollHeight-ol.scrollTop-ol.clientHeight<40,top=ol?ol.scrollTop:0;
+ const app=$('#app');app.innerHTML=({main:vMain,party:vParty,explore:vExplore,result:vResult,shop:vShop,codex:vCodex,tutorial:vTut})[ui.screen]();
  app.classList.toggle('scr-in',!!ui.enter&&!RM);ui.enter=false;
- const l=$('#log');if(l)l.scrollTop=l.scrollHeight;
+ const l=$('#log');if(l)l.scrollTop=stick?l.scrollHeight:top;
  if(ui.screen==='explore'&&run){countYen();if(run.banner){showBanner(run.banner);run.banner=null}}
  const inc=$('#inc');if(inc&&inc.dataset.to)countTo(inc,0,+inc.dataset.to,1100,500);
 }
@@ -1036,6 +1096,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='manual'){run.manual=!run.manual;render();schedule();return}
  if(a==='next'){step();return}
  if(a==='curry'){useCurry();return}
+ if(a==='cashout'){if(run&&run.phase==='choose'){log({sys:1,text:'괴도단은 여기서 탐사를 접고 르블랑으로 돌아갔다.'});endRun('retreat')}return}
  if(a==='retreat'){if(!ui.rc){ui.rc=true;render();return}ui.rc=false;log({sys:1,text:'괴도단은 탐사를 접고 르블랑으로 돌아갔다.'});endRun('retreat');return}
  if(a==='copy'){const t=reportText();try{navigator.clipboard.writeText(t).then(()=>{ui.copy='ok';render()},()=>{ui.copy='fail';render()})}catch(err){ui.copy='fail';render()}return}
  if(a==='buy'){const p=PROPS.find(x=>x.id===v);if(p&&!has(p.id)&&spend(p.cost)){S.props.push(p.id);ui.msg=`${p.name} 배치 완료! ${p.unlock} 해금 · ${p.eff}`}save();render();return}
