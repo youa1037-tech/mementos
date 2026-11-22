@@ -7,7 +7,7 @@ index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
 헤드리스 크롬에서 전략 3가지로 자동 플레이하고 지표를 출력합니다.
 - greedy-first : 매 턴 가장 깊은 구역, 선택지는 항상 첫 번째 (아무 생각 없는 플레이)
 - greedy-best  : 매 턴 가장 깊은 구역, 선택지는 미리 정한 선호 순서
-- cautious     : 위험해지면 귀환 (누군가 HP 40 이하이거나 전투불능)
+- cautious     : 위험도 7 이상이면 승강장으로 물러나 위험도를 낮추고, 누군가 HP 40 이하·전투불능이면 귀환
 """
 import json, os, statistics as st, sys, tempfile, collections
 from playwright.sync_api import sync_playwright
@@ -31,7 +31,8 @@ for(let k=0;k<a.n;k++){
    const al=r.party.filter(m=>m.hp>0);
    if(a.strat==='cautious'&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
    const opts=[r.zone,...g.ZONES[r.zone].links].filter(g.canEnter);
-   g.move(['plat','lost','pass','gate'].find(o=>opts.includes(o)));continue}
+   const order=a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
+   g.move(order.find(o=>opts.includes(o)));continue}
   if(r.phase==='event'){ch++;const c=r.ev.choices;ev.push(r.ev.title);let i=c.findIndex(x=>!x.dis);
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
    g.choose(i);continue}

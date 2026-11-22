@@ -512,13 +512,13 @@ const DAYRULE={
 const DAY=k=>run&&run.day&&(DAYRULE[run.day.id]||{})[k];
 
 const ZONES={
- gate:{name:'진입 승강장',en:'ENTRY PLATFORM',esh:'ENTRY',sh:'승강장',sub:'안전 지역',x:22,y:22,links:['pass','lost'],loot:[50,150],tre:.03,risk:0,acts:2,
+ gate:{name:'진입 승강장',en:'ENTRY PLATFORM',esh:'ENTRY',sh:'승강장',sub:'안전 지역',x:22,y:22,links:['pass','lost'],loot:[120,260],tre:.03,risk:0,acts:2,
   arr:['붉은 하늘 아래 승강장이 조용하다.','개찰구 너머로 선로가 끝없이 이어진다.'],scout:['승강장 벤치 밑을 뒤졌다.','개찰구 주변을 살폈다.']},
  pass:{name:'폐쇄된 통로',en:'SEALED PASSAGE',esh:'PASSAGE',sh:'통로',sub:'표준 위험',x:78,y:24,links:['gate','lost','plat'],loot:[120,300],tre:.07,risk:1,acts:3,
   arr:['어두운 통로에 낮은 웅성거림이 울린다.','깜빡이는 형광등이 길을 반쯤만 비춘다.'],scout:['어두운 통로 끝을 살폈다.','녹슨 배전함을 열어 봤다.']},
  lost:{name:'유실물 보관실',en:'LOST & FOUND',esh:'LOST',sh:'보관실',sub:'고보상 · 함정',x:24,y:78,links:['gate','pass','plat'],loot:[150,380],tre:.15,risk:2,acts:3,
   arr:['주인 잃은 물건들이 천장까지 쌓여 있다.','선반 사이로 오래된 자판기 불빛이 새어 나온다.'],scout:['잡동사니 더미를 뒤졌다.','분실물 선반을 훑었다.']},
- plat:{name:'버려진 플랫폼',en:'ABANDONED PLATFORM',esh:'DEPTHS',sh:'플랫폼',sub:'심층 · 히든',x:76,y:78,links:['pass','lost'],loot:[300,650],tre:.22,risk:3,acts:3,
+ plat:{name:'버려진 플랫폼',en:'ABANDONED PLATFORM',esh:'DEPTHS',sh:'플랫폼',sub:'심층 · 히든',x:76,y:78,links:['pass','lost'],loot:[260,560],tre:.22,risk:3,acts:3,
   arr:['끊긴 선로 끝에서 차가운 바람이 분다.','시간표에는 존재하지 않는 시각이 적혀 있다.'],scout:['끊긴 선로 옆을 조사했다.','빛바랜 시간표를 들여다봤다.']}};
 const LINKS=[['gate','pass'],['gate','lost'],['pass','lost'],['pass','plat'],['lost','plat']];
 
@@ -611,7 +611,7 @@ const canEnter=z=>z!=='plat'||S.bus>=2||hasTag(CLUE);
 /* 위험 정책 risk-v2: 깊은 구역에서 보낸 턴만큼 위험도가 쌓이고, 승강장에서 쉬면 내려간다 */
 const HEAT_MAX=12,HEAT_GAIN=[-3,1,2,3];
 const heatL=h=>h>=8?{k:'bad',en:'DANGER',l:'매우 위험'}:h>=4?{k:'meh',en:'ALERT',l:'경계'}:{k:'good',en:'CALM',l:'잠잠'};
-const dmgMul=()=>(1+run.heat*.13)*(DAY('dmg')||1);
+const dmgMul=()=>(1+run.heat*.15)*(DAY('dmg')||1);
 
 
 
@@ -748,7 +748,7 @@ const EVENTS=[
    const h=18+(mem('haru')?6:0),s=has('tea')?16:8;for(const x of alive()){hp(x,h);x.sp=clamp(x.sp+s,0,x.msp)}addMood(6);
    return [{sys:1,text:'괴도단은 벤치에 나란히 앉아 숨을 돌렸다.',res:`전원 HP +${h} · SP +${s}`}]}},
   {label:'바로 출발한다',sub:'자율 행동 1회 추가',go:()=>[{sys:1,text:'쉴 틈 없이 다시 움직인다.'},{fn:autoAction}]}]}}},
-{id:'quarrel',en:'CLASH',min:2,w:5,req:()=>run.mood<50&&alive().length>=2,make(){
+{id:'quarrel',en:'CLASH',own:1,min:2,w:5,req:()=>run.mood<50&&alive().length>=2,make(){
  const al=alive();let a=al.find(m=>m.c.type==='analyst'),b=al.find(m=>m.c.type==='rush');if(!a||!b)[a,b]=shuffle(al);
  const jk=mem('joker'),med=jk&&jk!==a&&jk!==b?jk:null,p=med?1:clamp(.6+(has('dart')?.15:0),0,1);
  return {title:'의견 충돌',intro:`${wa(a.c.name)} ${b.c.name}의 의견이 엇갈렸다.`,who:a.id,q:say(a.c,'argue'),after:{who:b.id,q:say(b.c,'argue')},choices:[
@@ -767,9 +767,9 @@ const EVENTS=[
 {id:'ghost',en:'GHOST STATION',zones:['plat'],w:6,make(){const s=mem('futaba')||mem('yusuke')||mem('akechi')||pick(alive()),ok=S.bus>=4||hasTag('추리 단서');
  return {title:'존재하지 않는 역',intro:'노선도에 없는 역의 표지판이 어둠 속에서 깜빡인다.',who:s.id,q:say(s.c,'find'),choices:[
   {label:'역 안으로 들어간다',sub:ok?'최고 보상 · 전원 HP -10':'모나 버스 Lv.4 또는 [추리 단서] 필요',dis:!ok,go:()=>{
-   run.tre+=2;run.tval+=R(2000,3000);const y=R(1500,2500);run.yen+=y;run.hidden=true;if(!S.codex.hidden.includes('ghost')){S.codex.hidden.push('ghost');save()}
+   run.tre+=1;run.tval+=R(900,1300);const y=R(600,1000);run.yen+=y;run.hidden=true;/* 히든은 돈보다 이야기·별점·도감 보상 */if(!S.codex.hidden.includes('ghost')){S.codex.hidden.push('ghost');save()}
    for(const x of alive())hp(x,-10);s.mvp+=3;
-   return [{sys:1,ev:1,text:'히든 구역 발견 — 존재하지 않는 역'},{sys:1,text:'플랫폼 끝, 아무도 기억하지 못하는 역에 보물이 쌓여 있었다.',res:`보물 +2 · +¥${fmt(y)}`},{who:s.id,n:'',q:say(s.c,'treasure')}]}},
+   return [{sys:1,ev:1,text:'히든 구역 발견 — 존재하지 않는 역'},{sys:1,text:'플랫폼 끝, 아무도 기억하지 못하는 역에 보물이 놓여 있었다.',res:`보물 +1 · +¥${fmt(y)}`},{who:s.id,n:'',q:say(s.c,'treasure')}]}},
   {label:'표지판만 기록해 둔다',sub:'도감 기록 · 안전',go:()=>{addTag('존재하지 않는 역');if(!S.codex.hidden.includes('sign')){S.codex.hidden.push('sign');save()}return [{sys:1,text:'표지판의 역 이름을 수첩에 옮겨 적었다.',res:'태그: 존재하지 않는 역'}]}}]}}},
 /* --- 대표 조합 특수 이벤트 --- */
 {id:'c-vend',en:'VENDING FEUD',name:'자판기 공방',combo:['ryuji','akechi'],min:2,w:6,req:()=>hasTag('100엔 손실','ryuji'),make(){
@@ -812,14 +812,18 @@ for(const e of SCRIPT.events){const needs=[...e.c.filter(c=>c.k==='tag').map(c=>
 const COMBOS=EVENTS.filter(e=>e.combo);
 
 function maybeEvent(){
- const t=run.turn,p=t===1?.3:t===2?.5:.8,any=DAY('anyZone')||0;
+ if(run.evTurn===run.turn)return null;
+ const t=run.turn,p=t===1?.3:t===2?.5:.7,any=DAY('anyZone')||0;
  const zoneOk=e=>!e.zones||e.zones.includes(run.zone)||(any&&e.zones.some(z=>z==='lost'||z==='plat')&&chance(any));
- const cand=EVENTS.filter(e=>zoneOk(e)&&(!e.min||t>=e.min)&&(run.used[e.id]||0)<(e.id==='shadow'?(DAY('shadowMax')||e.max):(e.max||1))&&(!e.combo||e.combo.every(id=>mem(id)))&&(!e.req||e.req()));
+ const cand=EVENTS.filter(e=>!e.own&&zoneOk(e)&&(!e.min||t>=e.min)&&(run.used[e.id]||0)<(e.id==='shadow'?(DAY('shadowMax')||e.max):(e.max||1))&&(!e.combo||e.combo.every(id=>mem(id)))&&(!e.req||e.req()));
  if(!cand.length)return null;
  if(!chance(cand.some(e=>e.combo||e.req)?Math.min(1,p+.15):p))return null;
  const w=e=>e.w*(e.combo?1.6:1)*(e.id==='shadow'?(DAY('shadowW')||1):1)*(e.id==='trap'?(DAY('trapW')||1):1);
  return openEvent(cand[wpick(cand.map(w))]);
 }
+/* 관계 사건(의견 충돌)은 구역 사건과 경쟁하지 않고 따로 굴린다: 분위기가 나쁘면 일어날 수 있는 일 */
+const QUARREL_P=.3;
+function relCheck(){const e=EVENTS.find(x=>x.id==='quarrel');if(!e||(run.used.quarrel||0)>=1||run.turn<e.min||!e.req()||!chance(QUARREL_P))return null;return openEvent(e)}
 /* ============ 사슬: 발견 → 전개 → 결말, 턴 범위와 조건이 맞을 때 한 턴에 한 장면 ============ */
 const ctTurn=()=>run.maxT===7?run.turn:Math.min(7,Math.round(run.turn*7/run.maxT));
 const stepOk=x=>x&&(!x.turn||(ctTurn()>=x.turn[0]&&ctTurn()<=x.turn[1]))&&ok(x.c);
@@ -830,15 +834,16 @@ function chainScene(ch,x,key){const sp=x.who&&mem(x.who),m=sp||pick(alive());
  if(sp&&x.q)out.push({who:sp.id,n:'',q:fill(x.q,{who:sp.c})});
  const cx=S.codex.chains||(S.codex.chains={}),rank={find:1,grow:2,end:3};if((rank[cx[ch.id]]||0)<rank[key]){cx[ch.id]=key;save()}
  return out}
+const CHAIN_END_HEAT=5;/* 결말은 위험도 5 이상인 판에서만: 깊이 간 사람이 이야기 끝을 본다 */
 function chainTick(){
  for(const st of run.chains){const key=nextKey(st);if(st.done||!key)continue;const ch=CHAIN[st.id],x=ch.steps[key];
-  if(stepOk(x)&&(ctTurn()>=x.turn[1]||chance(.7))){st.stage=key;if(key==='end')st.done=true;return chainScene(ch,x,key)}}
+  if(stepOk(x)&&(key!=='end'||run.heat>=CHAIN_END_HEAT)&&(ctTurn()>=x.turn[1]||chance(.6))){st.stage=key;if(key==='end')st.done=true;return chainScene(ch,x,key)}}
  if(run.chains.filter(x=>!x.done).length>=2)return null;
  const cand=SCRIPT.chains.filter(ch=>!run.chains.some(x=>x.id===ch.id)&&!(S.lastChains||[]).includes(ch.id)&&stepOk(ch.steps.find));
  if(!cand.length||!chance(.4+(DAY('chain')||0)))return null;
  const ch=pick(cand);run.chains.push({id:ch.id,stage:'find',done:false});return chainScene(ch,ch.steps.find,'find')}
 function openEvent(e){
- run.used[e.id]=(run.used[e.id]||0)+1;
+ run.used[e.id]=(run.used[e.id]||0)+1;run.evTurn=run.turn;
  if(e.combo&&!S.codex.events.includes(e.id)){S.codex.events.push(e.id);save()}
  const d=e.make();d.en=(e.combo?'COMBO: ':'')+e.en;const b=[{sys:1,ev:1,text:`돌발 사건 — ${d.title}`},{sys:1,text:d.intro}];
  if(d.who)b.push({who:d.who,n:'',q:d.q});
@@ -865,7 +870,7 @@ function enterZone(z){const Z=ZONES[z];
  run.q.push({sys:1,turn:1,arrive:z,text:`T${run.turn} · ${Z.name} — ${pick(Z.arr)}`});
  if(Z.risk&&chance(Math.min(.85,run.heat*.12)))run.q.push({fn:ambush});
  for(let i=0;i<Z.acts;i++){run.q.push({fn:autoAction});if(i===0)run.q.push({fn:chainTick})}
- run.q.push({fn:maybeEvent});
+ run.q.push({fn:relCheck},{fn:maybeEvent});
  if(Z.acts>2&&chance(.5))run.q.push({fn:autoAction});
  run.q.push({fn:endTurnFn});
 }
@@ -920,20 +925,22 @@ function useCurry(){if(!run||S.curry<1||run.phase==='done')return;S.curry--;save
  for(const m of run.party){if(m.hp<=0){m.hp=30;m.down=false}else hp(m,30);m.sp=clamp(m.sp+10,0,m.msp)}
  log({sys:1,text:'르블랑 카레를 나눠 먹었다. 든든하다!',res:'전원 HP +30 · SP +10'});render()}
 
-const STAR=[3500,6500,11000,16000];
+const STAR=[3500,7000,12000,18000],RISK_PAY=.01,WIPE_KEEP=.4;
 function endRun(reason){
  if(!run||run.phase==='done'||run.settled)return;/* 정산은 한 판에 한 번만 (game-state-flow) */
  clearTimeout(T);const r=run;r.phase='done';r.settled=true;
- let inc=r.yen+r.tval;if(reason==='forced')inc=Math.floor(inc*.5);
+ let inc=r.yen+r.tval;if(reason==='forced')inc=Math.floor(inc*WIPE_KEEP);
+ /* 위험 수당: 살아 돌아오면 위험도 1당 +1% (최대 +12%) */
+ const bonus=reason==='forced'?0:Math.round(inc*r.heat*RISK_PAY);inc+=bonus;
  /* 별점: 수익 구간 + 판의 내용 보너스 최대 +1 (위험도 8 이상에서 살아 돌아옴, 사슬 결말, 히든 중 하나라도) · 전멸 -1 */
  let st=inc<STAR[0]?1:inc<STAR[1]?2:inc<STAR[2]?3:inc<STAR[3]?4:5;if((reason!=='forced'&&r.heat>=8)||r.chains.some(x=>x.done)||r.hidden)st++;if(reason==='forced')st--;st=clamp(st,1,5);
  const mvp=[...r.party].sort((a,b)=>b.mvp-a.mvp)[0],mis=[...r.party].sort((a,b)=>b.mis-a.mis)[0];
  const misWhy=m=>hasTag('100엔 손실',m.id)?'자판기 100엔 분실':hasTag('배탈',m.id)?'수상한 음료 시음':hasTag('함정 발동',m.id)?'보물상자 함정 발동':'크고 작은 헛발질';
  const line=r.hidden?'존재하지 않는 역은, 분명히 존재했다.':hasTag('함정 발동')?'보물상자는 함부로 열지 말 것.':hasTag('100엔 손실')?'메멘토스 자판기는 믿지 말 것.':hasTag('배탈')?'정체불명의 음료는 마시지 말 것.':reason==='forced'?'무리한 탐사는 금물. 다음엔 카레를 챙기자.':r.mood>=70?'오늘의 괴도단, 분위기 최고.':'무사 귀환. 내일도 메멘토스!';
  S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);S.lastChains=r.chains.map(x=>x.id);S.lastDay=S.today;S.today=null;save();
- ui.res={ids:r.party.map(m=>m.id),inc,tre:r.tre,st,line,newCombo:r.newCombo,
+ ui.res={ids:r.party.map(m=>m.id),inc,bonus,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,
   mvp:{id:mvp.id,why:MVPWHY[mvp.c.type]},mis:mis.mis>0?{id:mis.id,why:misWhy(mis)}:null,
-  reason:{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:'전원 전투불능 · 긴급 회수 (수익 50%)'}[reason],
+  reason:{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:`전원 전투불능 · 긴급 회수 (수익 ${WIPE_KEEP*100}%)`}[reason],
   after:afterStory(r,reason)};
  ui.tip=null;ui.copy='';ui.screen='result';ui.enter=true;ui.rc=false;render();window.scrollTo(0,0);
 }
@@ -1014,7 +1021,7 @@ function vMap(){
   const st=`left:${z.x}%;top:${z.y}%`,g=HEAT_GAIN[z.risk],sub=cur?(r.phase==='choose'?'머무르기':'현재 위치'):!ok?'잠김 · 버스 Lv.2 또는 단서':z.name,rk=op&&ok?`<small class="rk">위험도 ${g>0?'+'+g:g}</small>`:'';
   return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b><small>${sub}</small>${rk}</button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b><small>${sub}</small></div>`}).join('');
  const strip=`<ol class="strip" aria-label="현재 위치">${['gate','pass','lost','plat'].map(id=>`<li class="${id===r.zone?'cur':''} ${canEnter(id)?'':'lock'}">${ZONES[id].esh}</li>`).join('')}</ol>`;
- return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">다음 구역을 고르세요. 깊은 구역일수록 위험도가 쌓여요.</p><div class="cash"><p>지금 귀환하면 <b>¥${fmt(r.yen+r.tval)}</b>(보물 포함) 확보. 전원이 쓰러지면 절반만 건져요.</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
+ return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">다음 구역을 고르세요. 깊은 구역일수록 위험도가 쌓여요.</p><div class="cash"><p>지금 귀환하면 <b>¥${fmt(r.yen+r.tval)}</b>(보물 포함) 확보. 전원이 쓰러지면 40%만 건져요.</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
 }
 function vLog(){
  return run.log.map(b=>{const c=b.who?CH[b.who]:null,cls=[b.sys?'sys':'',b.ev?'ev':'',b.turn?'turn':'',b.warn?'warn':''].join(' ');
@@ -1042,11 +1049,11 @@ function vExplore(){
  ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
- return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})\n정산 수익: ¥${fmt(x.inc)} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
+ return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})\n정산 수익: ¥${fmt(x.inc)}${x.bonus?` (위험 수당 +¥${fmt(x.bonus)})`:''} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
 function vResult(){const x=ui.res,an=!x.shown;x.shown=true;
  return `<main class="wrap res"><article class="report ${an?'anim':''}"><header><span>${rn('MISSION REPORT')}</span><small>${new Date().toLocaleDateString('ko-KR')}</small></header>
  <dl><dt>MEMBERS</dt><dd>${x.ids.map(i=>CH[i].name).join(' · ')}</dd><dt>RESULT</dt><dd><span class="stars">${[0,1,2,3,4].map(i=>`<i style="--i:${i}">${i<x.st?'★':'☆'}</i>`).join('')}</span><br><small>${x.reason}</small></dd>
- <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> · 보물 ${x.tre}개</dd><dt>MVP</dt><dd>${CH[x.mvp.id].name} (${x.mvp.why})</dd>
+ <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> · 보물 ${x.tre}개${x.bonus?`<br><small>위험 수당 +¥${fmt(x.bonus)} (위험도 ${x.heat})</small>`:''}</dd><dt>MVP</dt><dd>${CH[x.mvp.id].name} (${x.mvp.why})</dd>
  <dt>TROUBLE</dt><dd>${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}</dd></dl>
  <blockquote>“${esc(x.line)}”</blockquote><footer>TODAY'S MEMENTOS! · 보유 엔 ¥${fmt(S.yen)}</footer></article>
  <div class="copyrow"><button class="btn ghost sm" data-act="copy">${ui.copy==='ok'?'COPIED!':'COPY REPORT'}</button></div>
@@ -1116,7 +1123,7 @@ const TUT=[
   vis:()=>`<ol class="strip demo">${['gate','pass','lost','plat'].map((id,i)=>`<li class="${i===1?'cur':''} ${i===3?'lock':''}">${ZONES[id].esh}</li>`).join('')}</ol>
   <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -10 · 함정 해제 + 추가 추리</small></span></div>
   <div class="ptags"><span class="tag">[함정 의심]</span><span class="tag">[수상한 음료]</span><span class="tag">[100엔 손실]</span></div>`},
- {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아져요. HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 절반만 들고 돌아와요. 구역을 고를 때 <b>RETURN NOW</b>로 번 걸 챙겨 돌아올 수 있어요.',
+ {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아져요. HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 40%만 들고 돌아와요. 구역을 고를 때 <b>RETURN NOW</b>로 번 걸 챙겨 돌아올 수 있어요.',
   vis:()=>`<ul class="keys">${[['PAUSE','진행을 멈추고 천천히 읽기'],['1x · 2x','진행 속도'],['AUTO · MANUAL','수동이면 NEXT로 한 줄씩 넘기기'],['CURRY','르블랑 카레로 전원 회복'],['ESCAPE','지금까지 번 것을 들고 귀환']].map(([k,d])=>`<li><b>${k}</b><span>${d}</span></li>`).join('')}</ul>`},
  {t:'INVEST',kr:'르블랑',body:'돌아오면 <b>활동 보고서</b>와 르블랑 후일담이 나와요. 번 엔으로 소품(새 후일담 + 버프), 모나 버스(깊은 구역 개방), 잠입 도구를 사서 다음 탐사를 준비하세요.',
   vis:()=>`<div class="invest">${PROPS.slice(0,3).map(p=>`<div><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg><b>${p.en}</b></div>`).join('')}</div><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=2?'on':''}"></i>`).join('')}</div><p class="sub" style="margin:0">MONA BUS Lv.2 — 버려진 플랫폼 개방</p>`}];
