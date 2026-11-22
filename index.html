@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘도 메멘토스!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Black+Han+Sans&family=Archivo+Black&family=Noto+Sans+KR:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 장난스럽고 날렵한 괴도단 관찰 놀이터
+   IDEA: 메멘토스 역의 붉은 안내판과 괴도단 예고장
+   PICTURE: 붉은 선로가 소실점으로 빨려 드는 터널 포스터, 탐사 중엔 노선도와 말풍선
+   COLOUR and TYPE: 먹색 바탕, 신호 빨강, 종이 흰색 / Black Han Sans + Anton + Noto Sans KR
+   LAYOUT: 모바일 한 줄 스택, 넓은 화면은 노선도 | 로그 두 칸 */
+:root{color-scheme:dark;--bg:#0f0b0c;--p:#1b1416;--p2:#2a1e22;--ink:#f6f1ea;--mut:#b9aca5;--red:#e5191c;--red2:#8e0f13;--gold:#f5b942;--line:#3b2b2f;--line2:#4a3237;--faint:#8d807a;--hd:'Black Han Sans','Noto Sans KR',sans-serif;--en:'Anton','Black Han Sans',sans-serif;--disp:'Archivo Black','Black Han Sans',sans-serif}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg) radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 'Noto Sans KR',system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+h1,h2,h3{font-family:var(--hd);font-weight:400;line-height:1.05;margin:0;text-wrap:balance}
+.btn{min-height:44px;padding:10px 20px;background:var(--red);color:#fff;font-family:var(--en);letter-spacing:.03em;font-size:18px;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);transition:transform .15s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn.ghost{background:var(--ink);color:#141012}
+.btn.sm{min-height:40px;font-size:15px;padding:8px 16px}
+.btn.big{font-size:21px;padding:12px 34px}
+.btn:disabled{background:#3b2b2f;color:var(--faint);cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.wrap{max-width:1080px;margin:0 auto;padding:16px max(4vw,14px) 40px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.bar h2{font-size:32px;flex:1}
+.pill{background:var(--ink);color:#141012;font-family:var(--en);padding:4px 12px;font-size:17px;white-space:nowrap}
+.hint{color:var(--mut);font-size:14px;margin:4px 0 14px}
+/* main */
+.main{max-width:1080px;margin:0 auto;padding:max(3vw,16px) max(4vw,14px) 40px}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center}
+.poster{aspect-ratio:4/3;background:#000;border:3px solid var(--ink);transform:rotate(-1.5deg);box-shadow:12px 12px 0 var(--red);overflow:hidden}
+.poster svg{display:block;width:100%;height:100%}
+.glow{animation:pulse 2.6s ease-in-out infinite alternate;transform-origin:200px 158px}
+@keyframes pulse{to{opacity:.45;transform:scale(1.15)}}
+.kick{color:var(--mut);font-size:14px;margin:0 0 10px}
+.ttl h1{font-size:clamp(46px,8vw,78px);line-height:.98;text-shadow:5px 5px 0 var(--red)}
+.lead{font-size:17px;max-width:32em;color:#ebe3dd;margin:18px 0 22px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:36px 0 18px}
+.stat{background:var(--p);padding:12px 14px}
+.stat b{display:block;font-family:var(--disp);font-size:26px;font-weight:400}
+.stat span{color:var(--mut);font-size:13px}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.how div{background:var(--p);padding:14px 16px}
+.how b{font-family:var(--disp);font-weight:400;font-size:20px;letter-spacing:.02em;display:block;color:var(--red)}
+.how p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.fine{color:var(--faint);font-size:13px;margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.fine button{text-decoration:underline;color:var(--mut);min-height:44px}
+/* party */
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--mut);margin-bottom:10px}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:5px;vertical-align:-1px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.card{position:relative;text-align:left;background:var(--p);padding:12px 12px 14px;border:2px solid transparent;display:flex;flex-direction:column;gap:4px;min-height:190px}
+.card:hover{border-color:var(--line2)}
+.card .code{font-family:var(--en);font-size:28px;color:var(--c);line-height:1;letter-spacing:.02em}
+.card b{font-size:17px}
+.card .tp{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:#141012;background:var(--c);align-self:flex-start;padding:0 8px}
+.card .tr{font-size:13px;color:var(--mut);line-height:1.45}
+.card .w{display:flex;height:7px;margin-top:auto;gap:2px}
+.card .w i{display:block;height:100%}
+.card.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--p))}
+.card .no{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:var(--c);color:#141012;font-family:var(--hd);display:none;place-items:center;font-size:18px}
+.card.on .no{display:grid}
+.dock{position:sticky;bottom:0;margin:16px calc(-1*max(4vw,14px)) 0;padding:12px max(4vw,14px) calc(12px + env(safe-area-inset-bottom));background:rgba(15,11,12,.97);border-top:2px solid var(--red);display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.slots{display:flex;gap:6px}
+.slot{width:76px;height:44px;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--en);font-size:16px;color:var(--line2)}
+.slot.f{border:2px solid var(--c);color:var(--c)}
+.dinfo{flex:1 1 220px;font-size:13px;color:var(--mut);line-height:1.5}
+.dinfo b{color:var(--ink)}
+.dinfo .new{color:var(--gold);font-weight:700}
+/* explore */
+.ex{max-width:1180px;margin:0 auto;padding:8px max(3vw,10px) 96px}
+.xbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 0 10px;border-bottom:2px solid var(--red)}
+.tn{font-family:var(--en);font-size:36px;line-height:1}
+.tn small{font-size:16px;color:var(--mut)}
+.zn{flex:1 1 140px}
+.zn b{font-family:var(--en);font-weight:400;font-size:22px;letter-spacing:.02em;display:block;line-height:1.1}
+.zn small{color:var(--mut);font-size:13px}
+.money{font-family:var(--disp);font-size:21px;white-space:nowrap}
+.money small{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:var(--mut);margin-left:6px}
+.ptags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.tag{font-size:13px;padding:2px 8px;background:var(--p2);color:var(--gold);white-space:nowrap}
+.mood{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:#141012}
+.m-good{background:var(--gold)}.m-meh{background:#c8a9b2}.m-bad{background:var(--red);color:#fff}
+.party{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.tile{background:var(--p);padding:8px;border-top:3px solid var(--c);transition:opacity .3s}
+.tile.down{opacity:.45;filter:grayscale(1)}
+.bub{position:relative;background:var(--ink);color:#141012;font-size:13px;line-height:1.35;padding:6px 8px;border-radius:12px 12px 12px 2px;margin-bottom:12px;transform-origin:14px 100%}
+.bub span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.7em}
+.bub::after{content:'';position:absolute;left:10px;bottom:-8px;border-style:solid;border-width:8px 9px 0 0;border-color:var(--ink) transparent transparent}
+.bub.fresh{animation:pop .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(.4) rotate(-7deg);opacity:0}60%{transform:scale(1.06) rotate(1deg);opacity:1}100%{transform:none}}
+.face.fresh{animation:bounce .5s ease-out .1s}
+@keyframes bounce{30%{transform:translateY(-7px) scale(1.25)}65%{transform:translateY(1px) scale(.95)}}
+.tile.hit{animation:shake .42s}
+.tile.hit .hb i{background:var(--red)}
+@keyframes shake{15%{transform:translateX(-6px) rotate(-1.5deg)}35%{transform:translateX(5px) rotate(1deg)}55%{transform:translateX(-3px)}75%{transform:translateX(2px)}}
+.tile.heal{animation:heal .7s}
+@keyframes heal{35%{box-shadow:inset 0 0 0 3px #59c3ff,0 0 18px #59c3ff66}}
+.money{position:relative}
+.fly{position:absolute;right:0;top:20px;font-family:var(--en);font-size:19px;color:var(--gold);pointer-events:none;white-space:nowrap;animation:fly 1.1s ease-out forwards}
+.fly.neg{color:#ff7a7a}
+@keyframes fly{0%{transform:translateY(8px) scale(.8);opacity:0}20%{transform:translateY(0) scale(1.1);opacity:1}100%{transform:translateY(-28px);opacity:0}}
+.banner{position:fixed;left:-10%;right:-10%;top:40%;z-index:40;background:var(--red);color:#fff;font-family:var(--hd);font-size:clamp(28px,7vw,50px);text-align:center;padding:12px 0;transform:skewY(-4deg);pointer-events:none;border-block:4px solid var(--ink);animation:sweep 1.05s cubic-bezier(.7,0,.3,1) forwards}
+.banner span{display:inline-block;transform:skewY(4deg)}
+.banner small{display:block;font-size:.42em;font-family:'Noto Sans KR',sans-serif;font-weight:700;opacity:.85}
+@keyframes sweep{0%{clip-path:inset(0 100% 0 0)}28%,72%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 100%)}}
+.scrim{position:fixed;inset:0;z-index:25;background:rgba(8,5,6,.6)}
+.scrim.enter{animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+.evt.enter{animation:sheet .4s cubic-bezier(.2,.9,.25,1.06)}
+@keyframes sheet{from{transform:translateY(100%)}}
+.evt.enter h3{animation:slash .45s .12s both}
+@keyframes slash{from{transform:translateX(-36px) skewX(-14deg);opacity:0}}
+.evt.enter .ch{animation:rise .32s both;animation-delay:calc(180ms + var(--i)*70ms)}
+@keyframes rise{from{transform:translateY(16px);opacity:0}}
+.ch{transition:transform .12s,border-color .12s}
+.ch:active:not(:disabled){transform:scale(.97)}
+.nm{display:flex;align-items:center;gap:6px}
+.nm .code{font-family:var(--en);color:var(--c);font-size:19px;line-height:1}
+.nm b{font-size:13px;color:var(--mut);font-weight:400;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.face{width:24px;height:24px;border-radius:50%;background:var(--c);color:#141012;display:grid;place-items:center;font-weight:900;font-size:13px;flex:none}
+.hb{height:7px;background:var(--line);margin-top:6px}
+.hb i{display:block;height:100%;background:var(--ink);transition:width .4s}
+.hb i.low{background:var(--red)}
+.hb.s{height:4px;margin-top:3px}.hb.s i{background:#59c3ff}
+.nums{font-size:13px;color:var(--mut);margin-top:3px;white-space:nowrap}
+.mt{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.mt .tag{padding:0 6px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:10px;margin-top:10px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.mapbox{background:var(--p);padding:10px}
+.map{position:relative;height:190px}
+.mapbox.big .map{height:290px}
+@media(min-width:821px){.map{height:290px}}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.map line{stroke:var(--line2);stroke-width:7;stroke-linecap:round}
+.map line.hot{stroke:var(--red)}
+.node{position:absolute;transform:translate(-50%,-50%);width:max-content;max-width:42%;padding:6px 10px;background:var(--p2);border:2px solid var(--line2);text-align:center;line-height:1.2}
+.node b{display:block;font-family:var(--en);font-weight:400;font-size:16px;letter-spacing:.03em}
+.node small{display:block;font-size:13px;color:var(--mut)}
+.node.cur{background:var(--red);border-color:var(--ink)}
+.node.cur small{color:#ffe1e1}
+button.node.opt{border-color:var(--ink);min-height:44px;animation:blink 1s ease-in-out infinite alternate}
+button.node.opt:hover{background:var(--line)}
+@keyframes blink{to{border-color:var(--red)}}
+.node.lock{opacity:.6;border-style:dashed}
+.mhint{font-size:14px;color:var(--gold);margin:8px 0 0;font-weight:700}
+.logbox{background:var(--p)}
+#log{list-style:none;margin:0;padding:4px 10px;height:clamp(260px,44vh,520px);overflow-y:auto}
+#log li{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;padding:7px 0;border-bottom:1px solid var(--p2);font-size:15px}
+#log time{font-family:var(--en);color:var(--faint);font-size:13px;padding-top:2px}
+#log p{margin:0;border-left:3px solid var(--c,transparent);padding-left:8px}
+#log .who{color:var(--c);margin-right:6px;font-family:var(--en);font-weight:400;letter-spacing:.03em}
+#log q{quotes:'“' '”';color:#fff;font-weight:700}
+#log em{display:inline-block;font-style:normal;font-size:13px;background:var(--p2);color:var(--gold);padding:0 6px;margin-left:6px}
+#log li.sys p{color:var(--mut)}
+#log li.ev p{color:#fff;font-family:var(--hd);font-size:18px;border-left-color:var(--red)}
+#log li.turn p{color:var(--red);font-family:var(--hd)}
+#log li.warn p{color:#ff7a7a;font-weight:700}
+.evt{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#150f11;border-top:4px solid var(--red);padding:16px max(4vw,14px) calc(18px + env(safe-area-inset-bottom));box-shadow:0 -24px 48px rgba(0,0,0,.7);max-height:78vh;overflow:auto}
+.evt>div{max-width:640px;margin:0 auto}
+.evt h3{font-size:26px}
+.evt .intro{color:var(--mut);margin:6px 0}
+.pq{margin:6px 0 4px;font-weight:700}
+.pq b{color:var(--c);font-family:var(--en);font-weight:400;font-size:18px;margin-right:6px}
+.ch{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--p2);padding:10px 12px;margin-top:8px;min-height:56px;border:2px solid transparent}
+.ch:hover:not(:disabled){border-color:var(--ink)}
+.ch .k{font-family:var(--en);font-size:22px;background:var(--red);color:#fff;width:38px;height:38px;display:grid;place-items:center;flex:none;transform:skewX(-8deg)}
+.ch b{display:block}
+.ch small{color:var(--mut);font-size:13px}
+.ch:disabled{opacity:.42;cursor:not-allowed}
+.ctl{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(15,11,12,.97);border-top:2px solid var(--red);display:flex;gap:6px;padding:8px max(3vw,8px) calc(8px + env(safe-area-inset-bottom));justify-content:center}
+.ctl button{min-height:44px;padding:6px 10px;background:var(--p2);font-family:var(--en);letter-spacing:.04em;font-size:15px;flex:1 1 0;max-width:120px;white-space:nowrap}
+.ctl button[aria-pressed=true]{background:var(--ink);color:#141012}
+.ctl .warn{background:var(--red2)}
+.ctl button:disabled{opacity:.38;cursor:not-allowed}
+/* result */
+.report{background:var(--ink);color:#141012;max-width:520px;margin:12px auto 0;transform:rotate(-1deg);box-shadow:12px 12px 0 var(--red);padding:0 0 16px}
+.report header{background:#141012;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px 20px;clip-path:polygon(0 0,100% 0,100% 78%,0 100%)}
+.report header span{font-family:var(--hd);font-size:25px}
+.report header small{font-size:13px;color:#cfc4be;white-space:nowrap}
+.report dl{margin:10px 16px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px}
+.report dt{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:#6b5f5a;padding-top:2px;white-space:nowrap}
+.report dd{margin:0;font-weight:700}
+.stars{color:var(--red);font-size:21px;letter-spacing:2px}
+.stars i{display:inline-block;font-style:normal}
+.report.anim{animation:drop .55s cubic-bezier(.2,.9,.25,1.1) both}
+@keyframes drop{from{transform:translateY(-40px) rotate(-7deg);opacity:0}}
+.report.anim .stars i{animation:stamp .38s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(450ms + var(--i)*170ms)}
+@keyframes stamp{from{transform:scale(2.6) rotate(-24deg);opacity:0}}
+.report.anim blockquote{animation:slash .5s 1.4s both}
+.report blockquote{margin:12px 16px 0;padding:10px 14px;background:#141012;color:#fff;font-family:var(--hd);font-size:19px}
+.report footer{margin:10px 16px 0;font-size:13px;color:#6b5f5a}
+.newc{max-width:520px;margin:24px auto 0;background:var(--gold);color:#141012;padding:10px 14px;font-family:var(--en);letter-spacing:.04em;font-size:17px}
+.after{max-width:640px;margin:30px auto 0}
+.after h3{font-size:26px;margin-bottom:10px}
+.after ol{list-style:none;padding:0;margin:0}
+.after li{padding:9px 12px;border-left:3px solid var(--c,var(--line2));margin-bottom:6px;background:var(--p)}
+.after li b{color:var(--c);font-family:var(--en);font-weight:400;font-size:17px;margin-right:8px}
+.after li.n{color:var(--mut)}
+.res .row{justify-content:center;margin-top:26px}
+textarea{width:100%;max-width:520px;display:block;margin:14px auto 0;min-height:170px;background:var(--p);color:var(--ink);border:1px solid var(--line);font:15px/1.5 'Noto Sans KR',sans-serif;padding:10px}
+/* shop */
+.shop section{margin-top:26px}
+.shop h3{font-size:26px;margin-bottom:4px}
+.toast{background:var(--gold);color:#141012;padding:10px 14px;font-weight:700;margin:6px 0 0}
+.shelf,.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.prop{background:var(--p);padding:12px;display:grid;grid-template-columns:60px minmax(0,1fr);gap:12px;align-items:start;border:2px solid transparent}
+.prop.own{border-color:var(--gold)}
+.prop svg{width:60px;height:60px;display:block}
+.prop b{font-family:var(--en);font-weight:400;font-size:20px;letter-spacing:.02em;display:block;line-height:1.2}
+.prop p{margin:4px 0 10px;font-size:13px;color:var(--mut)}
+.owned{font-size:14px;color:var(--gold);font-weight:700}
+.busbox{background:var(--p);padding:14px 16px;max-width:640px}
+.lv{display:flex;gap:6px;margin:6px 0 10px}
+.lv i{flex:1;height:14px;background:var(--line);transform:skewX(-14deg)}
+.lv i.on{background:var(--red)}
+.buslist{list-style:none;padding:0;margin:0 0 12px;font-size:14px}
+.buslist li{padding:3px 0;color:var(--faint)}
+.buslist li.on{color:var(--ink)}
+.buslist li b{font-family:var(--en);font-weight:400;margin-right:8px}
+/* ===== layout v2 (DESIGN.md 7장 개선 목록) ===== */
+.stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:820px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat.wide{grid-column:span 2}}
+.cards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.card{min-height:0;padding:10px 12px 12px;gap:3px}
+.card .w{margin-top:8px}
+.dock{flex-direction:column;align-items:stretch;gap:10px}
+.detail{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:center}
+.detail .code{font-family:var(--en);font-size:26px;color:var(--c);line-height:1;grid-row:span 2}
+.detail b{font-size:15px}
+.detail p{margin:0;font-size:13px;color:var(--mut)}
+.drow{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap}
+.drow .row{margin-left:auto}
+.ex{padding-top:0}
+.xbar{position:sticky;top:0;z-index:15;background:rgba(15,11,12,.96);margin:0 calc(-1*max(3vw,10px));padding:8px max(3vw,10px);gap:4px 12px;flex-wrap:nowrap}
+.xr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.party{margin-top:8px;gap:6px}
+.tile{padding:6px 8px 8px}
+.nm .hpn{margin-left:auto;font-family:var(--en);font-size:16px;line-height:1}
+.nm .hpn.low{color:var(--red)}
+.strip{display:none;list-style:none;margin:0;padding:0}
+.strip li{flex:1;position:relative;text-align:center;font-size:13px;color:var(--mut);padding-top:18px;white-space:nowrap}
+.strip li::before{content:'';position:absolute;top:6px;left:0;right:0;height:3px;background:var(--line2)}
+.strip li:first-child::before{left:50%}.strip li:last-child::before{right:50%}
+.strip li::after{content:'';position:absolute;top:1px;left:50%;width:12px;height:12px;margin-left:-6px;background:var(--p2);border:2px solid var(--line2);transform:rotate(45deg)}
+.strip li.cur{color:var(--ink);font-weight:700}
+.strip li.cur::after{background:var(--red);border-color:var(--ink)}
+.strip li.lock{opacity:.45}
+@media(max-width:820px){.mapbox.run{padding:8px 10px}.mapbox.run .map{display:none}.mapbox.run .strip{display:flex}}
+#log{height:clamp(300px,calc(100dvh - 330px),620px)}
+.ctl{justify-content:space-between;gap:10px}
+.ctl .grp{display:flex;gap:6px;flex:1 1 auto;max-width:440px}
+.ctl .grp button{flex:1 1 0;max-width:none}
+.ctl .grp.r{flex:0 0 auto}
+.ctl .next{background:var(--red);color:#fff}
+.shophead{position:sticky;top:0;z-index:15;background:rgba(15,11,12,.97);margin:0 calc(-1*max(4vw,14px));padding:10px max(4vw,14px) 10px;border-bottom:2px solid var(--red)}
+.shophead .bar{margin:0}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tabs button{flex:1;min-height:44px;font-family:var(--en);letter-spacing:.04em;font-size:17px;color:var(--mut);background:var(--p);clip-path:polygon(6% 0,100% 0,94% 100%,0 100%)}
+.tabs button[aria-selected=true]{background:var(--red);color:#fff}
+.shop section{margin-top:18px}
+.shelf,.tools{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.prop{grid-template-columns:56px minmax(0,1fr) auto;align-items:center}
+.prop svg{width:56px;height:56px}
+.prop p{margin:2px 0 0}
+.prop .owned{white-space:nowrap}
+.busbox{max-width:none}
+.wrap.res,.wrap.shop{min-height:100dvh;display:flex;flex-direction:column}
+.actbar{position:sticky;bottom:0;margin:auto calc(-1*max(4vw,14px)) 0;padding:10px max(4vw,14px) calc(10px + env(safe-area-inset-bottom));background:rgba(15,11,12,.97);border-top:2px solid var(--red);display:flex;gap:10px;justify-content:center}
+.actbar .btn{flex:1 1 0;max-width:300px}
+.copyrow{display:flex;justify-content:center;margin-top:22px}
+.after,.shop section{margin-bottom:28px}
+.ctl{padding-inline:max(3vw,8px,calc((100% - 1180px)/2))}
+.wrap.res,.wrap.shop{padding-bottom:0}
+@media(max-width:600px){.shelf,.tools{grid-template-columns:minmax(0,1fr)}.ctl .grp button{padding:6px 4px}.ctl .grp.r button{padding:6px 10px}}
+@media(max-width:600px){.hero{grid-template-columns:minmax(0,1fr)}.how{grid-template-columns:minmax(0,1fr)}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card .code{font-size:24px}.nm b{display:none}.map{height:170px}.bar h2{font-size:26px}.ctl button{font-size:13px;padding:6px 4px}}
+/* ===== v3: 예고장 레터링 · 계단 메뉴 · 붉은 슬랩 (원작 리소스 미사용, 기법만 참고) ===== */
+body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent 60%),radial-gradient(rgba(255,255,255,.035) 1px,transparent 1.5px);background-size:auto,6px 6px;background-repeat:no-repeat,repeat}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.rn{display:inline-block;transform:rotate(var(--r,0deg));padding:.02em .1em;margin:.03em .015em;line-height:1.05;font-family:var(--disp);font-style:normal}
+.rn0{background:var(--ink);color:#141012}
+.rn1{background:#141012;color:var(--ink);font-family:'Playfair Display','Black Han Sans',serif;font-weight:900}
+.rn2{color:var(--ink);font-family:'Anton','Black Han Sans',sans-serif;font-size:1.12em;text-shadow:2px 2px 0 #141012}
+.rn3{background:var(--red);color:#fff;box-shadow:2px 2px 0 #141012}
+.rn4{background:var(--ink);color:#141012;font-family:'Playfair Display','Black Han Sans',serif;font-style:italic;font-weight:900}
+.rn5{background:#d9d2cc;color:#141012;font-family:'Special Elite','Black Han Sans',monospace}
+.rnb{font-size:1.24em}
+.rn-sp{display:inline-block;width:.28em}
+.rnword{display:inline-block;white-space:nowrap}
+.split{position:relative;overflow:hidden;background:linear-gradient(110deg,var(--red) 0 56%,#141012 56% 57.4%,var(--ink) 57.4% 58%,transparent 58%)}
+.split::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(rgba(0,0,0,.24) 1.3px,transparent 1.8px) 0 0/8px 8px;-webkit-mask:linear-gradient(110deg,#000 0 56%,transparent 56%);mask:linear-gradient(110deg,#000 0 56%,transparent 56%)}
+.split-in{position:relative;max-width:1080px;margin:0 auto;padding:clamp(28px,5vw,64px) max(4vw,14px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;min-height:min(620px,84dvh)}
+.split .kick{color:#fff}
+.split h1{font-size:clamp(44px,6.4vw,72px);line-height:1.12;text-shadow:none}
+.stair{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:10px;justify-items:start}
+.stair li{margin-left:calc(var(--n)*22px)}
+.stair button{position:relative;isolation:isolate;text-align:left;min-height:52px;padding:6px 20px 8px 14px;font-family:var(--disp);font-size:clamp(26px,4vw,34px);line-height:1.05;color:var(--ink);text-shadow:3px 3px 0 #141012;transform:rotate(-2deg)}
+.stair button::before{content:'';position:absolute;inset:-4px -12px -4px -8px;z-index:-1;background:#141012;clip-path:polygon(0 4%,98% 0,100% 90%,2% 100%);transform:scaleX(0);transform-origin:left;transition:transform .2s cubic-bezier(.2,.9,.25,1.1)}
+.stair button.primary::before,.stair button:hover::before,.stair button:focus-visible::before{transform:none}
+.stair button.primary{text-shadow:none}
+.stair small{display:block;margin-top:2px;font:700 13px/1.3 'Noto Sans KR',sans-serif;color:#fff;text-shadow:none}
+.split .poster{transform:rotate(3deg);box-shadow:-12px 12px 0 var(--red)}
+@media(max-width:700px){.split{background:linear-gradient(170deg,var(--red) 0 60%,#141012 60% 61.6%,var(--ink) 61.6% 62.3%,transparent 62.3%)}.split::before{-webkit-mask:linear-gradient(170deg,#000 0 60%,transparent 60%);mask:linear-gradient(170deg,#000 0 60%,transparent 60%)}.split-in{grid-template-columns:minmax(0,1fr);min-height:0}.split .poster{margin:0 10px}}
+.stat{display:flex;flex-direction:column-reverse;align-items:flex-start;gap:6px;background:none;padding:6px 4px}
+.stat span{color:var(--red);font-family:var(--en);letter-spacing:.05em;font-size:15px}
+.stat b{background:var(--ink);color:#141012;padding:2px 12px;transform:rotate(-2deg) skewX(-6deg)}
+.stat b small{color:#6b5f5a!important}
+.bar h2{font-size:30px;line-height:1.15}
+.evt{background:#0f0b0c radial-gradient(rgba(255,255,255,.04) 1px,transparent 1.5px) 0 0/6px 6px}
+.evt h3{font-size:28px;line-height:1.15;margin-bottom:2px}
+.evt .kr{font-size:14px;color:var(--mut);margin:0 0 4px;font-weight:700}
+.sub{display:block;font:700 13px/1.3 'Noto Sans KR',sans-serif;color:var(--mut);margin-top:4px}
+.evt .intro b{color:var(--red)}
+.ch{background:none;border:0;width:auto;max-width:calc(100% - var(--i)*16px);margin-left:calc(var(--i)*16px);padding:6px 16px 6px 4px;position:relative;isolation:isolate;min-height:52px}
+.ch::before{content:'';position:absolute;inset:0 -6px 0 -8px;z-index:-1;background:var(--red);clip-path:polygon(1% 12%,100% 0,97% 90%,0 100%);transform:scaleX(0);transform-origin:left;transition:transform .16s cubic-bezier(.2,.9,.25,1.1)}
+.ch:hover:not(:disabled)::before,.ch:focus-visible::before,.ch:active:not(:disabled)::before{transform:none}
+.ch:hover:not(:disabled),.ch:focus-visible{border:0;outline:none}
+.ch b{font-weight:700;font-size:17px;line-height:1.3;text-shadow:2px 2px 0 #141012}
+.ch:hover:not(:disabled) small,.ch:focus-visible small{color:#ffe1e1}
+.ch .k{background:var(--ink);color:#141012}
+.report header span{font-size:22px}
+.after h3{font-size:24px;line-height:1.2}
+.banner{font-size:clamp(30px,8vw,56px)}
+/* ===== v5 모션 시스템 (motionmaxxing · mg-styles-15 Collage 참고) =====
+   착지=감속(snap/land), 퇴장=가속(exit), 오버슈트는 보고서 별 도장 하나만.
+   예고장 조각=12fps 스톱모션(steps), 나머지 UI=부드러운 프레임. 화면 하나에 살아 있는 것 하나. */
+:root{--snap:cubic-bezier(.05,.85,.2,1);--land:cubic-bezier(.22,.8,.3,1);--exit:cubic-bezier(.6,0,.9,.4)}
+.btn,.ch,.stair button,.ctl button,.card,.tabs button{transition:transform .22s var(--land)}
+.btn:active:not(:disabled),.ctl button:active:not(:disabled),.card:active,.tabs button:active,.ch:active:not(:disabled){transform:scale(.94);transition-duration:.06s}
+.stair button:active{transform:rotate(-2deg) scale(.95);transition-duration:.06s}
+.bub.fresh{animation:bubIn .4s var(--snap)}
+@keyframes bubIn{0%{transform:translateY(-4px) scale(1.12) rotate(-2deg);opacity:.25}25%{opacity:1}100%{transform:none}}
+.face.fresh{animation:faceIn .3s var(--snap) .07s both}
+@keyframes faceIn{from{transform:scale(1.45)}}
+.fly{animation:fly 1s var(--exit) forwards}
+@keyframes fly{0%{transform:translateY(6px);opacity:0}12%{transform:translateY(0);opacity:1}100%{transform:translateY(-30px);opacity:0}}
+.evt.enter{animation:sheet .38s var(--snap)}
+.evt.enter h3{animation:none}
+.evt.enter .ch{animation:rise .4s var(--land) both;animation-delay:var(--d,0ms)}
+@keyframes rise{0%{transform:translateY(14px);opacity:.2}30%{opacity:1}100%{transform:none}}
+.ch::before,.stair button::before{transition:transform .2s var(--snap)}
+.report.anim{animation:arrive .5s var(--snap) both}
+@keyframes arrive{0%{transform:translateY(-16px) scale(1.07) rotate(-3deg);opacity:.3}20%{opacity:1}100%{transform:rotate(-1deg)}}
+#app.scr-in>*:not(.ex),#app.scr-in>.ex>*:not(.ctl):not(.evt):not(.scrim){animation:scrIn .42s var(--snap) both}
+#app.scr-in>*:nth-child(2),#app.scr-in>.ex>*:nth-child(2){animation-delay:.04s}
+#app.scr-in>.ex>*:nth-child(3){animation-delay:.07s}
+#app.scr-in>.ex>*:nth-child(4){animation-delay:.12s}
+@keyframes scrIn{0%{transform:translateX(26px) skewX(-3deg);opacity:.35}25%{opacity:1}100%{transform:none}}
+.rn1{box-shadow:0 0 0 2px var(--ink)}
+.rn3{box-shadow:0 0 0 2px var(--ink),3px 3px 0 #141012}
+.scr-in .rn,.evt.enter .rn,.report.anim .rn,.banner .rn{animation:rnSlap .25s steps(3,end) var(--rd,0ms) both}
+@keyframes rnSlap{0%{transform:scale(1.6) rotate(calc(var(--r,0deg) - 12deg));opacity:0}34%{opacity:1}100%{transform:rotate(var(--r,0deg))}}
+.boil .rn{animation:boil .5s steps(1,end) infinite;animation-delay:calc(var(--rd,0ms) * -3)}
+.scr-in .boil .rn{animation:rnSlap .25s steps(3,end) var(--rd,0ms) both,boil .5s steps(1,end) calc(var(--rd,0ms) + .45s) infinite}
+@keyframes boil{0%{transform:rotate(var(--r,0deg))}33%{transform:rotate(calc(var(--r,0deg) + .7deg)) translate(1px,-1px)}66%{transform:rotate(calc(var(--r,0deg) - .6deg)) translate(-1px,0)}}
+.split::before{animation:tone 2.4s linear infinite}
+@keyframes tone{to{background-position:8px 8px}}
+.split{background:linear-gradient(110deg,var(--red) 0 68%,#141012 68% 69.4%,var(--ink) 69.4% 70%,transparent 70%)}
+.split::before{-webkit-mask:linear-gradient(110deg,#000 0 68%,transparent 68%);mask:linear-gradient(110deg,#000 0 68%,transparent 68%)}
+.split-in{grid-template-columns:minmax(0,1fr);min-height:100dvh;align-content:center}
+.split{min-height:100dvh}
+.main .stats{grid-template-columns:repeat(5,minmax(0,1fr)) auto;margin:28px 0 10px;align-items:end}
+.stat b small{font-size:15px;color:#6b5f5a!important}
+.reset{min-height:44px;font-family:var(--en);letter-spacing:.05em;font-size:14px;color:var(--mut);text-decoration:underline;text-underline-offset:3px;justify-self:start}
+@media(max-width:820px){.main .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.reset{grid-column:span 2}}
+@media(max-width:700px){.split{background:linear-gradient(166deg,var(--red) 0 80%,#141012 80% 82%,var(--ink) 82% 83%,#0f0b0c 83%)}.split::before{-webkit-mask:linear-gradient(166deg,#000 0 80%,transparent 80%);mask:linear-gradient(166deg,#000 0 80%,transparent 80%)}.split-in{min-height:100dvh;align-content:center;padding-bottom:18dvh}}
+/* ===== 튜토리얼 · 팁 ===== */
+.tut{max-width:720px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:12px max(4vw,14px) calc(14px + env(safe-area-inset-bottom))}
+.tbar{display:flex;align-items:center;gap:12px}
+.prog{display:flex;gap:5px;flex:1}
+.prog i{flex:1;height:8px;background:var(--line);transform:skewX(-20deg)}
+.prog i.on{background:var(--red)}
+.skip{min-height:44px;padding:0 6px;font-family:var(--en);letter-spacing:.05em;color:var(--mut);font-size:15px}
+.tcard{flex:1;display:flex;flex-direction:column;gap:16px;padding:18px 0 10px}
+.tcard h2{font-size:clamp(34px,8vw,52px);line-height:1.15}
+.tvis{background:var(--p);padding:14px;position:relative}
+.tvis::before{content:'';position:absolute;left:-6px;top:-6px;width:42px;height:42px;background:var(--red);clip-path:polygon(0 0,100% 0,0 100%);z-index:-1}
+.tbody{margin:0;font-size:16px;line-height:1.65;color:#ebe3dd}
+.tbody b{color:var(--ink);background:linear-gradient(transparent 62%,rgba(229,25,28,.55) 62%)}
+.tnav{display:flex;justify-content:space-between;gap:10px;padding-top:6px}
+.tnav .btn:last-child{flex:1;max-width:320px}
+.party.mini{margin:0}
+.party.mini .bub span{height:auto;-webkit-line-clamp:3}
+.loop{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.loop li{margin-left:calc(var(--n)*18px);background:#141012;padding:8px 14px;transform:rotate(-1.5deg);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.loop li:nth-child(odd){background:var(--red)}
+.loop b{font-family:var(--en);font-weight:400;font-size:22px;letter-spacing:.04em}
+.loop small{font-size:13px;color:#f6d9d9}
+.types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ty{background:var(--p2);padding:10px;display:flex;flex-direction:column;gap:3px}
+.ty b{font-family:var(--en);font-weight:400;font-size:20px;letter-spacing:.04em}
+.ty small{font-size:13px;color:var(--mut)}
+.ty .w{display:flex;height:7px;gap:2px;margin:4px 0}.ty .w i{display:block;height:100%}
+.ty em{font-style:normal;font-family:var(--en);font-size:14px;letter-spacing:.03em}
+.tvis .legend{margin:10px 0 0}
+.strip.demo{display:flex;margin-bottom:12px}
+.demo-ch{display:flex;gap:12px;align-items:center;padding:6px 10px 6px 4px;margin-top:6px;position:relative}
+.demo-ch:first-of-type{background:var(--red);clip-path:polygon(1% 12%,100% 0,97% 90%,0 100%)}
+.demo-ch+.demo-ch{margin-left:16px}
+.demo-ch .k{font-family:var(--en);font-size:20px;background:var(--ink);color:#141012;width:34px;height:34px;display:grid;place-items:center;flex:none;transform:skewX(-8deg)}
+.demo-ch b{display:block}.demo-ch small{color:var(--mut);font-size:13px}
+.demo-ch:first-of-type small{color:#ffe1e1}
+.keys{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.keys li{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:12px;align-items:center}
+.keys b{font-family:var(--en);font-weight:400;font-size:15px;letter-spacing:.04em;background:var(--p2);padding:8px 10px;text-align:center}
+.keys span{font-size:14px;color:#ebe3dd}
+.invest{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.invest div{background:var(--p2);padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.invest svg{width:48px;height:48px}
+.invest b{font-family:var(--en);font-weight:400;font-size:14px;letter-spacing:.03em}
+.tipcard{position:fixed;left:max(3vw,10px);right:max(3vw,10px);bottom:calc(72px + env(safe-area-inset-bottom));z-index:24;max-width:560px;margin:0 auto;background:var(--ink);color:#141012;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:6px 6px 0 var(--red);transform:rotate(-1deg);animation:arrive .4s var(--snap) both}
+.tipcard>b{font-family:var(--en);font-weight:400;font-size:18px;background:var(--red);color:#fff;padding:2px 8px;transform:skewX(-8deg);flex:none}
+.tipcard p{margin:0;flex:1;font-size:14px;line-height:1.45;font-weight:700}
+.tipcard .btn{flex:none}
+.evtip{margin:4px 0 6px;font-size:13px;font-weight:700;color:var(--gold)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+{
+/* ============ DATA (코드와 분리된 콘텐츠 영역) ============ */
+const TYPES={
+  rush:{en:'BREAKER',label:'돌파·돌발형',w:[20,30,15,35]},
+  analyst:{en:'ANALYST',label:'분석·통제형',w:[35,15,20,30]},
+  support:{en:'SUPPORT',label:'탐색·지원형',w:[35,20,30,15]},
+  wild:{en:'WILDCARD',label:'변칙·마이페이스형',w:[25,20,20,35]}};
+const WCOL=['#f6f1ea','#f5b942','#59c3ff','#e5191c'];
+const CLUE='단서: 지도에 없는 선로';
+
+const CHARS=[
+{id:'joker',name:'조커',cn:'조커',code:'JOKER',type:'wild',col:'#ff3b3b',adj:[0,-5,0,5],trait:'침착·대담한 와일드카드. 돌발 상황에서 추가 선택지를 연다.',
+ L:{find:['뭔가 있어.','여기, 냄새가 나.'],chat:['다들, 여유 있게 가자.','끝나면 커피 한잔하자.'],reply:['그렇군.','좋아.','…재밌네.'],support:'무리하지 마. 내가 받쳐 줄게.',protect:'뒤로 물러서. 여긴 내가 맡을게.',hurt:'…아직 괜찮아.',win:'쇼타임은 끝이야.',trap:'이 냄새… 함정이지.',treasure:'좋은 걸 찾았어.',enemy:'가자.',argue:'난 내 방식대로 할게.',gambit:'맡겨 둬.',back:'오늘도 무사히 돌아왔네.'},
+ solo:[{n:'조커가 아무도 못 본 환기구로 슬쩍 들어갔다 나왔다.',q:'지름길이야.',fx:['yen:200-350','mvp:2']},{n:'조커가 바닥에 흩어진 동전을 모아 왔다.',q:'재밌겠는데.',fx:['yen:100-250','mvp:1']},{n:'조커가 멀리 있는 섀도의 움직임을 가만히 관찰했다.',q:'저 녀석, 약점이 보여.',fx:['ptag:약점 간파','mvp:1']}]},
+{id:'mona',name:'모르가나',cn:'모나',code:'MONA',type:'support',col:'#ffe04a',adj:[5,0,0,-5],trait:'자존심 강한 선배 자처, 보물 집착. 보물 발견율 상승·HP 관리.',
+ L:{find:['오, 이 몸의 코가 반응한다고!','저쪽이다! 보물 냄새가 난다고!'],chat:['흥, 이 몸이 있으니까 안심하라고!','다들 이 몸만 따라오라고!'],reply:['뭐라고?! 이 몸을 무시하는 거냐?','흥, 당연하지!'],support:'이 몸한테 맡기라고! 금방 낫게 해 주지!',protect:t=>t.id==='ann'?'안 아가씨, 조심해!':`${t.cn}, 뒤로 빠지라고!`,hurt:'으윽… 털이 엉망이 됐잖아!',win:'봤냐? 이 몸의 활약을!',trap:'잠깐! 수상한 냄새가 난다고.',treasure:'보물이다아! 이건 이 몸이 찾은 거라고!',enemy:'섀도다! 이 몸이 상대해 주지!',argue:'이 몸 말이 맞다니까!',back:'이 몸 덕분에 다들 무사했다고. 참치는 언제 나오냐?'},
+ solo:[{n:'모르가나가 코를 킁킁거리며 혼자 구석으로 달려갔다.',q:'이 냄새는… 틀림없다고!',fx:['tre','mvp:2']},{n:'모르가나가 꼬리를 세우고 잔소리를 늘어놨다.',q:'다들 긴장 풀지 말라고!',fx:['mood:-2','mvp:1']},{n:'모르가나가 반짝이는 병뚜껑을 보물로 착각했다.',q:'보, 보물이… 아니잖아!',fx:['mis:2','mood:4']}]},
+{id:'ryuji',name:'류지',cn:'스컬',code:'SKULL',type:'rush',col:'#ff9a1f',adj:[0,0,-5,5],trait:'열혈·단순·의리파. 장애물 돌파, 빈사 동료 우선 보호.',
+ L:{find:['야, 이거 봐! 뭐가 있다고!','오, 저기 뭐 있는 거 아니냐?'],chat:['야, 끝나면 라멘 먹으러 가자고!','이번엔 내가 제일 많이 찾는다고!'],reply:['엉? 진짜냐?!','하하, 그거 대박이다!'],support:'괜찮냐?! 내가 앞장설게!',protect:t=>`${t.cn}, 뒤로 빠져! 여긴 내가 막는다고!`,hurt:'크윽… 이 정도는 아무것도 아니라고!',win:'대박! 해냈다고!',trap:'엥, 함정? 그냥 부수면 되잖아?',treasure:'오오, 대박! 이거 돈 되는 거 아니냐?!',enemy:'야, 덤비라고!',argue:'아, 그러니까 내 말은!',back:'야, 오늘 진짜 빡셌다… 근데 재밌었다고!'},
+ solo:[{n:'류지가 막힌 철문을 냅다 걷어찼다.',q:'일단 부딪혀 보자고!',fx:['yen:200-400','hp:-5','mvp:1']},{n:'류지가 낡은 자판기 버튼을 연타했다. 100엔을 잃었다.',q:'야, 이거 아직 돌아가냐?!',fx:['lose:100','tag:100엔 손실','mis:2']},{n:'류지가 혼자 앞서 달려 나갔다가 기둥에 부딪혔다.',q:'으악! 누가 여기 기둥 세웠냐?!',fx:['hp:-8','mis:2','mood:3']}]},
+{id:'ann',name:'안',cn:'팬서',code:'PANTHER',type:'rush',col:'#ff4fa3',adj:[0,5,0,-5],trait:'솔직·낙천적·높은 공감력. 분위기 회복, 교류 보너스.',
+ L:{find:['어? 저기 반짝이는 거 뭐야?','이쪽에 뭔가 있는 것 같아!'],chat:['있잖아, 끝나면 크레이프 먹으러 가자!','다들 힘내! 거의 다 왔어!'],reply:['에이~ 진짜?!','완전 좋아!'],support:'괜찮아? 다친 데 없어?',protect:t=>`${t.cn}, 내 뒤로 와!`,hurt:'아야… 괜찮아, 아직 버틸 수 있거든!',win:'해냈다! 역시 우리 팀이야!',trap:'에이, 설마 함정이겠어?',treasure:'와, 예쁘다! 이거 진짜 보물이야?',enemy:'좋아, 불태워 줄게!',argue:'그건 너무하잖아!',back:'오늘 진짜 재밌었어! 다음에도 같이 가자!'},
+ solo:[{n:'안이 분위기를 띄우려고 손뼉을 쳤다.',q:'자자, 다들 기운 내자!',fx:['mood:8','mvp:1']},{n:'안이 반짝이는 걸 따라갔다가 거미줄을 뒤집어썼다.',q:'꺄악! 진짜 싫어!',fx:['mis:2','mood:2']},{n:'안이 섀도가 숨어 있을 법한 어둠을 향해 손짓했다.',q:'숨어 있지 말고 나와 봐!',fx:['ptag:도발','mvp:1']}]},
+{id:'yusuke',name:'유스케',cn:'폭스',code:'FOX',type:'wild',col:'#4f7dff',adj:[5,-5,-5,5],trait:'진지한 4차원 예술가·궁핍함. 기이한 단서 해석, 독자 탐색.',
+ L:{find:['이 얼마나 기묘한 구도인가…','저 얼룩… 무언가를 말하고 있군.'],chat:['모두, 잠시 그 자세 그대로 있어 다오.','이 공간의 붉은색, 실로 영감을 주는군.'],reply:['흥미롭군.','과연, 일리가 있군.'],support:'네 상처, 내가 살펴보지.',protect:t=>`물러서라, ${t.cn}. 여긴 내가 맡지.`,hurt:'윽… 이 고통마저 영감이 되는군.',win:'아름다운 승리다.',trap:'이 벽의 균열… 부자연스럽군.',treasure:'이 광택… 미의 결정이다!',enemy:'추한 녀석… 베어 주지.',argue:'그 의견에는 미학이 없군.',back:'오늘 본 붉은 선로, 잊기 전에 화폭에 담아야겠군.'},
+ solo:[{n:'유스케가 갑자기 멈춰 서서 손가락으로 액자를 만들었다.',q:'잠시만 기다려 다오.',fx:['mis:1','mood:-1']},{n:'유스케가 벽의 낙서에서 기묘한 선을 읽어냈다.',q:'이 선은… 지도에 없는 선로다.',fx:['clue','mvp:3']},{n:'유스케가 떨어진 동전을 주워 들고 진지하게 고민했다.',q:'이건… 오늘의 식비인가.',fx:['yen:50-150','mis:1']}]},
+{id:'makoto',name:'마코토',cn:'퀸',code:'QUEEN',type:'analyst',col:'#4fd1c5',adj:[0,0,5,-5],trait:'성실·원칙주의(은근 허당). 위험 피해 경감, 전투 지휘.',
+ L:{find:['여기, 확인해 볼 가치가 있어.','이 구역, 구조가 특이해.'],chat:['다음 구역 동선, 미리 정해 두자.','다들 남은 SP 확인해 둬.'],reply:['그건 좀 무모해.','좋아, 일리 있네.'],support:'진형 다시 잡자. 내가 커버할게.',protect:t=>`${t.cn}, 물러서! 내가 막을게.`,hurt:'큭… 아직 지휘는 할 수 있어.',win:'작전대로야. 잘했어, 모두.',trap:'잠깐, 주변부터 확인하자.',treasure:'꽤 값나가 보이네. 신중하게 챙기자.',enemy:'정면 돌파야. 가자!',argue:'감정적으로 굴지 말고 근거를 대.',back:'오늘 기록은 내가 정리해 둘게. 다음엔 더 효율적으로 가자.'},
+ solo:[{n:'마코토가 SP를 써서 바닥을 정밀 조사했다.',q:'압력판이 있어. 다들 밟지 마.',fx:['sp:-5','ptag:함정 의심','mvp:2']},{n:'마코토가 지도를 보며 경로를 계산하다 반대 방향으로 걸어갔다.',q:'…잠깐, 지도를 거꾸로 들었네.',fx:['mis:2','mood:3']},{n:'마코토가 들뜬 파티에 제동을 걸었다.',q:'무모한 행동은 금지야.',fx:['mood:-2','ptag:신중 모드','mvp:1']}]},
+{id:'futaba',name:'후타바',cn:'내비',code:'NAVI',type:'support',col:'#3ddc84',adj:[5,-5,0,0],trait:'호기심·장난기·덕후 기질. 지도 스캔, 히든 구역·지름길 발견.',
+ L:{find:['오, 레어 드롭 냄새!','여기 숨겨진 오브젝트 있음!'],chat:['이 맵 구조, 완전 던전 게임 각!','다들 체력 게이지 확인해!'],reply:['오케이, 접수 완료!','에엑, 그건 버그잖아!'],support:'버프 걸어 줄게! 회복 완료!',protect:t=>`${t.cn}, 위험 플래그! 피해!`,hurt:'으앗, 내 HP 바가…!',win:'클리어! 경험치 짭짤~',trap:'함정 플래그 감지! 밟으면 게임 오버 각!',treasure:'레어 아이템 획득 완료!',enemy:'적 출현! 분석 들어간다!',argue:'에엑, 그건 비효율 플레이잖아!',back:'오늘 로그 저장 완료! 다음엔 히든 맵 공략 간다!'},
+ solo:[{n:'후타바가 내비 스캔을 돌렸다.',q:'내비 스캔 완료! 이쪽이야!',fx:['clue','mvp:3']},{n:'후타바가 벽 너머 숨겨진 상자 위치를 찍었다.',q:'여기 히든 보상 있음!',fx:['tre','mvp:2']},{n:'후타바가 기둥 뒤에 숨어 잠깐 숨을 골랐다.',q:'잠깐 대기… 멘탈 게이지 충전 중.',fx:['sp:5','mis:1']}]},
+{id:'haru',name:'하루',cn:'누아르',code:'NOIR',type:'wild',col:'#c79bff',adj:[0,5,0,-5],trait:'온화한 아가씨 + 은근한 호전성. 섀도 제압 보너스, 휴식 강화.',
+ L:{find:['어머, 여기 뭔가 있는 것 같아.','이 상자, 열어 봐도 될까?'],chat:['다녀오면 다 같이 차 한잔할까?','다들 피곤하지 않아? 천천히 가자.'],reply:['후후, 그러네.','어머, 재밌다.'],support:'괜찮아? 잠깐 쉬어 가자.',protect:t=>`${t.cn}, 내 뒤에 있어 줄래?`,hurt:'아… 조금 아프네. 하지만 괜찮아.',win:'어머, 벌써 끝나 버렸네?',trap:'이 바닥, 왠지 수상하지 않아?',treasure:'예쁘다… 르블랑에 장식하면 좋겠네.',enemy:'어머, 저 섀도… 산산조각 내 줘도 될까?',argue:'어머, 그건 좀 아닌 것 같은데?',back:'오늘 수확으로 다음엔 좋은 찻잎을 사 볼까?'},
+ solo:[{n:'하루가 도끼를 고쳐 쥐고 어둠 속을 바라봤다.',q:'다음 섀도는… 내가 맡아도 될까?',fx:['ptag:섀도 제압 준비','mvp:1']},{n:'하루가 벽 틈의 흙을 만지며 미소 지었다.',q:'이 흙, 채소 키우기 좋겠네.',fx:['mis:1','mood:3']},{n:'하루가 길을 막은 잔해를 가볍게 치워 버렸다.',q:'길이 막혀 있었네. 이제 됐어.',fx:['yen:200-400','mvp:2']}]},
+{id:'akechi',name:'아케치',cn:'크로우',code:'CROW',type:'analyst',col:'#f2efe6',adj:[5,-5,-5,5],trait:'예리·분석적, 정중한 가면 속 도발. 함정 사전 감지, 숨겨진 정보 추적.',
+ L:{find:['흠, 이건 그냥 지나칠 수 없겠는데.','흥미로운 흔적이 있네.'],chat:['다들 너무 들떠 있는 것 같네.','이런 곳에서 잡담이라니, 여유롭네.'],reply:['그런가? 잘 모르겠는데.','…뭐, 나쁘지 않네.'],support:'무리하지 마. 쓰러지면 귀찮아지니까.',protect:t=>`비켜, ${t.cn}. 방해되니까.`,hurt:'…쳇, 방심했네.',win:'예상대로네.',trap:'이 정도로 노골적이면 함정일 확률이 높잖아.',treasure:'꽤 쓸 만한 물건인 것 같네.',enemy:'얌전히 사라져 줄래?',argue:'그 판단, 정말 괜찮은 거야?',back:'오늘은 나쁘지 않았어. 다음 탐사도 기대해 볼까.'},
+ solo:[{n:'아케치가 바닥의 발자국을 따라가며 추리를 늘어놨다.',q:'누군가 먼저 다녀간 것 같네. 함정을 깔아 두고.',fx:['ptag:함정 의심','mvp:2']},{n:'아케치가 동료의 경솔한 행동에 서늘하게 한마디 했다.',q:'후회하지 않겠지?',fx:['mood:-4']},{n:'아케치가 지워진 표지판의 글자를 읽어냈다.',q:'이 역 이름… 노선도에는 없잖아.',fx:['clue','mvp:3']}]},
+{id:'kasumi',name:'카스미',cn:'바이올렛',code:'VIOLET',type:'support',col:'#8a5cff',adj:[0,5,0,-5],trait:'예의 바름·성실·체조 선수 근성. 회피 성공률 상승, 사기 진작.',
+ L:{find:['선배, 저기 뭔가 있어요!','이쪽에 뭔가 떨어져 있어요!'],chat:['다들 힘내 보죠!','끝나면 다 같이 맛있는 거 먹으러 가요!'],reply:['네, 알겠어요!','우와, 정말요?'],support:'제가 도울게요! 조금만 버텨 주세요!',protect:t=>t.id==='joker'?'선배, 제가 막을게요!':'제가 막을게요! 뒤로 물러나 주세요!',hurt:'으… 괜찮아요, 아직 할 수 있어요!',win:'해냈어요, 선배!',trap:'조심하세요! 바닥이 이상해요.',treasure:'와아, 반짝반짝해요!',enemy:'제가 상대할게요!',argue:'저, 저는 그렇게 생각 안 해요!',back:'오늘 정말 좋은 경험이었어요. 다음에도 불러 주세요, 선배!'},
+ solo:[{n:'카스미가 무너진 난간을 공중제비로 넘어갔다.',q:'선배, 제가 먼저 살펴보고 올게요!',fx:['yen:200-350','mvp:2']},{n:'카스미가 멋지게 착지하려다 미끄러졌다.',q:'앗… 방금 건 못 본 걸로 해 주세요!',fx:['mis:2','mood:3']},{n:'카스미가 모두를 향해 주먹을 꽉 쥐었다.',q:'힘내 보죠!',fx:['mood:7','mvp:1']}]}
+];
+const CH=Object.fromEntries(CHARS.map(c=>[c.id,c]));
+
+const ZONES={
+ gate:{name:'진입 승강장',en:'ENTRY PLATFORM',esh:'ENTRY',sh:'승강장',sub:'안전 지역',x:22,y:22,links:['pass','lost'],loot:[50,150],tre:.03,risk:0,acts:2,
+  arr:['붉은 하늘 아래 승강장이 조용하다.','개찰구 너머로 선로가 끝없이 이어진다.'],scout:['승강장 벤치 밑을 뒤졌다.','개찰구 주변을 살폈다.']},
+ pass:{name:'폐쇄된 통로',en:'SEALED PASSAGE',esh:'PASSAGE',sh:'통로',sub:'표준 위험',x:78,y:24,links:['gate','lost','plat'],loot:[120,300],tre:.07,risk:1,acts:3,
+  arr:['어두운 통로에 낮은 웅성거림이 울린다.','깜빡이는 형광등이 길을 반쯤만 비춘다.'],scout:['어두운 통로 끝을 살폈다.','녹슨 배전함을 열어 봤다.']},
+ lost:{name:'유실물 보관실',en:'LOST & FOUND',esh:'LOST',sh:'보관실',sub:'고보상 · 함정',x:24,y:78,links:['gate','pass','plat'],loot:[150,380],tre:.15,risk:2,acts:3,
+  arr:['주인 잃은 물건들이 천장까지 쌓여 있다.','선반 사이로 오래된 자판기 불빛이 새어 나온다.'],scout:['잡동사니 더미를 뒤졌다.','분실물 선반을 훑었다.']},
+ plat:{name:'버려진 플랫폼',en:'ABANDONED PLATFORM',esh:'DEPTHS',sh:'플랫폼',sub:'심층 · 히든',x:76,y:78,links:['pass','lost'],loot:[300,650],tre:.22,risk:3,acts:3,
+  arr:['끊긴 선로 끝에서 차가운 바람이 분다.','시간표에는 존재하지 않는 시각이 적혀 있다.'],scout:['끊긴 선로 옆을 조사했다.','빛바랜 시간표를 들여다봤다.']}};
+const LINKS=[['gate','pass'],['gate','lost'],['pass','lost'],['pass','plat'],['lost','plat']];
+
+const PROPS=[
+ {id:'game',en:'RETRO CONSOLE',name:'레트로 게임기',cost:3000,eff:'탐사 시작 분위기 +15',unlock:'류지·후타바 게임 대결 후일담',
+  after:[{who:'ryuji',q:'야, 후타바! 한 판만 더 하자고!'},{who:'futaba',q:'오케이, 오늘도 10연승 각!'}],
+  svg:'<rect x="6" y="18" width="48" height="26" rx="10" fill="#d9d2cc"/><rect x="14" y="28" width="12" height="4" fill="#141012"/><rect x="18" y="24" width="4" height="12" fill="#141012"/><circle cx="40" cy="27" r="3.5" fill="#e5191c"/><circle cx="46" cy="33" r="3.5" fill="#f5b942"/>'},
+ {id:'tea',en:'COFFEE & TEA SET',name:'커피·홍차 세트',cost:3500,eff:'탐사 시작 SP +10%',unlock:'하루·아케치·조커 티타임 후일담',
+  after:[{who:'haru',q:'오늘은 홍차로 할까? 좋은 찻잎이 있거든.'},{who:'akechi',q:'난 커피로 부탁할게. …괜찮다면.'},{who:'joker',q:'둘 다 내릴게.'}],
+  svg:'<ellipse cx="30" cy="48" rx="24" ry="5" fill="#d9d2cc"/><path d="M14 22h30v14a12 12 0 0 1-12 12h-6a12 12 0 0 1-12-12z" fill="#f6f1ea"/><path d="M44 26a7 7 0 0 1 0 12" stroke="#f6f1ea" stroke-width="4" fill="none"/><path d="M22 10q4 5 0 9M31 8q4 5 0 10" stroke="#b9aca5" stroke-width="2.5" fill="none"/>'},
+ {id:'easel',en:'ART EASEL',name:'화구·이젤 세트',cost:3000,eff:'기이한 단서 발견율 상승',unlock:'유스케 스케치 후일담',
+  after:[{who:'yusuke',q:'오늘 본 붉은 선로… 잊기 전에 그려 둬야겠군.'}],
+  svg:'<path d="M30 6 14 56M30 6l16 50M30 6v50" stroke="#b9aca5" stroke-width="3"/><rect x="12" y="14" width="36" height="26" fill="#f6f1ea"/><path d="M16 34l9-10 7 7 5-4 8 7" stroke="#e5191c" stroke-width="3" fill="none"/>'},
+ {id:'cushion',en:'CAT CUSHION',name:'고양이 방석·참치캔',cost:2500,eff:'보물 발견율 +6%',unlock:'모르가나 전용 리액션',
+  after:[{who:'mona',q:'역시 이 방석이 최고라고… 참치캔도 따 줄 거지?'}],
+  svg:'<rect x="4" y="30" width="38" height="20" rx="10" fill="#e5191c"/><rect x="10" y="26" width="26" height="8" rx="4" fill="#ff6b6b"/><rect x="40" y="36" width="16" height="14" rx="2" fill="#d9d2cc"/><rect x="40" y="40" width="16" height="4" fill="#59c3ff"/>'},
+ {id:'dart',en:'DART BOARD',name:'다트 보드',cost:4000,eff:'교류·협동 성공률 상승',unlock:'안·카스미·마코토 내기 후일담',
+  after:[{who:'ann',q:'다트 내기! 진 사람이 크레이프 사기다?'},{who:'kasumi',q:'좋아요! 저 이런 거 자신 있어요!'},{who:'makoto',q:'…정확한 각도만 계산하면 질 리가 없어.'}],
+  svg:'<circle cx="30" cy="30" r="25" fill="#141012" stroke="#d9d2cc" stroke-width="3"/><circle cx="30" cy="30" r="17" fill="#e5191c"/><circle cx="30" cy="30" r="10" fill="#f6f1ea"/><circle cx="30" cy="30" r="4" fill="#e5191c"/><path d="M30 30 52 10" stroke="#f5b942" stroke-width="3"/>'}];
+const BUS=[null,{eff:'기본 이동'},{cost:5000,eff:'버려진 플랫폼 상시 개방'},{cost:9000,eff:'함정 피해 절반 · 함정 돌파 선택지'},{cost:15000,eff:'존재하지 않는 역 진입 가능'}];
+const PICK=[0,2000,4000,7000];
+const MVPWHY={wild:'판을 뒤집는 한 수',analyst:'함정·리스크 사전 차단',support:'보물·단서 탐지',rush:'몸 사리지 않는 돌파'};
+
+/* ============ 유틸 ============ */
+const $=s=>document.querySelector(s);
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const chance=p=>Math.random()<p;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>n.toLocaleString('ko-KR');
+const pct=p=>Math.round(p*100)+'%';
+const bat=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0};
+const ig=w=>w+(bat(w)?'이':'가'),un=w=>w+(bat(w)?'은':'는'),ul=w=>w+(bat(w)?'을':'를'),wa=w=>w+(bat(w)?'과':'와');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function rn(t){let h=7,d=0;const sp=[...t].map((c0,i)=>{let ch=c0;if(ch===' ')return '</span><span class="rn-sp"></span><span class="rnword">';h=(h*31+ch.charCodeAt(0)*(i+3))%10007;const v=h%6;if(/[A-HJKM-Z]/.test(ch)&&i>0&&(h>>7)%3===0)ch=ch.toLowerCase();const r=((h>>4)%7-3)*2,b=(h>>6)%3===0;d+=[1,2,1,1,3,1,2][h%7]*33;return `<span class="rn rn${v}${b?' rnb':''}" style="--r:${r}deg;--rd:${d}ms">${esc(ch)}</span>`}).join('');return `<span class="sr">${esc(t)}</span><span aria-hidden="true"><span class="rnword">${sp}</span></span>`}
+const wpick=w=>{let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){if((r-=w[i])<0)return i}return w.length-1};
+
+/* ============ 저장 (LocalStorage) ============ */
+const KEY='todays-mementos-v1';
+const DEF=()=>({tut:false,tips:[],yen:1000,props:[],bus:1,pick:0,smoke:1,curry:1,codex:{combos:[],events:[],hidden:[],reports:0,best:0}});
+let S=DEF();
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){S=Object.assign(DEF(),d);S.codex=Object.assign(DEF().codex,d.codex||{})}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const has=p=>S.props.includes(p);
+
+let ui={tip:null,tstep:0,tafter:'party',enter:true,screen:'main',sel:[],focus:'joker',tab:'props',msg:'',rc:false,reset:false,res:null,copy:''};
+let run=null,T=0;
+
+/* ============ 탐사 상태 헬퍼 ============ */
+const alive=()=>run.party.filter(m=>m.hp>0);
+const mem=id=>run.party.find(m=>m.id===id&&m.hp>0)||null;
+function say(c,k,t){let v=c.L[k];if(Array.isArray(v))v=pick(v);if(typeof v==='function')v=v(t||{cn:'다들',id:''});return v||'…'}
+function hp(m,d){if(m.hp<=0&&d>0)return;m.hp=clamp(m.hp+d,0,100)}
+function addTag(l,w=null){if(!run.tags.some(t=>t.l===l&&t.w===w))run.tags.push({l,w})}
+const hasTag=(l,w)=>run.tags.some(t=>t.l===l&&(w===undefined||t.w===w));
+const delTag=l=>{run.tags=run.tags.filter(t=>t.l!==l)};
+const moodL=m=>m>=65?{k:'good',l:'화기애애',en:'GOOD'}:m>=35?{k:'meh',l:'미묘',en:'UNEASY'}:{k:'bad',l:'긴장',en:'TENSE'};
+const addMood=n=>{run.mood=clamp(run.mood+n,0,100)};
+const addTre=(a,b)=>{run.tre++;run.tval+=R(a,b)};
+const canEnter=z=>z!=='plat'||S.bus>=2||hasTag(CLUE);
+
+function fx(m,list){const r=[];for(const f of list||[]){const i=f.indexOf(':'),k=i<0?f:f.slice(0,i),v=i<0?'':f.slice(i+1),n=+v;
+ if(k==='yen'){const [a,b]=v.split('-').map(Number);const y=R(a,b||a);run.yen+=y;r.push(`+¥${fmt(y)}`)}
+ else if(k==='lose'){run.yen=Math.max(0,run.yen-n);r.push(`-¥${n}`)}
+ else if(k==='tag'){addTag(v,m.id);r.push(`태그: ${v}`)}
+ else if(k==='ptag'){addTag(v);r.push(`태그: ${v}`)}
+ else if(k==='clue'){addTag(CLUE);r.push('태그: 단서')}
+ else if(k==='mood'){addMood(n);r.push(`분위기 ${n>0?'+':''}${n}`)}
+ else if(k==='sp'){m.sp=clamp(m.sp+n,0,m.msp);r.push(`SP ${n>0?'+':''}${n}`)}
+ else if(k==='hp'){hp(m,n);r.push(`HP ${n>0?'+':''}${n}`)}
+ else if(k==='mvp')m.mvp+=n;
+ else if(k==='mis')m.mis+=n;
+ else if(k==='tre'){addTre(300,700);r.push('보물 +1')}}
+ return r.join(' · ')}
+
+/* ============ 자율 행동 (4대 유형 가중치) ============ */
+function autoAction(){
+ const al=alive();if(!al.length)return null;
+ let pool=al.filter(m=>m!==run.last);if(!pool.length)pool=al;
+ const m=pick(pool);run.last=m;
+ const weak=al.filter(x=>x!==m&&x.hp<=35);
+ if(weak.length&&(m.c.type==='rush'||chance(.35)))return actProtect(m,pick(weak));
+ const w=TYPES[m.c.type].w.map((v,i)=>Math.max(1,v+m.c.adj[i]));
+ if(al.some(x=>x.hp<=60))w[2]*=1.6;
+ if(al.length<2)w[1]=0;
+ return [actExplore,actSocial,actSupport,actSolo][wpick(w)](m);
+}
+function actExplore(m){
+ const z=ZONES[run.zone];
+ const tc=z.tre+(has('cushion')?.06:0)+(mem('mona')?.04:0)+(m.c.type==='support'?.03:0);
+ if(chance(tc)){addTre(300+z.risk*150,600+z.risk*200);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 잡동사니 사이에서 보물을 찾아냈다.`,q:say(m.c,'treasure'),res:'보물 +1'}}
+ if((run.zone==='pass'||run.zone==='lost')&&!hasTag(CLUE)&&chance(.07+(has('easel')?.08:0))){addTag(CLUE);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 벽면에서 지도에 없는 선로 표시를 발견했다.`,q:say(m.c,'find'),res:'태그: 단서'}}
+ const y=R(z.loot[0],z.loot[1]);run.yen+=y;m.mvp+=1;
+ return {who:m.id,n:`${ig(m.c.name)} ${pick(z.scout)}`,q:say(m.c,'find'),res:`+¥${fmt(y)}`};
+}
+function actSocial(m){
+ const o=alive().filter(x=>x!==m);if(!o.length)return actExplore(m);const p=pick(o);
+ if((m.c.type==='analyst'&&p.c.type==='rush'||m.c.type==='rush'&&p.c.type==='analyst')&&chance(.35)){addMood(-4);
+  return [{who:m.id,n:`${ig(m.c.name)} ${p.c.name}에게 한마디 했다.`,q:say(m.c,'chat')},{who:p.id,n:`${ig(p.c.name)} 미묘한 표정을 지었다.`,q:say(p.c,'argue'),res:'분위기 -4'}]}
+ const g=R(3,7)+(has('dart')?3:0);addMood(g);
+ return [{who:m.id,n:`${ig(m.c.name)} ${p.c.name}에게 말을 걸었다.`,q:say(m.c,'chat')},{who:p.id,n:`${ig(p.c.name)} 대답했다.`,q:say(p.c,'reply'),res:`분위기 +${g}`}];
+}
+function actSupport(m){
+ const t=[...alive()].sort((a,b)=>a.hp-b.hp)[0];
+ if(t.hp>=95||m.sp<4)return actExplore(m);
+ const h=R(10,16)+(m.c.type==='support'?6:0);m.sp-=4;hp(t,h);m.mvp+=1;
+ return {who:m.id,n:t===m?`${ig(m.c.name)} 숨을 고르며 상처를 돌봤다.`:`${ig(m.c.name)} ${t.c.name}의 상처를 돌봤다.`,q:say(m.c,'support',t),res:`${t.c.name} HP +${h}`};
+}
+function actProtect(m,t){
+ hp(t,10);if(m.c.type==='rush')hp(m,-4);m.mvp+=2;
+ return {who:m.id,n:`${ig(m.c.name)} 위태로운 ${ul(t.c.name)} 감싸며 앞으로 나섰다.`,q:say(m.c,'protect',t),res:`${t.c.name} HP +10`};
+}
+function actSolo(m){
+ let pool=m.c.solo.filter(s=>!(s.fx.includes('clue')&&hasTag(CLUE)));if(!pool.length)pool=m.c.solo;
+ let s=pick(pool);if(m.id==='yusuke'&&has('easel')&&!hasTag(CLUE)&&chance(.5))s=m.c.solo[1];
+ return {who:m.id,n:s.n,q:s.q,res:fx(m,s.fx)};
+}
+
+/* ============ 전투·회피 (이벤트 해결형) ============ */
+function winP(){let p=0;for(const m of alive()){p+=12+m.hp*.22;if(m.c.type==='rush')p+=6;if(m.id==='haru')p+=6;if(m.id==='makoto')p+=4}
+ p+=run.mood>=65?8:run.mood<35?-8:0;const e=40+run.turn*5+ZONES[run.zone].risk*10;
+ return clamp(.3+(p-e)/80+run.loss*.08,.12,.95)}
+const TAGOWN={'약점 간파':'joker','섀도 제압 준비':'haru','도발':'ann'};
+function fight(p,sp){
+ const out=[],al=alive();
+ if(sp){const m=mem(TAGOWN[sp])||pick(al);m.mvp+=2;out.push({who:m.id,n:`${ig(m.c.name)} 준비해 둔 수를 꺼냈다. [${sp}]`,q:say(m.c,'enemy')})}
+ if(chance(p)){const z=ZONES[run.zone],y=Math.round(R(200,400)*(1+z.risk*.5));run.yen+=y;const m=pick(al),d=pick(al),dmg=R(3,10);m.mvp+=2;hp(d,-dmg);
+  out.push({who:m.id,n:`섀도를 쓰러뜨렸다! (${d.c.name} HP -${dmg})`,q:say(m.c,'win'),res:`+¥${fmt(y)}`});
+  if(chance(.15+(has('cushion')?.05:0))){addTre(500,900);out.push({sys:1,text:'섀도가 반짝이는 무언가를 떨어뜨렸다.',res:'보물 +1'})}
+ }else{run.loss++;const half=hasTag('신중 모드');if(half)delTag('신중 모드');
+  for(const m of shuffle(al).slice(0,2)){let d=R(14,26);if(half)d=Math.round(d/2);hp(m,-d);out.push({who:m.id,n:`섀도의 반격! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
+  addMood(-6);if(half)out.push({sys:1,text:'[신중 모드] 덕분에 피해가 절반으로 줄었다.'})}
+ return out;
+}
+function evade(){
+ if(S.smoke>0){S.smoke--;save();return [{sys:1,text:'연막탄을 터뜨리고 무사히 빠져나왔다.',res:`연막탄 -1 (남은 ${S.smoke})`}]}
+ const k=mem('kasumi');
+ if(chance(.6+(k?.3:0)))return [k?{who:'kasumi',n:'카스미가 앞장서 퇴로를 열었다.',q:'이쪽이에요, 빨리요!'}:{sys:1,text:'숨죽인 채 섀도를 따돌렸다.'}];
+ const m=pick(alive()),d=R(8,14);hp(m,-d);return [{who:m.id,n:`도망치다 등을 긁혔다. (${m.c.name} HP -${d})`,q:say(m.c,'hurt')}];
+}
+function shadowChoices(){
+ const p=winP(),sp=Object.keys(TAGOWN).find(t=>hasTag(t)),jk=mem('joker');
+ const c=[{label:'싸운다',sub:`승리 확률 약 ${pct(p)}`,go:()=>fight(p)},
+  {label:'회피한다',sub:S.smoke>0?`연막탄 사용 (보유 ${S.smoke}) · 무피해`:`연막탄 없음 · 피해 위험 있음${mem('kasumi')?' (카스미 회피 보너스)':''}`,go:evade},
+  {label:'특수 행동',sub:sp?`[${sp}] 태그 소비 · 승리 확률 약 ${pct(Math.min(.97,p+.3))}`:'소비할 상태 태그가 없다',dis:!sp,go:()=>{delTag(sp);return fight(Math.min(.97,p+.3),sp)}}];
+ if(jk)c.push({label:'조커의 기책',sub:jk.sp>=8?`조커 SP -8 · 승리 확률 약 ${pct(Math.min(.97,p+.22))}`:'조커 SP 부족',dis:jk.sp<8,go:()=>{jk.sp-=8;jk.mvp+=2;return [{who:'joker',n:'조커가 가면에 손을 가져갔다.',q:say(jk.c,'gambit')},...fight(Math.min(.97,p+.22))]}});
+ return c;
+}
+
+/* ============ 돌발 이벤트 (범용 골격 + 유형 분기 + 조합 특수) ============ */
+const EVENTS=[
+{id:'shadow',en:'SHADOW!',zones:['pass','lost','plat'],max:2,w:4,make(){const m=pick(alive());
+ return {title:'섀도 조우',intro:pick(['선로 아래에서 섀도가 기어 나왔다!','천장에서 검은 그림자가 떨어졌다!','통로를 가로막은 섀도와 눈이 마주쳤다!']),who:m.id,q:say(m.c,'enemy'),choices:shadowChoices()}}},
+{id:'chest',en:'TREASURE CHEST',zones:['lost','plat'],w:4,make(){
+ const al=alive(),ak=mem('akechi'),an=al.find(m=>m.c.type==='analyst'),su=al.find(m=>m.c.type==='support');
+ const sp=ak||an||su||pick(al),op=mem('joker')||pick(al),inv=[an,su].find(m=>m&&m.sp>=10)||an||su;
+ const p=clamp(.45+S.pick*.13,0,.9);
+ return {title:'수상한 보물상자',intro:`${ig(op.c.name)} 구석의 보물상자 앞에 쪼그려 앉았다.`,who:sp.id,q:ak?'잠깐. 이 정도로 노골적이면 누군가 열어 주길 기다리고 있는 것 같지 않아?':say(sp.c,'trap'),choices:[
+  {label:'바로 연다',sub:`성공 확률 약 ${pct(p)}${S.pick?` · 자물쇠 따개 Lv.${S.pick}`:''}`,go:()=>{
+   if(chance(p)){run.tre+=2;run.tval+=R(800,1400);op.mvp+=2;return [{who:op.id,n:`${ig(op.c.name)} 상자를 열었다. 보물이 쏟아졌다!`,q:say(op.c,'treasure'),res:'보물 +2'}]}
+   const d=R(12,20);hp(op,-d);op.mis+=3;addTag('함정 발동',op.id);return [{sys:1,warn:1,text:`철컥! 상자에서 가시가 튀어나왔다. (${op.c.name} HP -${d})`},{who:op.id,n:'',q:say(op.c,'hurt'),res:'태그: 함정 발동'}]}},
+  {label:inv?`${inv.c.name}에게 조사를 맡긴다`:'조사를 맡긴다',sub:inv?(inv.sp>=10?'SP -10 · 함정 해제 + 추가 추리':'SP 부족'):'분석·지원형 멤버 필요',dis:!inv||inv.sp<10,go:()=>{
+   inv.sp-=10;inv.mvp+=3;addTre(700,1100);addTag('추리 단서');const y=R(200,400);run.yen+=y;
+   return [{who:inv.id,n:`${ig(inv.c.name)} 경첩에 걸린 가는 철사를 찾아 끊어냈다.`,q:say(inv.c,'treasure'),res:'보물 +1'},{sys:1,text:'상자 밑 발자국을 따라가자 숨겨진 선반이 나왔다.',res:`+¥${y} · 태그: 추리 단서`}]}},
+  {label:'무시하고 지나간다',sub:'위험 회피 · 탐색 기회 소멸',go:()=>[{sys:1,text:'괴도단은 상자를 등지고 걸음을 옮겼다.'}]}]}}},
+{id:'vend',en:'VENDING MACHINE',zones:['pass','lost'],w:3,make(){const r=mem('ryuji'),m=r||pick(alive());
+ return {title:'낡은 자판기',intro:'먼지 쌓인 자판기가 아직 희미하게 불빛을 낸다.',who:m.id,q:r?'야, 이거 아직 돌아가냐?!':say(m.c,'find'),choices:[
+  {label:`${m.c.name}에게 100엔을 넣게 한다`,sub:'정체불명의 음료가 나올지도',go:()=>{run.yen=Math.max(0,run.yen-100);
+   if(chance(.5)){addTag('수상한 음료');return [{who:m.id,n:`덜컹! ${ig(m.c.name)} 라벨 없는 캔을 꺼냈다.`,q:say(m.c,'treasure'),res:'-¥100 · 태그: 수상한 음료'}]}
+   addTag('100엔 손실',m.id);m.mis+=2;return [{who:m.id,n:'자판기는 동전만 삼키고 조용해졌다.',q:say(m.c,'hurt'),res:'-¥100 · 태그: 100엔 손실'}]}},
+  {label:'그냥 지나간다',sub:'아무 일도 없다',go:()=>[{sys:1,text:'자판기 불빛이 아쉽다는 듯 깜빡였다.'}]}]}}},
+{id:'drink',en:'MYSTERY DRINK',min:3,w:6,req:()=>hasTag('수상한 음료'),make(){const m=mem('ryuji')||mem('futaba')||pick(alive());
+ return {title:'수상한 음료 회수',intro:'가방 속에서 아까 그 라벨 없는 캔이 찰랑거린다.',who:m.id,q:say(m.c,'trap'),choices:[
+  {label:`${m.c.name}에게 마셔 보게 한다`,sub:'대박 아니면 쪽박',go:()=>{delTag('수상한 음료');
+   if(chance(.55)){for(const x of alive()){hp(x,15);x.sp=clamp(x.sp+10,0,x.msp)}m.mvp+=2;return [{who:m.id,n:`${ig(m.c.name)} 한 모금 마시더니 눈을 번쩍 떴다. 나눠 마신 전원이 기운을 차렸다.`,q:say(m.c,'win'),res:'전원 HP +15 · SP +10'}]}
+   m.mis+=3;addTag('배탈',m.id);addMood(-6);hp(m,-8);return [{who:m.id,n:`${ig(m.c.name)} 얼굴이 새파래졌다.`,q:say(m.c,'hurt'),res:'HP -8 · 태그: 배탈'}]}},
+  {label:'르블랑까지 가져간다',sub:'후일담에서 회수',go:()=>[{sys:1,text:'캔은 다시 가방 깊숙이 들어갔다.'}]}]}}},
+{id:'trap',en:'TRAP FLOOR',zones:['pass','lost','plat'],w:3,make(){
+ if(hasTag('함정 의심')){const m=alive().find(x=>x.c.type==='analyst')||pick(alive());delTag('함정 의심');m.mvp+=2;
+  return {title:'함정 바닥',intro:'바닥 타일 하나가 미묘하게 솟아 있다.',who:m.id,q:say(m.c,'trap'),auto:[{sys:1,text:'[함정 의심] 태그 덕분에 미리 표시해 둔 압력판을 피해 지나갔다.',res:'피해 없음'}]}}
+ const j=mem('kasumi')||mem('ryuji')||mem('ann')||pick(alive()),sm=pick(alive());
+ const p=clamp(.5+(j.id==='kasumi'?.35:j.c.type==='rush'?.15:0),0,.95);
+ return {title:'함정 바닥',intro:'선로 사이 바닥이 수상하게 꺼져 있다.',who:sm.id,q:say(sm.c,'trap'),choices:[
+  {label:`${j.c.name}의 신호로 뛰어넘는다`,sub:`성공 확률 약 ${pct(p)}`,go:()=>{
+   if(chance(p)){j.mvp+=2;return [{who:j.id,n:`${ig(j.c.name)} 먼저 뛰어넘고 손을 내밀었다.`,q:say(j.c,'win')}]}
+   const out=[],half=S.bus>=3;for(const m of shuffle(alive()).slice(0,2)){const d=Math.round(R(10,18)*(half?.5:1));hp(m,-d);out.push({who:m.id,n:`바닥이 꺼졌다! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
+   j.mis+=1;if(half)out.push({sys:1,text:'튜닝된 모나 버스 서스펜션이 충격을 덜어 줬다.'});return out}},
+  {label:'멀리 우회한다',sub:'안전 · 분위기 -3',go:()=>{addMood(-3);return [{sys:1,text:'한참을 돌아가느라 다리가 뻐근해졌다.',res:'분위기 -3'}]}},
+  {label:'모나 버스로 돌파한다',sub:S.bus>=3?'버스 Lv.3 서스펜션 · 무피해':'모나 버스 Lv.3 필요',dis:S.bus<3,go:()=>{const mo=mem('mona');
+   return [mo?{who:'mona',n:'모나 버스가 꺼진 바닥을 가뿐히 넘었다.',q:'이 몸의 서스펜션을 봤냐!'}:{sys:1,text:'모나 버스가 꺼진 바닥을 가뿐히 넘었다.'}]}}]}}},
+{id:'rest',en:'BENCH BREAK',zones:['gate'],w:5,make(){const m=mem('haru')||pick(alive());
+ return {title:'승강장 벤치',intro:'승강장 끝에 멀쩡한 벤치가 하나 남아 있다.',who:m.id,q:say(m.c,'chat'),choices:[
+  {label:'잠깐 쉬어 간다',sub:`전원 HP +18 · SP +${has('tea')?16:8} · 분위기 +6${mem('haru')?' · 하루 휴식 보너스':''}`,go:()=>{
+   const h=18+(mem('haru')?6:0),s=has('tea')?16:8;for(const x of alive()){hp(x,h);x.sp=clamp(x.sp+s,0,x.msp)}addMood(6);
+   return [{sys:1,text:'괴도단은 벤치에 나란히 앉아 숨을 돌렸다.',res:`전원 HP +${h} · SP +${s}`}]}},
+  {label:'바로 출발한다',sub:'자율 행동 1회 추가',go:()=>[{sys:1,text:'쉴 틈 없이 다시 움직인다.'},{fn:autoAction}]}]}}},
+{id:'quarrel',en:'CLASH',min:2,w:5,req:()=>run.mood<45&&alive().length>=2,make(){
+ const al=alive();let a=al.find(m=>m.c.type==='analyst'),b=al.find(m=>m.c.type==='rush');if(!a||!b)[a,b]=shuffle(al);
+ const jk=mem('joker'),med=jk&&jk!==a&&jk!==b?jk:null,p=med?1:clamp(.6+(has('dart')?.15:0),0,1);
+ return {title:'의견 충돌',intro:`${wa(a.c.name)} ${b.c.name}의 의견이 엇갈렸다.`,who:a.id,q:say(a.c,'argue'),after:{who:b.id,q:say(b.c,'argue')},choices:[
+  {label:med?'조커가 중재한다':'중재한다',sub:`성공 확률 ${pct(p)}`,go:()=>{
+   if(chance(p)){addMood(15);return [med?{who:'joker',n:'',q:'둘 다 일리 있어. 그러니까 같이 가자.',res:'분위기 +15'}:{sys:1,text:'겨우 의견을 모았다.',res:'분위기 +15'}]}
+   addMood(-5);return [{sys:1,text:'중재는 실패했다. 공기가 더 무거워졌다.',res:'분위기 -5'}]}},
+  {label:'내버려둔다',sub:'둘이 알아서 풀지도…',go:()=>{
+   if(chance(.5)){addTag('티격태격');addMood(8);return [{sys:1,text:`투닥거리던 ${wa(a.c.name)} ${un(b.c.name)} 어느새 같이 웃고 있다.`,res:'분위기 +8 · 태그: 티격태격'}]}
+   addTag('분위기: 냉랭');addMood(-8);return [{sys:1,text:'둘은 한동안 서로 눈도 마주치지 않았다.',res:'분위기 -8'}]}}]}}},
+{id:'bag',en:'LOST BAG',zones:['lost'],w:3,make(){const st=mem('makoto')||mem('kasumi'),m=pick(alive());
+ return {title:'주인 없는 가방',intro:'선반 맨 아래에 묵직한 가방이 하나 놓여 있다.',who:m.id,q:say(m.c,'find'),choices:[
+  {label:'열어 본다',sub:'엔 획득 · 카레가 들어 있을지도',go:()=>{const y=R(300,800);run.yen+=y;const out=[{sys:1,text:'가방 안에서 지폐 몇 장이 나왔다.',res:`+¥${y}`}];
+   if(chance(.3)){S.curry++;save();out.push({sys:1,text:'포장된 르블랑 카레도 한 팩 들어 있었다.',res:'카레 +1'})}
+   if(st){addMood(-3);out.push({who:st.id,n:'',q:say(st.c,'argue'),res:'분위기 -3'})}return out}},
+  {label:'유실물 함에 넣는다',sub:'분위기 +10',go:()=>{addMood(10);const g=st||pick(alive());g.mvp+=1;return [{who:g.id,n:`${ig(g.c.name)} 가방을 유실물 함에 넣었다.`,q:say(g.c,'win'),res:'분위기 +10'}]}}]}}},
+{id:'ghost',en:'GHOST STATION',zones:['plat'],w:6,make(){const s=mem('futaba')||mem('yusuke')||mem('akechi')||pick(alive()),ok=S.bus>=4||hasTag('추리 단서');
+ return {title:'존재하지 않는 역',intro:'노선도에 없는 역의 표지판이 어둠 속에서 깜빡인다.',who:s.id,q:say(s.c,'find'),choices:[
+  {label:'역 안으로 들어간다',sub:ok?'최고 보상 · 전원 HP -10':'모나 버스 Lv.4 또는 [추리 단서] 필요',dis:!ok,go:()=>{
+   run.tre+=2;run.tval+=R(2000,3000);const y=R(1500,2500);run.yen+=y;run.hidden=true;if(!S.codex.hidden.includes('ghost')){S.codex.hidden.push('ghost');save()}
+   for(const x of alive())hp(x,-10);s.mvp+=3;
+   return [{sys:1,ev:1,text:'히든 구역 발견 — 존재하지 않는 역'},{sys:1,text:'플랫폼 끝, 아무도 기억하지 못하는 역에 보물이 쌓여 있었다.',res:`보물 +2 · +¥${fmt(y)}`},{who:s.id,n:'',q:say(s.c,'treasure')}]}},
+  {label:'표지판만 기록해 둔다',sub:'도감 기록 · 안전',go:()=>{addTag('존재하지 않는 역');if(!S.codex.hidden.includes('sign')){S.codex.hidden.push('sign');save()}return [{sys:1,text:'표지판의 역 이름을 수첩에 옮겨 적었다.',res:'태그: 존재하지 않는 역'}]}}]}}},
+/* --- 대표 조합 특수 이벤트 --- */
+{id:'c-vend',en:'VENDING FEUD',name:'자판기 공방',combo:['ryuji','akechi'],min:2,w:6,req:()=>hasTag('100엔 손실','ryuji'),make(){
+ return {title:'조합 이벤트 · 자판기 공방',intro:'류지가 아직도 아까 그 자판기 쪽을 힐끔거린다.',who:'akechi',q:'예상대로네. 굳이 눌러 볼 필요는 없어 보였는데.',after:{who:'ryuji',q:'야, 아직도 그 얘기냐?!'},choices:[
+  {label:'류지를 위로한다',sub:'분위기 +8',go:()=>{addMood(8);return [{who:'ryuji',n:'',q:'역시 우리 리더는 다르다고!',res:'분위기 +8'}]}},
+  {label:'아케치에게 맞장구친다',sub:'분위기 -3 · 티격태격',go:()=>{addMood(-3);addTag('티격태격');return [{who:'akechi',n:'',q:'거 봐. 다들 같은 생각이잖아.'},{who:'ryuji',n:'',q:'으아아, 너까지 그러기냐!',res:'태그: 티격태격'}]}},
+  {label:'류지가 자판기를 한 번 더 걷어찬다',sub:'50% 확률로 동전 회수',go:()=>{const r=mem('ryuji');
+   if(chance(.5)){const y=R(300,500);run.yen+=y;r.mvp+=1;return [{who:'ryuji',n:'쾅! 자판기에서 동전이 우수수 쏟아졌다.',q:'대박! 봤냐고!',res:`+¥${y}`},{who:'akechi',n:'',q:'…운이 좋네.'}]}
+   r.mis+=1;hp(r,-4);return [{who:'ryuji',n:'쾅! 발가락만 아팠다.',q:say(r.c,'hurt'),res:'HP -4'}]}}]}}},
+{id:'c-lead',en:'WHO LEADS?',name:'선두 다툼',combo:['ryuji','mona'],w:5,make(){
+ return {title:'조합 이벤트 · 선두 다툼',intro:'모르가나와 류지가 누가 앞장설지 다투기 시작했다.',who:'mona',q:'이 몸이 앞장선다고! 스컬은 뒤로 빠져!',after:{who:'ryuji',q:'야, 고양이 주제에 무슨 소리냐!'},choices:[
+  {label:'모나에게 맡긴다',sub:'보물 탐지',go:()=>{mem('mona').mvp+=2;addTre(700,1100);return [{who:'mona',n:'모르가나가 의기양양하게 앞장서더니 정말로 보물을 찾아냈다.',q:'봤냐? 이 몸의 활약을!',res:'보물 +1'}]}},
+  {label:'류지에게 맡긴다',sub:'돌파 · 엔 획득 · 약간의 피해',go:()=>{const r=mem('ryuji'),y=R(300,500);run.yen+=y;hp(r,-6);r.mvp+=1;return [{who:'ryuji',n:'류지가 길을 막은 잔해를 몸으로 밀어냈다.',q:'일단 부딪혀 보자고!',res:`+¥${y} · HP -6`}]}},
+  {label:'둘 다 진정시킨다',sub:'분위기 +6',go:()=>{addMood(6);return [{sys:1,text:'둘은 투덜거리면서도 나란히 걸었다.',res:'분위기 +6'}]}}]}}},
+{id:'c-tea',en:'COFFEE OR TEA',name:'커피냐 홍차냐',combo:['haru','akechi'],w:5,make(){
+ return {title:'조합 이벤트 · 커피냐 홍차냐',intro:'잠깐 쉬는 틈에 하루가 보온병 두 개를 꺼냈다.',who:'haru',q:'크로우, 커피랑 홍차 중에 뭐가 좋아?',after:{who:'akechi',q:'…커피. 그런데 지금 차를 마실 때인가?'},choices:[
+  {label:'커피를 따른다',sub:'아케치 SP +12',go:()=>{const a=mem('akechi');a.sp=clamp(a.sp+12,0,a.msp);return [{who:'haru',n:'',q:'후후, 그럴 줄 알았어.'},{who:'akechi',n:'',q:'…나쁘지 않네.',res:'아케치 SP +12'}]}},
+  {label:'홍차를 권한다',sub:'하루 SP +12 · 분위기 +5',go:()=>{const h=mem('haru');h.sp=clamp(h.sp+12,0,h.msp);addMood(5);return [{who:'akechi',n:'',q:'홍차도… 뭐, 괜찮겠지.'},{who:'haru',n:'',q:'어머, 다행이다.',res:'하루 SP +12 · 분위기 +5'}]}},
+  {label:'다 같이 나눠 마신다',sub:has('tea')?'전원 SP +12 · 티타임 약속':'전원 SP +6',go:()=>{const s=has('tea')?12:6;for(const x of alive())x.sp=clamp(x.sp+s,0,x.msp);if(has('tea'))addTag('티타임 약속');return [{sys:1,text:'선로 옆에서 짧은 티타임이 열렸다.',res:`전원 SP +${s}`}]}}]}}},
+{id:'c-model',en:'LIVE MODEL',name:'움직이는 모델',combo:['yusuke','futaba'],w:5,make(){
+ return {title:'조합 이벤트 · 움직이는 모델',intro:'유스케가 후타바를 기둥 앞에 세워 두고 스케치를 시작했다.',who:'yusuke',q:'그대로. 그 구부정한 자세, 실로 좋군.',after:{who:'futaba',q:'나 지금 스캔 중이거든?!'},choices:[
+  {label:'스케치가 끝날 때까지 기다린다',sub:'분위기 +6 · 후일담 연계',go:()=>{addMood(6);addTag('미완성 스케치');return [{who:'yusuke',n:'유스케가 만족스럽게 연필을 내려놨다.',q:'반쯤 완성이다. 나머지는 르블랑에서 그리지.',res:'태그: 미완성 스케치'}]}},
+  {label:'후타바 편을 든다',sub:'단서 획득',go:()=>{addTag(CLUE);mem('futaba').mvp+=2;mem('yusuke').mis+=1;return [{who:'futaba',n:'후타바가 그 틈에 스캔을 끝냈다.',q:'내비 스캔 완료! 숨겨진 선로 발견!',res:'태그: 단서'},{who:'yusuke',n:'',q:'…영감이 달아났군.'}]}}]}}},
+{id:'c-chase',en:'CATCH UP, SENPAI',name:'선배 따라잡기',combo:['joker','kasumi'],w:5,make(){
+ return {title:'조합 이벤트 · 선배 따라잡기',intro:'카스미가 조커의 뒤를 바짝 따라붙었다.',who:'kasumi',q:'선배, 저 난간 같이 넘어 볼까요?',after:{who:'joker',q:'재밌겠는데.'},choices:[
+  {label:'같이 넘는다',sub:'성공 확률 80% · 숨겨진 선반',go:()=>{const j=mem('joker'),k=mem('kasumi');
+   if(chance(.8)){const y=R(400,600);run.yen+=y;j.mvp+=2;k.mvp+=2;return [{who:'kasumi',n:'두 사람이 나란히 난간을 넘어 숨겨진 선반에 닿았다.',q:'해냈어요, 선배!',res:`+¥${y}`}]}
+   hp(j,-8);hp(k,-8);k.mis+=1;return [{who:'kasumi',n:'착지 타이밍이 어긋났다.',q:'앗… 방금 건 못 본 걸로 해 주세요!',res:'둘 다 HP -8'}]}},
+  {label:'카스미 혼자 보낸다',sub:'소소한 수확',go:()=>{const y=R(200,300);run.yen+=y;mem('kasumi').mvp+=1;return [{who:'kasumi',n:'',q:'네! 제가 먼저 살펴보고 올게요!',res:`+¥${y}`}]}}]}}}
+];
+const COMBOS=EVENTS.filter(e=>e.combo);
+
+function maybeEvent(){
+ const t=run.turn,p=t===1?.3:t===2?.5:.8;
+ const cand=EVENTS.filter(e=>(!e.zones||e.zones.includes(run.zone))&&(!e.min||t>=e.min)&&(run.used[e.id]||0)<(e.max||1)&&(!e.combo||e.combo.every(id=>mem(id)))&&(!e.req||e.req()));
+ if(!cand.length)return null;
+ if(!chance(cand.some(e=>e.combo||e.req)?Math.min(1,p+.15):p))return null;
+ return openEvent(cand[wpick(cand.map(e=>e.w*(e.combo?1.6:1)))]);
+}
+function openEvent(e){
+ run.used[e.id]=(run.used[e.id]||0)+1;
+ if(e.combo&&!S.codex.events.includes(e.id)){S.codex.events.push(e.id);save()}
+ const d=e.make();d.en=(e.combo?'COMBO: ':'')+e.en;const b=[{sys:1,ev:1,text:`돌발 사건 — ${d.title}`},{sys:1,text:d.intro}];
+ if(d.who)b.push({who:d.who,n:'',q:d.q});
+ if(d.after)b.push({who:d.after.who,n:'',q:d.after.q});
+ if(d.auto)return b.concat(d.auto);
+ b.push({fn:()=>{run.phase='event';run.ev=d;return null}});
+ return b;
+}
+
+/* ============ 진행 루프 ============ */
+function newRun(ids){
+ run={party:ids.map(id=>({id,c:CH[id],hp:100,sp:has('tea')?55:50,msp:has('tea')?55:50,mvp:0,mis:0,bub:'',face:'',bat:-1,down:false})),
+  turn:1,zone:'gate',mood:clamp(60+(has('game')?15:0),0,100),yen:0,tre:0,tval:0,tags:[],used:{},q:[],phase:'running',log:[],beat:0,clock:180+R(0,40),
+  speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0};
+ const key=[...ids].sort().join('+');run.newCombo=!S.codex.combos.includes(key);
+ if(run.newCombo){S.codex.combos.push(key);save()}
+ log({sys:1,text:`${ids.map(i=>CH[i].name).join(' · ')} 파티가 메멘토스에 진입했다.${has('game')?' (레트로 게임기 효과: 분위기 +15)':''}`});
+ enterZone('gate');
+}
+function enterZone(z){const Z=ZONES[z];
+ run.q.push({sys:1,turn:1,arrive:z,text:`T${run.turn} · ${Z.name} — ${pick(Z.arr)}`});
+ for(let i=0;i<Z.acts;i++)run.q.push({fn:autoAction});
+ run.q.push({fn:maybeEvent});
+ if(Z.acts>2&&chance(.5))run.q.push({fn:autoAction});
+ run.q.push({fn:endTurnFn});
+}
+function endTurnFn(){
+ const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 —`};run.turn++;
+ if(run.turn>7)run.q.push({sys:1,text:'7턴 탐사 완료. 모나 버스가 귀환 준비를 마쳤다.'},{fn:()=>{endRun('complete');return null}});
+ else run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 구역을 골라 주세요.`}}});
+ return b;
+}
+function log(b){
+ run.beat++;run.clock+=R(12,48);
+ b.t=`${String(Math.floor(run.clock/60)%60).padStart(2,'0')}:${String(run.clock%60).padStart(2,'0')}`;
+ run.log.push(b);if(run.log.length>160)run.log.shift();
+ if(b.arrive)run.banner={t:`TURN ${run.turn}`,s:`${ZONES[b.arrive].en} · ${ZONES[b.arrive].name}`};
+ if(b.who&&b.q){const m=run.party.find(x=>x.id===b.who);if(m){m.bub=b.q;m.bat=run.beat;m.face=/[?？]/.test(b.q)?'?':/…/.test(b.q)?'…':/!/.test(b.q)?'!':'♪'}}
+}
+function checkDown(){
+ for(const m of run.party)if(m.hp<=0&&!m.down){m.down=true;m.face='×';log({sys:1,warn:1,text:`${un(m.c.name)} 전투불능 상태가 되었다.`})}
+ if(!alive().length&&!run.forced){run.forced=true;run.ev=null;run.phase='running';
+  run.q=[{sys:1,warn:1,text:'파티 전원이 쓰러졌다! 모나 버스가 긴급 회수에 나섰다.'},{fn:()=>{endRun('forced');return null}}]}
+}
+function step(){
+ if(!run||run.phase!=='running')return;
+ let b=run.q.shift();
+ while(b&&b.fn){const r=b.fn();if(!run||run.phase==='done')return;
+  if(Array.isArray(r)){run.q.unshift(...r);b=run.q.shift()}else b=r;
+  if(!b){if(run.phase==='running'&&run.q.length)b=run.q.shift();else break}}
+ if(b)log(b);
+ checkDown();
+ if(run.phase==='choose')tip('choose');
+ else if(run.phase==='running'&&run.tags.length)tip('tag');
+ render();
+}
+function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual)return;T=setTimeout(()=>{step();schedule()},run.speed===2?600:1200)}
+function move(z){if(run.phase!=='choose'||!canEnter(z))return;run.zone=z;run.phase='running';enterZone(z);step();schedule()}
+function choose(i){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';
+ log({sys:1,text:`▶ 선택: ${c.label}`});run.q.unshift(...c.go());step();schedule()}
+function useCurry(){if(!run||S.curry<1||run.phase==='done')return;S.curry--;save();
+ for(const m of run.party){if(m.hp<=0){m.hp=30;m.down=false}else hp(m,30);m.sp=clamp(m.sp+10,0,m.msp)}
+ log({sys:1,text:'르블랑 카레를 나눠 먹었다. 든든하다!',res:'전원 HP +30 · SP +10'});render()}
+
+function endRun(reason){
+ clearTimeout(T);const r=run;r.phase='done';
+ let inc=r.yen+r.tval;if(reason==='forced')inc=Math.floor(inc*.5);
+ let st=inc<2000?1:inc<4000?2:inc<6500?3:inc<9500?4:5;if(reason==='forced')st=Math.max(1,st-1);if(r.hidden)st=Math.min(5,st+1);
+ const mvp=[...r.party].sort((a,b)=>b.mvp-a.mvp)[0],mis=[...r.party].sort((a,b)=>b.mis-a.mis)[0];
+ const misWhy=m=>hasTag('100엔 손실',m.id)?'자판기 100엔 분실':hasTag('배탈',m.id)?'수상한 음료 시음':hasTag('함정 발동',m.id)?'보물상자 함정 발동':'크고 작은 헛발질';
+ const line=r.hidden?'존재하지 않는 역은, 분명히 존재했다.':hasTag('함정 발동')?'보물상자는 함부로 열지 말 것.':hasTag('100엔 손실')?'메멘토스 자판기는 믿지 말 것.':hasTag('배탈')?'정체불명의 음료는 마시지 말 것.':reason==='forced'?'무리한 탐사는 금물. 다음엔 카레를 챙기자.':r.mood>=70?'오늘의 괴도단, 분위기 최고.':'무사 귀환. 내일도 메멘토스!';
+ S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);save();
+ ui.res={ids:r.party.map(m=>m.id),inc,tre:r.tre,st,line,newCombo:r.newCombo,
+  mvp:{id:mvp.id,why:MVPWHY[mvp.c.type]},mis:mis.mis>0?{id:mis.id,why:misWhy(mis)}:null,
+  reason:{complete:'7턴 탐사 완료',retreat:`자발적 귀환 (T${Math.min(r.turn,7)})`,forced:'전원 전투불능 · 긴급 회수 (수익 50%)'}[reason],
+  after:afterStory(r)};
+ ui.tip=null;ui.copy='';ui.screen='result';ui.enter=true;ui.rc=false;render();window.scrollTo(0,0);
+}
+function afterStory(r){
+ const ids=r.party.map(m=>m.id),inP=id=>ids.includes(id),L=[{n:'르블랑 다락방. 탐사를 마친 괴도단이 소파와 의자에 아무렇게나 늘어졌다.'}];
+ if(hasTag('100엔 손실','ryuji')){if(inP('akechi'))L.push({who:'akechi',q:'그런데 그 자판기, 아직도 100엔 삼키고 있을까?'},{who:'ryuji',q:'야, 그 얘기 좀 그만하라고!'});else L.push({who:'ryuji',q:'내 100엔… 다음엔 꼭 되찾는다고.'})}
+ if(hasTag('수상한 음료'))L.push({n:'가져온 수상한 음료는 아무도 손대지 않은 채 카운터 구석에 놓였다.'});
+ const sick=r.tags.find(t=>t.l==='배탈');if(sick)L.push({n:`${un(CH[sick.w].name)} 배를 감싸 쥐고 소파에 드러누웠다.`});
+ if(hasTag('함정 발동'))L.push({n:'누군가 화이트보드에 적었다. “보물상자는 함부로 열지 말 것.”'});
+ if(hasTag('미완성 스케치'))L.push({who:'yusuke',q:'메멘토스에서 시작한 스케치, 여기서 마무리하지.'},{who:'futaba',q:'나 또 모델 하는 거야?!'});
+ if(hasTag('티타임 약속'))L.push({who:'haru',q:'아까 약속한 티타임, 지금 열어 볼까?'});
+ if(hasTag('티격태격'))L.push({n:'돌아오는 길 내내 이어진 말다툼은 르블랑에서도 끝나지 않았다.'});
+ if(r.hidden)L.push({n:'다들 존재하지 않는 역 이야기를 하느라 밤이 깊어지는 줄도 몰랐다.'});
+ for(const p of PROPS)if(has(p.id))L.push(...p.after.filter(x=>inP(x.who)));
+ for(const m of r.party)L.push({who:m.id,q:say(m.c,'back')});
+ return L;
+}
+
+/* ============ 화면 ============ */
+function poster(){
+ const rings=[6,5,4,3,2,1,0].map(i=>{const s=1-i*.135,w=420*s,h=380*s,x=200-w/2,y=158-h*.6;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w*.44}" fill="none" stroke="#e5191c" stroke-opacity="${(.95-i*.12).toFixed(2)}" stroke-width="${(7*s).toFixed(1)}"/>`}).join('');
+ const sl=[...Array(10)].map((_,k)=>{const t=Math.pow(k/10,1.6),y=300-142*t,a=120+76*t,b=280-76*t;return `<line x1="${a-6*(1-t)}" y1="${y}" x2="${b+6*(1-t)}" y2="${y}" stroke="#5a2a2e" stroke-width="${(5*(1-t)+1).toFixed(1)}"/>`}).join('');
+ return `<svg viewBox="0 0 400 300" role="img" aria-label="붉은 선로가 이어진 메멘토스 터널">
+ <defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff3b3b"/><stop offset="1" stop-color="#ff3b3b" stop-opacity="0"/></radialGradient><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a0507"/><stop offset="1" stop-color="#080506"/></linearGradient></defs>
+ <rect width="400" height="300" fill="url(#sky)"/>
+ <circle class="glow" cx="200" cy="158" r="70" fill="url(#g)" opacity=".8"/>
+ ${rings}
+ <polygon points="0,300 400,300 212,158 188,158" fill="#160d0f"/>
+ ${sl}
+ <line x1="120" y1="300" x2="196" y2="158" stroke="#e5191c" stroke-width="4"/><line x1="280" y1="300" x2="204" y2="158" stroke="#e5191c" stroke-width="4"/>
+ <line x1="262" y1="0" x2="262" y2="38" stroke="#6b5f5a" stroke-width="2"/><line x1="354" y1="0" x2="354" y2="32" stroke="#6b5f5a" stroke-width="2"/>
+ <g transform="rotate(-4 308 56)"><rect x="244" y="34" width="128" height="44" fill="#f6f1ea"/><rect x="244" y="70" width="128" height="8" fill="#e5191c"/><text x="308" y="63" text-anchor="middle" font-family="Black Han Sans,sans-serif" font-size="22" fill="#141012">메멘토스</text></g>
+ <g transform="translate(298 236) rotate(6)"><rect x="0" y="10" width="46" height="28" fill="#8e0f13"/><path d="M0 10q23-16 46 0z" fill="#e5191c"/><rect x="19" y="14" width="8" height="10" fill="#f5b942"/></g>
+ <g font-family="Anton,sans-serif" font-size="15" text-anchor="middle"><circle cx="70" cy="214" r="13" fill="#f5b942"/><text x="70" y="220" fill="#141012">¥</text><circle cx="104" cy="250" r="10" fill="#f5b942" opacity=".8"/><text x="104" y="255" font-size="12" fill="#141012">¥</text></g>
+ </svg>`;
+}
+function vMain(){
+ return `<section class="split"><div class="split-in"><div class="ttl"><h1 class="boil">${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1>
+ <ul class="stair"><li style="--n:0"><button class="primary" data-act="go:party">${rn('INFILTRATE')}</button></li>
+ <li style="--n:1"><button data-act="go:shop">${rn('LEBLANC')}</button></li><li style="--n:2"><button data-act="howto">${rn('HOW TO PLAY')}</button></li></ul></div></div></section>
+`;
+}
+function vParty(){
+ const sel=ui.sel,key=[...sel].sort().join('+'),full=sel.length===3,f=CH[ui.focus]||CHARS[0];
+ const combos=COMBOS.filter(e=>e.combo.every(id=>sel.includes(id))).map(e=>e.name);
+ const tc={};sel.forEach(id=>{const t=TYPES[CH[id].type].label;tc[t]=(tc[t]||0)+1});
+ const wOf=c=>TYPES[c.type].w.map((v,j)=>Math.max(1,v+c.adj[j]));
+ const fw=wOf(f),fs=fw.reduce((a,b)=>a+b,0);
+ return `<main class="wrap"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('PARTY SELECT')}<span class="sub">세 명을 골라 주세요</span></h2><span class="pill">${sel.length} / 3</span></header>
+ <div class="legend"><span>행동 가중치</span>${['탐색','교류','지원','독자·돌발'].map((l,i)=>`<span><i style="background:${WCOL[i]}"></i>${l}</span>`).join('')}</div>
+ <div class="cards">${CHARS.map(c=>{const i=sel.indexOf(c.id),w=wOf(c),s=w.reduce((a,b)=>a+b,0);
+  return `<button class="card ${i>=0?'on':''}" style="--c:${c.col}" data-act="sel:${c.id}" aria-pressed="${i>=0}"><span class="no">${i+1}</span><span class="code">${c.code}</span><b>${c.name}</b><span class="tp">${TYPES[c.type].en}</span><span class="w">${w.map((v,j)=>`<i style="width:${(v/s*100).toFixed(1)}%;background:${WCOL[j]}"></i>`).join('')}</span></button>`}).join('')}</div>
+ <div class="dock">
+  <div class="detail" style="--c:${f.col}"><span class="code">${f.code}</span><b>${f.name} · ${TYPES[f.type].label}</b><p>${f.trait} 탐색 ${Math.round(fw[0]/fs*100)} · 교류 ${Math.round(fw[1]/fs*100)} · 지원 ${Math.round(fw[2]/fs*100)} · 독자 ${Math.round(fw[3]/fs*100)}</p></div>
+  <div class="drow"><div class="slots">${[0,1,2].map(i=>{const c=CH[sel[i]];return c?`<span class="slot f" style="--c:${c.col}">${c.code}</span>`:'<span class="slot">?</span>'}).join('')}</div>
+  <div class="dinfo">${full?`${S.codex.combos.includes(key)?'도감에 있는 조합':'<span class="new">새 조합! 출격하면 도감 등록</span>'}${combos.length?` · 특수 이벤트 <b>${combos.join(', ')}</b>`:''}<br>${Object.entries(tc).map(([k,v])=>`${k} ${v}`).join(' · ')}`:`카레 <b>${S.curry}</b> · 연막탄 <b>${S.smoke}</b> · 따개 <b>Lv.${S.pick}</b> · 버스 <b>Lv.${S.bus}</b>`}</div></div>
+  <div class="drow"><div class="row" style="margin-left:0;flex:1"><button class="btn ghost sm" data-act="random">RANDOM</button><button class="btn" style="flex:1" data-act="start" ${full?'':'disabled'}>${full?'START MISSION':`PICK ${3-sel.length} MORE`}</button></div></div>
+ </div></main>`;
+}
+function vMap(){
+ const r=run,opts=r.phase==='choose'?[r.zone,...ZONES[r.zone].links]:[];
+ const lines=LINKS.map(([a,b])=>`<line x1="${ZONES[a].x}" y1="${ZONES[a].y}" x2="${ZONES[b].x}" y2="${ZONES[b].y}" vector-effect="non-scaling-stroke" class="${a===r.zone||b===r.zone?'hot':''}"/>`).join('');
+ const nodes=Object.entries(ZONES).map(([id,z])=>{const cur=id===r.zone,op=opts.includes(id),ok=canEnter(id);
+  const st=`left:${z.x}%;top:${z.y}%`,sub=cur?(r.phase==='choose'?'머무르기':'현재 위치'):!ok?'잠김 · 버스 Lv.2 또는 단서':z.name;
+  return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b><small>${sub}</small></button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b><small>${sub}</small></div>`}).join('');
+ const strip=`<ol class="strip" aria-label="현재 위치">${['gate','pass','lost','plat'].map(id=>`<li class="${id===r.zone?'cur':''} ${canEnter(id)?'':'lock'}">${ZONES[id].esh}</li>`).join('')}</ol>`;
+ return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?'<p class="mhint">다음 구역을 고르세요. 선로로 이어진 곳만 갈 수 있어요.</p>':''}`;
+}
+function vLog(){
+ return run.log.map(b=>{const c=b.who?CH[b.who]:null,cls=[b.sys?'sys':'',b.ev?'ev':'',b.turn?'turn':'',b.warn?'warn':''].join(' ');
+  return `<li class="${cls}"><time>${b.t}</time><p style="${c?`--c:${c.col}`:''}">${c&&!b.n?`<b class="who">${c.code}</b>`:''}${esc(b.text||b.n||'')} ${b.q?`<q>${esc(b.q)}</q>`:''}${b.res?`<em>${esc(b.res)}</em>`:''}</p></li>`}).join('');
+}
+function vEvent(){const d=run.ev,c=d.who?CH[d.who]:null,en=run.evIn?'':'enter';run.evIn=true;
+ return `<div class="scrim ${en}"></div><div class="evt ${en}" role="dialog" aria-label="${esc(d.title)}"><div><h3>${rn(d.en||d.title)}</h3><p class="kr">${esc(d.title)}</p>${S.tips.includes('event')?'':'<p class="evtip">TIP · 중요한 순간이라 멈췄어요. 선택지를 고르면 다시 진행돼요.</p>'}<p class="intro">${esc(d.intro)}</p>
+ ${c?`<p class="pq" style="--c:${c.col}"><b>${c.code}</b>“${esc(d.q)}”</p>`:''}${d.after?`<p class="pq" style="--c:${CH[d.after.who].col}"><b>${CH[d.after.who].code}</b>“${esc(d.after.q)}”</p>`:''}
+ ${d.choices.map((x,i)=>`<button class="ch" style="--i:${i};--d:${[160,260,327,393][i]}ms" data-act="choice:${i}" ${x.dis?'disabled':''}><span class="k">${'ABCD'[i]}</span><span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small></span></button>`).join('')}</div></div>`;
+}
+function vExplore(){
+ const r=run,Z=ZONES[r.zone],ml=moodL(r.mood),run_=r.phase==='running';
+ const tiles=r.party.map(m=>{const mt=r.tags.filter(t=>t.w===m.id),hl=m.hp<=35?'low':'';
+  const dh=m.hp-(m.rh??m.hp),fr=m.bat===r.beat;m.rh=m.hp;
+  return `<div class="tile ${m.hp<=0?'down':''} ${dh<0?'hit':dh>0?'heal':''}" style="--c:${m.c.col}"><div class="bub ${fr?'fresh':''}"><span>${m.bub?esc(m.bub):'…'}</span></div>
+  <div class="nm"><span class="code">${m.c.code}</span><b>${m.c.name}</b>${m.face?`<span class="face ${fr?'fresh':''}">${m.face}</span>`:''}<span class="hpn ${hl}" aria-label="HP">${m.hp}</span></div>
+  <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
+  ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
+ const pt=r.tags.filter(t=>!t.w);
+ return `<main class="ex"><header class="xbar"><div class="tn">T${Math.min(r.turn,7)}<small>/7</small></div><div class="zn"><b>${Z.en}</b><small>${Z.name} · ${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" title="분위기 ${ml.l}">MOOD: ${ml.en}</span></div></header>
+ ${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
+ <section class="party">${tiles}</section>
+ <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox"><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
+ ${r.phase==='event'?vEvent():(r.evIn=false,'')}
+ ${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
+}
+function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
+ return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})\n정산 수익: ¥${fmt(x.inc)} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
+function vResult(){const x=ui.res,an=!x.shown;x.shown=true;
+ return `<main class="wrap res"><article class="report ${an?'anim':''}"><header><span>${rn('MISSION REPORT')}</span><small>${new Date().toLocaleDateString('ko-KR')}</small></header>
+ <dl><dt>MEMBERS</dt><dd>${x.ids.map(i=>CH[i].name).join(' · ')}</dd><dt>RESULT</dt><dd><span class="stars">${[0,1,2,3,4].map(i=>`<i style="--i:${i}">${i<x.st?'★':'☆'}</i>`).join('')}</span><br><small>${x.reason}</small></dd>
+ <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> · 보물 ${x.tre}개</dd><dt>MVP</dt><dd>${CH[x.mvp.id].name} (${x.mvp.why})</dd>
+ <dt>TROUBLE</dt><dd>${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}</dd></dl>
+ <blockquote>“${esc(x.line)}”</blockquote><footer>TODAY'S MEMENTOS! · 보유 엔 ¥${fmt(S.yen)}</footer></article>
+ <div class="copyrow"><button class="btn ghost sm" data-act="copy">${ui.copy==='ok'?'COPIED!':'COPY REPORT'}</button></div>
+ ${ui.copy==='fail'?`<textarea readonly aria-label="보고서 텍스트">${esc(reportText())}</textarea>`:''}
+ ${x.newCombo?`<p class="newc">NEW COMBO! ${S.codex.combos.length} / 120 <small style="font:700 13px 'Noto Sans KR';margin-left:6px">도감 등록</small></p>`:''}
+ <section class="after"><h3>${rn('BACK AT LEBLANC')}<span class="sub">르블랑 후일담</span></h3><ol>${x.after.map(l=>l.who?`<li style="--c:${CH[l.who].col}"><b>${CH[l.who].code}</b>“${esc(l.q)}”</li>`:`<li class="n">${esc(l.n)}</li>`).join('')}</ol></section>
+ <div class="actbar"><button class="btn" data-act="go:shop">INVEST</button><button class="btn ghost" data-act="go:party">GO AGAIN</button></div></main>`;
+}
+function vShop(){
+ const nb=BUS[S.bus+1],np=PICK[S.pick+1],t=ui.tab;
+ const item=(svg,name,desc,btn,own)=>`<div class="prop ${own?'own':''}"><svg viewBox="0 0 60 60" aria-hidden="true">${svg}</svg><div><b>${name}</b><p>${desc}</p></div>${btn}</div>`;
+ const buy=(act,cost,dis)=>`<button class="btn sm" data-act="${act}" ${S.yen<cost||dis?'disabled':''}>¥${fmt(cost)}</button>`;
+ const tabs=[['props','HIDEOUT'],['bus','MONA BUS'],['tools','TOOLS']];
+ let body='';
+ if(t==='props')body=`<p class="hint">소품을 들이면 해당 멤버의 후일담과 패시브 효과가 열립니다.</p><div class="shelf">${PROPS.map(p=>item(p.svg,p.en,`${p.name} — ${p.unlock}<br>${p.eff}`,has(p.id)?'<span class="owned">PLACED</span>':buy('buy:'+p.id,p.cost),has(p.id))).join('')}</div>`;
+ if(t==='bus')body=`<p class="hint">모나 버스를 튜닝하면 더 깊은 구역과 히든 역이 열립니다.</p><div class="busbox"><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=S.bus?'on':''}"></i>`).join('')}</div>
+  <ul class="buslist">${[1,2,3,4].map(i=>`<li class="${i<=S.bus?'on':''}"><b>Lv.${i}</b>${BUS[i].eff}</li>`).join('')}</ul>
+  ${nb?`<button class="btn" data-act="bus" ${S.yen<nb.cost?'disabled':''}>TUNE UP Lv.${S.bus+1} · ¥${fmt(nb.cost)}</button>`:'<span class="owned">MAX TUNED</span>'}</div>`;
+ if(t==='tools')body=`<p class="hint">잠입 도구는 탐사 중 위기를 넘기게 해 줍니다.</p><div class="tools">
+  ${item('<circle cx="20" cy="30" r="12" fill="none" stroke="#d9d2cc" stroke-width="5"/><path d="M32 30h22M46 30v8M52 30v6" stroke="#d9d2cc" stroke-width="5"/>',`LOCKPICK Lv.${S.pick}`,'자물쇠 따개 — 보물상자를 바로 열 때 성공 확률 +13%/Lv',np?buy('pick',np):'<span class="owned">MAX</span>')}
+  ${item('<circle cx="28" cy="36" r="16" fill="#6b5f5a"/><rect x="24" y="14" width="8" height="8" fill="#d9d2cc"/><circle cx="42" cy="14" r="7" fill="#b9aca5" opacity=".6"/><circle cx="50" cy="24" r="5" fill="#b9aca5" opacity=".4"/>',`SMOKE BOMB ×${S.smoke}`,'연막탄 — 섀도를 회피할 때 무피해로 빠져나온다',buy('smoke',600,S.smoke>=9))}
+  ${item('<ellipse cx="30" cy="38" rx="25" ry="12" fill="#f6f1ea"/><path d="M8 36q22-14 44 0q-22 12-44 0z" fill="#b8641c"/><circle cx="22" cy="34" r="3" fill="#f5b942"/><circle cx="36" cy="36" r="3" fill="#e5191c"/>',`LEBLANC CURRY ×${S.curry}`,'르블랑 카레 — 탐사 중 사용: 전원 HP +30 · SP +10, 전투불능 회복',buy('curry-buy',400,S.curry>=9))}</div>`;
+ return `<main class="wrap shop"><div class="shophead"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('LEBLANC')}</h2><span class="pill">¥${fmt(S.yen)}</span></header>
+ <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${t===k}" data-act="tab:${k}">${l}</button>`).join('')}</div></div>
+ ${ui.msg?`<p class="toast" role="status">${esc(ui.msg)}</p>`:''}
+ <section>${body}</section>
+ <button class="reset" data-act="reset">${ui.reset?'TAP AGAIN TO RESET ALL DATA':'RESET DATA'}</button>
+ <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
+}
+/* ============ 첫 판 팁 ============ */
+const TIPS={
+ start:'괴도단은 알아서 움직여요. 캐릭터 말풍선과 아래 로그를 지켜보세요.',
+ choose:'선로로 이어진 구역을 눌러 이동해요. 깊은 구역일수록 위험하지만 보상이 커요.',
+ tag:'[태그]는 앞에서 생긴 일이에요. 나중 사건과 르블랑 후일담이 이걸 보고 달라져요.'};
+function tip(id){if(!run||S.tips.includes(id)||ui.tip)return;ui.tip={id,text:TIPS[id]};if(run.phase==='running'){run.paused=true;run.tipPause=true}}
+function vTip(){return ui.tip?`<div class="tipcard" role="status"><b>TIP</b><p>${esc(ui.tip.text)}</p><button class="btn sm" data-act="tipok">OK</button></div>`:''}
+
+/* ============ 튜토리얼 ============ */
+const miniTile=(id,q)=>{const c=CH[id];return `<div class="tile" style="--c:${c.col}"><div class="bub"><span>${esc(q)}</span></div><div class="nm"><span class="code">${c.code}</span></div><div class="hb"><i style="width:100%"></i></div><div class="hb s"><i style="width:80%"></i></div></div>`};
+const TUT=[
+ {t:'WHAT IS THIS?',kr:'이 게임은',body:'괴도단 세 명을 메멘토스에 보내고, 그들이 알아서 벌이는 소동을 <b>구경하는</b> 관찰 게임이에요. 당신은 지휘관이 아니라 지켜보는 사람이에요.',
+  vis:()=>`<div class="party mini">${miniTile('joker','맡겨 둬.')}${miniTile('ryuji','일단 부딪혀 보자고!')}${miniTile('akechi','예상대로네.')}</div>`},
+ {t:'THE GOAL',kr:'목표',body:'탐사에서 <b>엔과 보물</b>을 벌어 오세요. 르블랑을 꾸미고 모나 버스를 튜닝하면 새 후일담과 더 깊은 구역이 열려요. <b>120가지 파티 조합</b>과 숨겨진 역을 모두 찾아보세요.',
+  vis:()=>`<ol class="loop">${[['INFILTRATE','메멘토스 탐사'],['EARN ¥','엔 · 보물'],['INVEST','르블랑에 투자'],['UNLOCK','새 대화 · 깊은 구역']].map(([e,k],i)=>`<li style="--n:${i}"><b>${e}</b><small>${k}</small></li>`).join('')}</ol>`},
+ {t:'ASSEMBLE',kr:'파티 편성',body:'10명 중 <b>3명</b>을 고르세요. 유형마다 잘하는 행동이 달라서, 조합에 따라 전혀 다른 하루가 펼쳐져요. 특정 두 사람이 함께 가면 <b>조합 이벤트</b>도 일어나요.',
+  vis:()=>`<div class="types">${Object.entries(TYPES).map(([k,t])=>{const s=t.w.reduce((a,b)=>a+b,0),m=CHARS.filter(c=>c.type===k);return `<div class="ty"><b>${t.en}</b><small>${t.label}</small><span class="w">${t.w.map((v,j)=>`<i style="width:${v/s*100}%;background:${WCOL[j]}"></i>`).join('')}</span><em>${m.map(c=>`<span style="color:${c.col}">${c.code}</span>`).join(' ')}</em></div>`}).join('')}</div><div class="legend">${['탐색','교류','지원','독자·돌발'].map((l,i)=>`<span><i style="background:${WCOL[i]}"></i>${l}</span>`).join('')}</div>`},
+ {t:'OBSERVE',kr:'탐사',body:'탐사는 <b>7턴</b>이에요. 매 턴 다음 구역을 고르면 괴도단이 알아서 움직여요. 중요한 순간엔 게임이 멈추고 <b>선택지</b>가 떠요. 앞에서 생긴 <b>[태그]</b>는 나중 사건을 바꿔요.',
+  vis:()=>`<ol class="strip demo">${['gate','pass','lost','plat'].map((id,i)=>`<li class="${i===1?'cur':''} ${i===3?'lock':''}">${ZONES[id].esh}</li>`).join('')}</ol>
+  <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -10 · 함정 해제 + 추가 추리</small></span></div>
+  <div class="ptags"><span class="tag">[함정 의심]</span><span class="tag">[수상한 음료]</span><span class="tag">[100엔 손실]</span></div>`},
+ {t:'CONTROLS',kr:'조작',body:'HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 절반만 들고 돌아와요. 위험하면 미리 ESCAPE 하세요.',
+  vis:()=>`<ul class="keys">${[['PAUSE','진행을 멈추고 천천히 읽기'],['1x · 2x','진행 속도'],['AUTO · MANUAL','수동이면 NEXT로 한 줄씩 넘기기'],['CURRY','르블랑 카레로 전원 회복'],['ESCAPE','지금까지 번 것을 들고 귀환']].map(([k,d])=>`<li><b>${k}</b><span>${d}</span></li>`).join('')}</ul>`},
+ {t:'INVEST',kr:'르블랑',body:'돌아오면 <b>활동 보고서</b>와 르블랑 후일담이 나와요. 번 엔으로 소품(새 후일담 + 버프), 모나 버스(깊은 구역 개방), 잠입 도구를 사서 다음 탐사를 준비하세요.',
+  vis:()=>`<div class="invest">${PROPS.slice(0,3).map(p=>`<div><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg><b>${p.en}</b></div>`).join('')}</div><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=2?'on':''}"></i>`).join('')}</div><p class="sub" style="margin:0">MONA BUS Lv.2 — 버려진 플랫폼 개방</p>`}];
+function vTut(){
+ const k=ui.tstep,st=TUT[k],last=k===TUT.length-1;
+ return `<main class="tut"><header class="tbar"><div class="prog" aria-label="${k+1} / ${TUT.length}">${TUT.map((_,i)=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div><button class="skip" data-act="tutskip">SKIP</button></header>
+ <section class="tcard"><h2>${rn(st.t)}<span class="sub">${st.kr}</span></h2><div class="tvis">${st.vis()}</div><p class="tbody">${st.body}</p></section>
+ <footer class="tnav"><button class="btn ghost sm" data-act="tutprev" ${k?'':'disabled'}>← BACK</button><button class="btn" data-act="tutnext">${last?'START':'NEXT →'}</button></footer></main>`;
+}
+function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;save();ui.screen=ui.tafter;ui.enter=true;render();window.scrollTo(0,0);return}ui.tstep=n;ui.enter=true;render();window.scrollTo(0,0)}
+function render(){
+ const app=$('#app');app.innerHTML=({main:vMain,party:vParty,explore:vExplore,result:vResult,shop:vShop,tutorial:vTut})[ui.screen]();
+ app.classList.toggle('scr-in',!!ui.enter&&!RM);ui.enter=false;
+ const l=$('#log');if(l)l.scrollTop=l.scrollHeight;
+ if(ui.screen==='explore'&&run){countYen();if(run.banner){showBanner(run.banner);run.banner=null}}
+ const inc=$('#inc');if(inc&&inc.dataset.to)countTo(inc,0,+inc.dataset.to,1100,500);
+}
+/* ============ 연출 ============ */
+let raf=0;
+const stepVals=(from,to,n)=>Array.from({length:n},(_,k)=>Math.round(from+(to-from)*(1-Math.pow(1-(k+1)/n,3))));
+function countTo(el,from,to,dur,delay=0){
+ if(RM){el.textContent='¥'+fmt(to);return}
+ const vals=stepVals(from,to,Math.max(6,Math.round(dur/33))),t0=performance.now()+delay;
+ const tick=now=>{const i=Math.floor((now-t0)/33);if(i>=0)el.textContent='¥'+fmt(vals[Math.min(i,vals.length-1)]);if(i<vals.length-1)requestAnimationFrame(tick)};
+ requestAnimationFrame(tick);
+}
+function countYen(){
+ const el=$('#yen');if(!el)return;
+ const d=run.yen-(run.ly??run.yen);run.ly=run.yen;
+ if(d&&!RM){const f=document.createElement('span');f.className='fly'+(d<0?' neg':'');f.textContent=`${d>0?'+':'-'}¥${fmt(Math.abs(d))}`;el.parentNode.appendChild(f)}
+ cancelAnimationFrame(raf);const from=run.dy??run.yen,to=run.yen;
+ if(RM||from===to){run.dy=to;el.textContent='¥'+fmt(to);return}
+ const vals=stepVals(from,to,run.speed===2?9:15),t0=performance.now();
+ const tick=now=>{const i=Math.max(0,Math.min(vals.length-1,Math.floor((now-t0)/33)));run.dy=vals[i];const x=$('#yen');if(x)x.textContent='¥'+fmt(run.dy);if(i<vals.length-1)raf=requestAnimationFrame(tick)};
+ raf=requestAnimationFrame(tick);
+}
+function showBanner(b){
+ if(RM)return;document.querySelectorAll('.banner').forEach(x=>x.remove());
+ const el=document.createElement('div');el.className='banner';el.setAttribute('aria-hidden','true');
+ el.innerHTML=`<span>${rn(b.t)}<small>${esc(b.s)}</small></span>`;document.body.appendChild(el);
+ setTimeout(()=>el.remove(),1150);
+}
+function spend(c){if(S.yen<c){ui.msg='엔이 부족해요. 메멘토스에서 더 벌어 오세요.';return false}S.yen-=c;return true}
+
+/* ============ 입력 ============ */
+let sx=null;
+$('#app').addEventListener('pointerdown',e=>{if(ui.screen==='tutorial')sx=[e.clientX,e.clientY]});
+$('#app').addEventListener('pointerup',e=>{if(ui.screen!=='tutorial'||!sx)return;const dx=e.clientX-sx[0],dy=e.clientY-sx[1];sx=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)tutGo(dx<0?1:-1)});
+$('#app').addEventListener('click',e=>{
+ const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+ const [a,v]=b.dataset.act.split(':');
+ if(a!=='retreat')ui.rc=false;if(a!=='reset')ui.reset=false;
+ if(a==='go'&&v==='party'&&!S.tut){ui.screen='tutorial';ui.tstep=0;ui.tafter='party';ui.enter=true;render();window.scrollTo(0,0);return}
+ if(a==='howto'){ui.screen='tutorial';ui.tstep=0;ui.tafter='main';ui.enter=true;render();window.scrollTo(0,0);return}
+ if(a==='tutnext'){tutGo(1);return}
+ if(a==='tutprev'){tutGo(-1);return}
+ if(a==='tutskip'){ui.tstep=TUT.length-1;tutGo(1);return}
+ if(a==='tipok'){if(ui.tip){S.tips.push(ui.tip.id);save();ui.tip=null}if(run&&run.tipPause){run.paused=false;run.tipPause=false}render();schedule();return}
+ if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
+ if(a==='tab'){ui.tab=v;ui.msg='';render();return}
+ if(a==='sel'){ui.focus=v;const i=ui.sel.indexOf(v);if(i>=0)ui.sel.splice(i,1);else if(ui.sel.length<3)ui.sel.push(v);render();return}
+ if(a==='random'){ui.sel=shuffle(CHARS.map(c=>c.id)).slice(0,3);render();return}
+ if(a==='start'&&ui.sel.length===3){newRun([...ui.sel]);ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();return}
+ if(a==='move'){move(v);return}
+ if(a==='choice'){choose(+v);return}
+ if(a==='pause'){run.paused=!run.paused;render();schedule();return}
+ if(a==='speed'){run.speed=run.speed===1?2:1;render();schedule();return}
+ if(a==='manual'){run.manual=!run.manual;render();schedule();return}
+ if(a==='next'){step();return}
+ if(a==='curry'){useCurry();return}
+ if(a==='retreat'){if(!ui.rc){ui.rc=true;render();return}ui.rc=false;log({sys:1,text:'괴도단은 탐사를 접고 르블랑으로 돌아갔다.'});endRun('retreat');return}
+ if(a==='copy'){const t=reportText();try{navigator.clipboard.writeText(t).then(()=>{ui.copy='ok';render()},()=>{ui.copy='fail';render()})}catch(err){ui.copy='fail';render()}return}
+ if(a==='buy'){const p=PROPS.find(x=>x.id===v);if(p&&!has(p.id)&&spend(p.cost)){S.props.push(p.id);ui.msg=`${p.name} 배치 완료! ${p.unlock} 해금 · ${p.eff}`}save();render();return}
+ if(a==='bus'){const nb=BUS[S.bus+1];if(nb&&spend(nb.cost)){S.bus++;ui.msg=`모나 버스 Lv.${S.bus} 튜닝 완료! ${nb.eff}`}save();render();return}
+ if(a==='pick'){const c=PICK[S.pick+1];if(c&&spend(c)){S.pick++;ui.msg=`자물쇠 따개 Lv.${S.pick} 강화 완료!`}save();render();return}
+ if(a==='smoke'){if(S.smoke<9&&spend(600)){S.smoke++;ui.msg='연막탄을 하나 챙겼어요.'}save();render();return}
+ if(a==='curry-buy'){if(S.curry<9&&spend(400)){S.curry++;ui.msg='르블랑 카레를 포장했어요.'}save();render();return}
+ if(a==='reset'){if(!ui.reset){ui.reset=true;render();return}S=DEF();save();ui.reset=false;render();return}
+});
+render();
+}
+</script>
+</body>
+</html>
