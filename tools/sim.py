@@ -22,7 +22,7 @@ HOOK = ("window.__g={get run(){return run},get S(){return S},set S(v){S=v},step,
 JS = r"""
 (a)=>{const g=window.__g,out=[];
 const IDS=['joker','mona','ryuji','ann','yusuke','makoto','futaba','haru','akechi','kasumi'];
-const PREF=[/특수/,/기책/,/들어간다/,/버스로/,/조사를/,/열어 본다/,/100엔/,/마셔/,/모나에게/,/같이 넘는다/,/중재/,/스킬|SP|와이어|로그만|추리/];
+const PREF=[/약점을/,/특수/,/기책/,/들어간다/,/버스로/,/조사를/,/열어 본다/,/100엔/,/마셔/,/모나에게/,/같이 넘는다/,/중재/,/스킬|SP|와이어|로그만|추리/];
 for(let k=0;k<a.n;k++){
  g.S=Object.assign(g.S,JSON.parse(JSON.stringify(a.state)));g.S.tips=['start','choose','tag','event'];g.S.tut=true;
  const ids=[...IDS].sort(()=>Math.random()-.5).slice(0,3);g.S.today=g.SCRIPT.days.length?g.SCRIPT.days[Math.floor(Math.random()*g.SCRIPT.days.length)].id:null;g.S.lastChains=[];
