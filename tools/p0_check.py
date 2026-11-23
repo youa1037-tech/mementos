@@ -57,6 +57,11 @@ with sync_playwright() as p:
   # 9 기세: 한 칸당 탐색 수확 ±15%, HUD에 FLOW 표시
   r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);g.run.mom=0;g.momShift(1);g.momShift(1);g.momShift(5);g.ui.screen='explore';g.render();return {mom:g.run.mom,hud:(document.querySelector('#flowtag')||{}).innerText||''}}""")
   check('momentum clamps and shows in HUD',r['mom']==3 and 'FLOW ▲3' in r['hud'],r)
+  # 10 쉬는 시간: 고른 두 사람의 관계·HP·기세·도감
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);const r=g.run;r.mom=0;r.party.forEach(m=>m.hp=50);const e=g.EVENTS.find(x=>x.id==='break').make();
+   const out=e.choices[0].go();const f=out[out.length-1];if(f.fn)f.fn();const k=['joker','mona'].sort().join('+');
+   return {n:e.choices.length,mom:r.mom,hp:r.party[0].hp,rel:(r.rel||{})[k]||null,cx:(g.S.codex.breaks||[]).includes(k),again:e.choices.length}}""")
+  check('break scene bonds a pair',r['mom']==1 and r['hp']==60 and r['rel']=='의기투합' and r['cx'] and r['n']==4,r)
   check('no page errors',not errs,errs[:3])
   b.close()
 print('ALL OK' if ok else 'SOME FAILED');sys.exit(0 if ok else 1)
