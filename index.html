@@ -743,6 +743,9 @@ i.pc{display:inline-block;width:14px;height:14px;aspect-ratio:auto;vertical-alig
 .pdet{margin-top:12px;padding:12px;background:var(--p,#1b1618);border-left:4px solid var(--gold,#f5b942)}.pdet p{margin:4px 0;font-size:14px;line-height:1.5}
 .pdet .pn b{font:400 20px var(--en)}.pdet .pn small{color:var(--mut);margin-left:6px}.pdet .pl{display:inline-block;min-width:76px;font:400 13px var(--en);letter-spacing:.06em;color:var(--mut)}
 .ashots{display:grid;gap:10px}.shot.sm{margin:0;transform:rotate(-.6deg)}.shot.sm figcaption{font-size:15px}.shot.sm small{font-size:13px}
+/* 폰 파티 화면: 출발 버튼은 화면 아래에 붙어 있게 (스크롤 없이 누름) */
+@media(max-width:600px){.psel .board .go{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;box-shadow:0 -10px 24px rgba(10,8,10,.85),5px 5px 0 var(--red)}}
+.synn{display:block;font-size:13px;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -962,8 +965,9 @@ const DEPTHS=[null,
 const LV=()=>run&&run.lv||0,lvOk=n=>LV()>=n;
 /* 조합 시너지 (시트 '조합 시너지'): 두 사람이 같은 파티면 판 전체 규칙. 둘 다 살아 있을 때만 */
 const synAct=(r=run)=>(r&&r.syn||[]).filter(x=>!r.party||[x.a,x.b].every(id=>r.party.some(m=>m.id===id&&m.hp>0)));
-const synV=(e,r=run)=>synAct(r).filter(x=>x.eff===e).reduce((t,x)=>t+(x.ev||0),0);/* +%·+%p·+ 효과 합 */
-const synX=(e,r=run)=>synAct(r).filter(x=>x.eff===e||x.cost===e).reduce((t,x)=>t*((x.eff===e?x.ev:x.cv)||1),1);/* × 효과·대가 곱 */
+const SYN_CAP={'시작 분위기 +':20};const synStack=v=>{v=[...v].sort((a,b)=>b-a);return (v[0]||0)+v.slice(1).reduce((t,x)=>t+x/2,0)};
+const synV=(e,r=run)=>Math.min(SYN_CAP[e]??50,synStack(synAct(r).filter(x=>x.eff===e).map(x=>x.ev||0)));/* 같은 효과는 가장 큰 것 + 나머지 절반, 최대 +50 (리뷰 2차 ⑤) */
+const synX=(e,r=run)=>{const L=synAct(r).filter(x=>x.eff===e||x.cost===e),eff=L.filter(x=>x.eff===e).map(x=>(x.ev||1)-1),cost=L.filter(x=>x.cost===e).reduce((t,x)=>t*(x.cv||1),1);return Math.min(2,1+synStack(eff))*cost};/* × 효과: 가장 큰 것 + 나머지 절반, 최대 ×2 · 대가는 그대로 곱 */
 const synC=(c,r=run)=>synAct(r).filter(x=>x.cost===c).reduce((t,x)=>t+(x.cv||0),0);/* + 대가 합 */
 const synFmt=(t,v)=>t.replace('+%p',`+${v}%p`).replace('+%',`+${v}%`).replace('-%',`-${v}%`).replace('×',`×${v}`).replace(/\+$/,`+${v}`).replace(/ -$/,` -${v}`);
 const synTxt=x=>synFmt(x.eff,x.ev)+(x.cost&&x.cost!=='없음'?` · 대가: ${synFmt(x.cost,x.cv)}`:'');
@@ -1856,16 +1860,16 @@ function vParty(){
  <section class="bpanel board" style="--c:${f.col}">
   <header class="bhd"><h2>출발 준비</h2><span>BOARDING</span></header>
   <div class="bf"><div class="pt big">${art('masks',f.id,80)||emb(f.id,f.col)}</div><div class="bi"><p class="cd">${f.code} / ${TYPES[f.type].en}</p><h3>${f.name}</h3><p class="tr">${esc(f.trait)}</p></div></div>
-  <div class="bars">${WL_KR.map((l,j)=>`<div><span>${l}</span><i><b style="width:${pc[j]}%;background:${WCOL[j]}"></b></i><em>${pc[j]}%</em></div>`).join('')}</div>
+  ${tp?'':`<div class="bars">${WL_KR.map((l,j)=>`<div><span>${l}</span><i><b style="width:${pc[j]}%;background:${WCOL[j]}"></b></i><em>${pc[j]}%</em></div>`).join('')}</div>`}
   ${tp?'':vFocus(f)}
   <div class="bhd sub"><h2>탑승 멤버</h2><button class="lnk" data-act="random" ${tp?'disabled':''}>무작위 편성 <i>↻</i></button></div>
   <div class="slots">${[0,1,2].map(i=>{const c=CH[sel[i]];return c?`<button class="slot f" style="--c:${c.col}" data-act="sel:${c.id}" ${lock(c.id)?'aria-disabled="true"':''} aria-label="${c.name} 빼기">${art('masks',c.id,28)||emb(c.id,c.col)}<b>${c.name}</b><small>${c.code}</small></button>`:'<span class="slot">빈자리</span>'}).join('')}</div>
-  ${!tp&&sel.length>=2?(()=>{const sy=synOf(sel);/* 첫 판은 시너지가 걸리지 않으니 안 보임 */return sy.length?`<div class="syns">${sy.map(x=>`<p><b>SYNERGY</b> ${esc(x.name)} <span>${CH[x.a].code} × ${CH[x.b].code}</span><br><small>${esc(synTxt(x))}</small></p>`).join('')}</div>`:''})():''}
+  ${!tp&&sel.length>=2?(()=>{const sy=synOf(sel);/* 첫 판은 시너지가 걸리지 않으니 안 보임 */const dup=sy.some((x,i)=>sy.some((y,j)=>j>i&&y.eff===x.eff));return sy.length?`<div class="syns">${dup?'<small class="synn">같은 효과는 겹치면 나머지가 절반만 더해집니다 (최대 +50%).</small>':''}${sy.map(x=>`<p><b>SYNERGY</b> ${esc(x.name)} <span>${CH[x.a].code} × ${CH[x.b].code}</span><br><small>${esc(synTxt(x))}</small></p>`).join('')}</div>`:''})():''}
   <p class="hint">${full?`${S.codex.combos.includes(key)?'':'<span class="new">NEW COMBO!</span> '}${Object.entries(tc).map(([k,v])=>`${k} ×${v}`).join(' · ')}`:tp?'안내 담당 둘은 고정이야. 남은 한 자리를 골라.':'명단에서 함께 갈 세 명을 골라.'}</p>
   ${!tp&&(S.depthMax||0)>0?(()=>{const L=Math.min(S.lvSel||0,S.depthMax);return `<div class="pol dsel"><span class="pl">DEPTH</span>${[0,1,2,3,4,5].map(i=>`<button class="pchip ${L===i?'on':''}" data-act="lv:${i}" ${i>S.depthMax?'disabled':''} aria-pressed="${L===i}">${i>S.depthMax?'🔒':i}</button>`).join('')}</div><p class="polx">${L?`<b>LV.${L} · 엔 +${L*10}%</b><br>${DEPTHS.slice(1,L+1).map((d,j)=>`${j+1}. ${esc(d.kr)} — ${esc(d.rule)}`).join('<br>')}`:'<b>LV.0</b> · 기본 난이도. 전멸해도 수익 70%를 회수합니다.'}</p>`})():''}
   ${tp?'':`<div class="pol"><span class="pl">ORDERS</span>${Object.entries(POLICY).map(([k,v])=>`<button class="pchip ${pol()===k?'on':''}" data-act="pol:${k}" aria-pressed="${pol()===k}" title="${v.kr}">${v.en}</button>`).join('')}</div><p class="polx"><b>${POLICY[pol()].kr}</b> · ${POLICY[pol()].d}</p>`}
   <p class="kit">CURRY ${S.curry} · SMOKE ${S.smoke} · LOCKPICK LV.${S.pick} · BUS LV.${S.bus}</p>
-  <button class="go" data-act="start" ${full?'':'disabled'}><span>${full?'출발한다':`멤버 ${3-sel.length}명 더 선택`}</span><i>→</i></button>
+  <button class="go" data-act="start" ${full?'':'disabled'}><span>${full?'START':`멤버 ${3-sel.length}명 더 선택`}</span><i>→</i></button>
  </section></div></main>`;
 }
 function vMap(){
