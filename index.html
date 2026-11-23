@@ -446,7 +446,6 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .mstage::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(rgba(0,0,0,.22) 1.3px,transparent 1.8px) 0 0/8px 8px}
 .msky{position:relative;z-index:1;padding:calc(26px + env(safe-area-inset-top)) max(5vw,14px) 0;max-width:1240px;width:100%;margin:0 auto}
 .mtitle{font-size:clamp(40px,11.4vw,96px);line-height:1.1;margin:0}
-.mtape{display:inline-block;margin:14px 0 0 4px;padding:4px 16px 5px 12px;background:var(--ink);color:#141012;font:400 clamp(19px,4.6vw,26px)/1.2 'Jua',sans-serif;transform:rotate(-3deg);box-shadow:5px 5px 0 #141012;clip-path:polygon(0 6%,100% 0,98% 100%,1% 92%)}
 .mground{position:relative;flex:1;display:flex;flex-direction:column;margin-top:clamp(70px,13vw,150px);padding:calc(30px + 6vw) max(5vw,14px) calc(22px + env(safe-area-inset-bottom))}
 .mground>*:not(.mbg){position:relative;z-index:1;width:100%;max-width:1240px;margin-left:auto;margin-right:auto}
 .mbg{position:absolute;left:-30vw;right:-30vw;top:0;bottom:-60vh;transform:rotate(-7deg);transform-origin:50% 0}
@@ -461,8 +460,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .mmenu button{position:relative;isolation:isolate;display:grid;grid-template-columns:30px auto;column-gap:10px;align-items:center;height:100%;text-align:left;padding:0 18px 0 2px;color:var(--ink)}
 .mmenu .st{grid-row:span 2;width:22px;height:22px;margin-left:4px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 5px #141012,0 0 0 8px var(--red);transition:background .15s}
 .mmenu .lbl{white-space:nowrap;font-family:var(--disp);font-size:clamp(24px,7.1vw,42px);line-height:1;align-self:end;transform:rotate(-2deg);transform-origin:left;text-shadow:3px 3px 0 #141012}
-.mmenu small{align-self:start;margin-top:3px;font:400 12.5px/1.35 'IBM Plex Sans KR',sans-serif;color:var(--mut)}
-.mmenu small b{font:400 14px 'Jua',sans-serif;color:var(--ink);margin-right:6px}
+.mmenu small{align-self:start;margin-top:4px;font:400 13px/1.3 var(--en);letter-spacing:.06em;color:var(--mut)}
 .mmenu button::before{content:'';position:absolute;z-index:-1;left:36px;right:-14px;top:4px;bottom:2px;background:var(--red);clip-path:polygon(0 18%,7% 0,100% 8%,96% 55%,100% 100%,4% 92%,1% 60%);transform:scaleX(0) skewX(-12deg);transform-origin:left;transition:transform .22s var(--snap)}
 .mmenu button.primary::before,.mmenu button:hover::before,.mmenu button:focus-visible::before{transform:skewX(-12deg)}
 .mmenu:hover button.primary:not(:hover)::before{transform:scaleX(0) skewX(-12deg)}
@@ -474,22 +472,21 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .mpass{display:flex;margin-top:auto;max-width:520px!important;margin-left:0!important;background:var(--ink);color:#141012;transform:rotate(-2deg);box-shadow:7px 7px 0 var(--red);-webkit-mask:radial-gradient(circle 9px at 0 50%,transparent 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 50%,transparent 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 9px at 0 50%,transparent 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 50%,transparent 98%,#000) right/51% 100% no-repeat}
 .mpass .pl{flex:none;width:34px;background:var(--red);color:#fff;font:400 18px/1 var(--en);writing-mode:vertical-rl;transform:rotate(180deg);display:grid;place-items:center;letter-spacing:.12em}
 .mpass .pb{padding:9px 16px 10px 18px;flex:1}
-.mpass small{display:block;font:400 11.5px/1.2 'Orbit','IBM Plex Sans KR',sans-serif;color:#6b5f5a;word-spacing:-.2em}
+.mpass small{display:block;font:400 12px/1.2 var(--en);letter-spacing:.08em;color:#6b5f5a}
 .mpass .pr{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:3px 0 2px}
 .mpass .pr b{font:400 30px/1 var(--en);letter-spacing:.02em}
-.mpass .pr span{font-size:13px;font-weight:700}
-.mpass .pg{margin:0;font-size:13px;line-height:1.45}
+.mpass .pr span{font:400 15px var(--en);letter-spacing:.05em}
+.mpass .pg{margin:0;font:400 14px/1.3 var(--en);letter-spacing:.05em}
 .mpass .pg b{color:var(--red2)}
 .scr-in .mbg{animation:slab .5s var(--snap) both}
 @keyframes slab{from{transform:translateY(45%) rotate(-16deg)}}
 .scr-in .mmenu li{animation:rise .38s var(--land) both;animation-delay:calc(260ms + var(--n)*70ms)}
 .scr-in .mpass{animation:rise .38s var(--land) .6s both}
-.scr-in .mtape{animation:rnSlap .3s steps(3,end) .5s both}
 @media(min-width:760px){.mmenu{--off:34px;--rh:92px;--ang:20.3deg;--len:98px}.mtun{width:min(70vw,900px)}.mground{padding-top:calc(30px + 5vw)}}
 @media(min-width:900px) and (min-aspect-ratio:5/4){.msky{padding-top:22px}.mtitle{font-size:clamp(40px,5.3vw,80px)}.mground{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;margin-top:clamp(70px,7.5vw,120px);padding-top:calc(10px + 3vw)}.mcity{height:clamp(64px,7.5vw,120px)}.mmenu{margin:0;--rh:86px;--ang:21.6deg;--len:92px}.mpass{justify-self:end;margin:0 0 6px!important;width:min(460px,100%)}.mground>*:not(.mbg){max-width:none}}
-@media(max-width:600px){.mtun{opacity:.75;top:120px}}
+@media(max-width:600px){.mtun{opacity:.8;top:clamp(120px,calc(100dvh - 640px),230px);width:108vw;right:calc(30vw - 14vw)}}
 .mmenu .lbl *{white-space:nowrap}.mmenu .lbl wbr{display:none}
-@media(max-height:720px) and (max-width:600px){.mtitle{font-size:clamp(36px,10vw,60px)}.mcity{height:56px}.mground{margin-top:56px;padding-top:calc(22px + 5vw)}.mmenu{--rh:74px;--len:75px;--ang:12.2deg;margin-bottom:14px}.mtape{margin-top:10px}}
+@media(max-height:720px) and (max-width:600px){.mtitle{font-size:clamp(36px,10vw,60px)}.mcity{height:56px}.mground{margin-top:56px;padding-top:calc(22px + 5vw)}.mmenu{--rh:74px;--len:75px;--ang:12.2deg;margin-bottom:14px}}
 @media(prefers-reduced-motion:reduce){.tlight{animation:none;opacity:.5}}
 /* 인게임 튜토리얼 */
 #tutlayer{position:fixed;inset:0;z-index:60;pointer-events:none}
@@ -1078,26 +1075,26 @@ const MAIN_ART=(()=>{let sd=11;const rnd=()=>(sd=sd*16807%2147483647)/2147483647
   x+=w+(rnd()*5|0)}
  const VX=420,VY=150,arch=k=>{const a=k*70,b=k*92,f=VY+k*58;return `M${VX-a|0} ${f|0}V${VY-b*.3|0}Q${VX-a|0} ${VY-b|0} ${VX} ${VY-b|0}Q${VX+a|0} ${VY-b|0} ${VX+a|0} ${VY-b*.3|0}V${f|0}Z`};
  let tun='';for(let i=0;i<26;i++){const an=i/26*Math.PI*2+rnd()*.12,c=Math.cos(an),s=Math.sin(an);tun+=`<line x1="${VX+c*30|0}" y1="${VY+s*30|0}" x2="${VX+c*760|0}" y2="${VY+s*760|0}" stroke="#f6f1ea" stroke-opacity="${.04+rnd()*.07}" stroke-width="${1+rnd()*3|0}"/>`}
- [6.2,4.2,2.8,1.9,1.28,.86,.58,.39,.26].forEach((k,i)=>{tun+=`<path d="${arch(k)}" fill="${i<2?'none':i%2?'#1d1517':'#0f0b0c'}" stroke="${i%3===1?'#f6f1ea':'#4a3237'}" stroke-width="${i%3===1?3:1.6}" stroke-opacity="${i<2?.45:1}" transform="rotate(${((rnd()-.5)*5).toFixed(1)} ${VX} ${VY})"/>`});
+ [6.2,4.2,2.8,1.9,1.28,.86,.58,.39,.26].forEach((k,i)=>{tun+=`<path d="${arch(k)}" fill="${i<2?'none':'#0f0b0c'}" stroke="${i%3===1?'#f6f1ea':'#4a3237'}" stroke-width="${i%3===1?3:1.6}" stroke-opacity="${i<2?.45:1}" transform="rotate(${((rnd()-.5)*5).toFixed(1)} ${VX} ${VY})"/>`});
  const RY=VY+14,BY=440,rail=sg=>`<polygon points="${VX+sg*4},${RY} ${VX+sg*7},${RY} ${VX+sg*318},${BY} ${VX+sg*300},${BY}" fill="#e5191c"/>`;
  for(let j=1;j<15;j++){const q=Math.pow(j/15,2.1),y=RY+(BY-RY)*q,hw=5+300*q;tun+=`<line x1="${VX-hw|0}" y1="${y|0}" x2="${VX+hw|0}" y2="${y|0}" stroke="#b9aca5" stroke-opacity=".35" stroke-width="${(1+7*q).toFixed(1)}"/>`}
  tun+=rail(-1)+rail(1)+`<circle class="tlight" cx="${VX}" cy="${VY+2}" r="22" fill="url(#mglow)"/>`;
  return {city:`<svg class="mcity" viewBox="0 0 1400 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><g fill="#0f0b0c">${city}</g>${win}</svg>`,
   tun:`<svg class="mtun" viewBox="0 0 600 420" aria-hidden="true"><defs><radialGradient id="mglow"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#ffe8c2" stop-opacity=".8"/><stop offset="1" stop-color="#ffe8c2" stop-opacity="0"/></radialGradient></defs>${tun}</svg>`}})();
 function mainGoal(){/* 다음 투자 목표: 지금 살 수 있는 것, 아니면 가장 싼 것까지 남은 엔 */
- const c=[...PROPS.filter(p=>!has(p.id)).map(p=>({n:p.name,c:p.cost})),...(BUS[S.bus+1]?[{n:`모나 버스 Lv.${S.bus+1}`,c:BUS[S.bus+1].cost}]:[])].sort((a,b)=>a.c-b.c);
- if(!c.length)return '르블랑 투자 완료. 이제 도감을 채울 차례입니다.';
- const now=c.filter(x=>x.c<=S.yen);return now.length?`지금 르블랑에서 <b>${esc(now[now.length-1].n)}</b>을(를) 들일 수 있습니다.`:`<b>${esc(c[0].n)}</b>까지 <b>¥${fmt(c[0].c-S.yen)}</b> 남았습니다.`}
+ const c=[...PROPS.filter(p=>!has(p.id)).map(p=>({n:p.en,c:p.cost})),...(BUS[S.bus+1]?[{n:`MONA BUS Lv.${S.bus+1}`,c:BUS[S.bus+1].cost}]:[])].sort((a,b)=>a.c-b.c);
+ if(!c.length)return 'LEBLANC FULLY FURNISHED';
+ const now=c.filter(x=>x.c<=S.yen);return now.length?`READY TO BUY · <b>${esc(now[now.length-1].n)}</b>`:`NEXT · <b>${esc(c[0].n)}</b> · ¥${fmt(c[0].c-S.yen)} TO GO`}
 function vMain(){
  const dy=SCRIPT.days.find(d=>d.id===S.today),cx=S.codex;
- const M=[['go:party','INFILTRATE','잠입',!S.tut?'첫 정찰 · 모르가나가 안내합니다':dy?`오늘의 메멘토스 · ${esc(dy.name)}`:'메멘토스로 출발'],
-  ['go:shop','LEBLANC','르블랑',`소품 ${S.props.length} / ${PROPS.length} · 모나 버스 Lv.${S.bus}`],
-  ['go:codex','CODEX','도감',`조합 ${cx.combos.length} / 120 · 사슬 결말 ${Object.values(cx.chains||{}).filter(v=>v==='end').length} / ${SCRIPT.chains.length}`],
-  ['howto','HOW TO PLAY','플레이 방법','설명서 · 튜토리얼 다시 하기']];
- return `<main class="mstage"><div class="msky"><h1 class="mtitle boil">${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1><p class="mtape">오늘도 메멘토스!</p></div>
+ const M=[['go:party','INFILTRATE',!S.tut?'FIRST RECON · MONA WILL GUIDE YOU':dy?`TODAY · ${esc(dy.en)}`:'NEXT TRAIN IS LEAVING'],
+  ['go:shop','LEBLANC',`PROPS ${S.props.length}/${PROPS.length} · MONA BUS LV.${S.bus}`],
+  ['go:codex','CODEX',`COMBOS ${cx.combos.length}/120 · STORIES ${Object.values(cx.chains||{}).filter(v=>v==='end').length}/${SCRIPT.chains.length}`],
+  ['howto','HOW TO PLAY','MANUAL · REPLAY TUTORIAL']];
+ return `<main class="mstage"><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
  <section class="mground"><div class="mbg" aria-hidden="true"><div class="mslab"></div>${MAIN_ART.city}${MAIN_ART.tun}</div>
- <ul class="mmenu">${M.map(([a,en,kr,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small><b>${kr}</b>${meta}</small></button></li>`).join('')}</ul>
- <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · 메멘토스선 정기권</small><p class="pr"><b>¥${fmt(S.yen)}</b><span>탐사 ${cx.reports}회 · 최고 ${cx.best?'★'.repeat(cx.best):'-'}</span></p><p class="pg">${mainGoal()}</p></div></div>
+ <ul class="mmenu">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
+ <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${fmt(S.yen)}</b><span>RUNS ${cx.reports} · BEST ${cx.best?'★'.repeat(cx.best):'—'}</span></p><p class="pg">${mainGoal()}</p></div></div>
  </section></main>`;
 }
 function vParty(){
