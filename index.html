@@ -886,7 +886,7 @@ function endTurnFn(){
  if(DAY('turnHp'))alive().forEach(x=>hp(x,-DAY('turnHp')));
  const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})`};run.turn++;
  if(run.turn>run.maxT)run.q.push({sys:1,text:`${run.maxT}턴 탐사 완료. 모나 버스가 귀환 준비를 마쳤다.`},{fn:()=>{endRun('complete');return null}});
- else run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 구역을 골라 주세요.`}}});
+ else run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 구역을 고를 차례입니다.`}}});
  return b;
 }
 function log(b){
@@ -1005,7 +1005,7 @@ function vParty(){
  const tc={};sel.forEach(id=>{const t=TYPES[CH[id].type].label;tc[t]=(tc[t]||0)+1});
  const wOf=c=>TYPES[c.type].w.map((v,j)=>Math.max(1,v+c.adj[j]));
  const fw=wOf(f),fs=fw.reduce((a,b)=>a+b,0);
- return `<main class="wrap"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('PARTY SELECT')}<span class="sub">세 명을 골라 주세요</span></h2><span class="pill">${sel.length} / 3</span></header>
+ return `<main class="wrap"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('PARTY SELECT')}<span class="sub">세 명을 고르십시오</span></h2><span class="pill">${sel.length} / 3</span></header>
  ${dy?`<section class="today"><small>TODAY'S MEMENTOS</small><b>${esc(dy.name)} <i>${esc(dy.en)}</i></b><p>${esc(dy.intro)}</p><p class="rule">${esc(dy.rule)}</p>${dy.q?`<p class="dq">${dy.who?`<em style="color:${CH[dy.who].col}">${CH[dy.who].code}</em>`:''}“${esc(dy.q)}”</p>`:''}</section>`:''}
  <div class="legend"><span>행동 가중치</span>${['탐색','교류','지원','독자·돌발'].map((l,i)=>`<span><i style="background:${WCOL[i]}"></i>${l}</span>`).join('')}</div>
  <div class="cards">${CHARS.map(c=>{const i=sel.indexOf(c.id),w=wOf(c),s=w.reduce((a,b)=>a+b,0);
@@ -1024,14 +1024,14 @@ function vMap(){
   const st=`left:${z.x}%;top:${z.y}%`,g=HEAT_GAIN[z.risk],sub=cur?(r.phase==='choose'?'머무르기':'현재 위치'):!ok?'잠김 · 버스 Lv.2 또는 단서':z.name,rk=op&&ok?`<small class="rk">위험도 ${g>0?'+'+g:g}</small>`:'';
   return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b><small>${sub}</small>${rk}</button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b><small>${sub}</small></div>`}).join('');
  const strip=`<ol class="strip" aria-label="현재 위치">${['gate','pass','lost','plat'].map(id=>`<li class="${id===r.zone?'cur':''} ${canEnter(id)?'':'lock'}">${ZONES[id].esh}</li>`).join('')}</ol>`;
- return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">다음 구역을 고르세요. 깊은 구역일수록 위험도가 쌓여요.</p><div class="cash"><p>지금 귀환하면 <b>¥${fmt(r.yen+r.tval)}</b>(보물 포함) 확보. 전원이 쓰러지면 40%만 건져요.</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
+ return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">다음 구역을 고르십시오. 깊은 구역일수록 위험도가 쌓입니다.</p><div class="cash"><p>지금 귀환하면 <b>¥${fmt(r.yen+r.tval)}</b>(보물 포함)를 확보합니다. 전원이 쓰러지면 40%만 건집니다.</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
 }
 function vLog(){
  return run.log.map(b=>{const c=b.who?CH[b.who]:null,cls=[b.sys?'sys':'',b.ev?'ev':'',b.turn?'turn':'',b.warn?'warn':''].join(' ');
   return `<li class="${cls}"><time>${b.t}</time><p style="${c?`--c:${c.col}`:''}">${c&&!b.n?`<b class="who">${c.code}</b>`:''}${esc(b.text||b.n||'')} ${b.q?`<q>${esc(b.q)}</q>`:''}${b.res?`<em>${esc(b.res)}</em>`:''}</p></li>`}).join('');
 }
 function vEvent(){const d=run.ev,c=d.who?CH[d.who]:null,en=run.evIn?'':'enter';run.evIn=true;
- return `<div class="scrim ${en}"></div><div class="evt ${en}" role="dialog" aria-label="${esc(d.title)}"><div><h3>${rn(d.en||d.title)}</h3><p class="kr">${esc(d.title)}</p>${S.tips.includes('event')?'':'<p class="evtip">TIP · 중요한 순간이라 멈췄어요. 선택지를 고르면 다시 진행돼요.</p>'}<p class="intro">${esc(d.intro)}</p>
+ return `<div class="scrim ${en}"></div><div class="evt ${en}" role="dialog" aria-label="${esc(d.title)}"><div><h3>${rn(d.en||d.title)}</h3><p class="kr">${esc(d.title)}</p>${S.tips.includes('event')?'':'<p class="evtip">TIP · 중요한 순간이라 멈췄습니다. 선택지를 고르면 다시 진행됩니다.</p>'}<p class="intro">${esc(d.intro)}</p>
  ${c?`<p class="pq" style="--c:${c.col}"><b>${c.code}</b>“${esc(d.q)}”</p>`:''}${d.after?`<p class="pq" style="--c:${CH[d.after.who].col}"><b>${CH[d.after.who].code}</b>“${esc(d.after.q)}”</p>`:''}
  ${d.choices.map((x,i)=>`<button class="ch" style="--i:${i};--d:${[160,260,327,393][i]}ms" data-act="choice:${i}" ${x.dis?'disabled':''}><span class="k">${'ABCD'[i]}</span><span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small></span></button>`).join('')}</div></div>`;
 }
@@ -1097,38 +1097,38 @@ function vCodex(){
  return `<main class="wrap codex"><header class="bar"><button class="btn ghost sm" data-act="go:main">← BACK</button><h2>${rn('CODEX')}<span class="sub">괴도단 도감</span></h2><span class="pill">${nc} / 120</span></header>
  <div class="cxstat"><div><b>${cx.reports}</b><span>탐사 보고서</span></div><div><b>${'★'.repeat(cx.best)||'-'}</b><span>최고 평가</span></div><div><b>${cx.events.length} / ${COMBOS.length}</b><span>조합 이벤트</span></div><div><b>${cx.hidden.length} / 2</b><span>히든</span></div></div>
  <div class="lv cxbar"><i class="on" style="flex:${Math.max(nc,.001)}"></i><i style="flex:${120-nc}"></i></div>
- <section><h3>${rn('COMBO EVENTS')}<span class="sub">특정 두 사람이 같이 가면 일어나는 사건. 한 명은 공개돼 있어요.</span></h3><ul class="cxl">${pc}</ul></section>
- <section><h3>${rn('STORIES')}<span class="sub">사슬 이야기 · 결말 ${SCRIPT.chains.filter(c=>(cx.chains||{})[c.id]==='end').length} / ${SCRIPT.chains.length}</span></h3><ul class="cxl">${SCRIPT.chains.map(c=>{const st=(cx.chains||{})[c.id];return `<li class="${st==='end'?'got':''}"><b>${st?esc(c.name):'???'}</b><span>${st==='end'?'결말까지 봤어요':st==='grow'?'전개까지 · 결말은 아직':st==='find'?'발견만 · 이야기가 이어져요':'아직 못 본 이야기'}</span></li>`}).join('')}</ul></section>
+ <section><h3>${rn('COMBO EVENTS')}<span class="sub">특정 두 사람이 같이 가면 일어나는 사건입니다. 한 명은 공개되어 있습니다.</span></h3><ul class="cxl">${pc}</ul></section>
+ <section><h3>${rn('STORIES')}<span class="sub">사슬 이야기 · 결말 ${SCRIPT.chains.filter(c=>(cx.chains||{})[c.id]==='end').length} / ${SCRIPT.chains.length}</span></h3><ul class="cxl">${SCRIPT.chains.map(c=>{const st=(cx.chains||{})[c.id];return `<li class="${st==='end'?'got':''}"><b>${st?esc(c.name):'???'}</b><span>${st==='end'?'결말까지 봤습니다':st==='grow'?'전개까지 · 결말은 아직':st==='find'?'발견만 · 이야기가 이어집니다':'아직 못 본 이야기'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('DAYS')}<span class="sub">오늘의 메멘토스 ${(cx.days||[]).length} / ${SCRIPT.days.length}</span></h3><ul class="cxl">${SCRIPT.days.map(d=>{const got=(cx.days||[]).includes(d.id);return `<li class="${got?'got':''}"><b>${got?esc(d.name):'???'}</b><span>${got?esc(d.rule):'아직 겪지 못한 날'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('HIDDEN')}<span class="sub">숨겨진 역</span></h3><ul class="cxl">${hid}</ul></section>
  <section><h3>${rn('HIDEOUT')}<span class="sub">르블랑 소품과 후일담</span></h3><ul class="cxl">${props}</ul></section>
- <section><h3>${rn('PARTIES')}<span class="sub">출격해 본 조합 ${nc}개</span></h3>${nc?`<div class="chips">${chips}</div>`:'<p class="hint">아직 출격 기록이 없어요.</p>'}</section>
+ <section><h3>${rn('PARTIES')}<span class="sub">출격해 본 조합 ${nc}개</span></h3>${nc?`<div class="chips">${chips}</div>`:'<p class="hint">아직 출격 기록이 없습니다.</p>'}</section>
  <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
 }
 /* ============ 첫 판 팁 ============ */
 const TIPS={
- start:'괴도단은 알아서 움직여요. 캐릭터 말풍선과 아래 로그를 지켜보세요.',
- choose:'선로로 이어진 구역을 눌러 이동해요. 깊은 구역일수록 위험하지만 보상이 커요.',
- tag:'[태그]는 앞에서 생긴 일이에요. 나중 사건과 르블랑 후일담이 이걸 보고 달라져요.'};
+ start:'괴도단은 알아서 움직입니다. 캐릭터 말풍선과 아래 로그를 지켜보십시오.',
+ choose:'선로로 이어진 구역을 눌러 이동합니다. 깊은 구역일수록 위험하지만 보상이 큽니다.',
+ tag:'[태그]는 앞에서 생긴 일입니다. 나중 사건과 르블랑 후일담이 이것을 보고 달라집니다.'};
 function tip(id){if(!run||S.tips.includes(id)||ui.tip)return;ui.tip={id,text:TIPS[id]};if(run.phase==='running'){run.paused=true;run.tipPause=true}}
 function vTip(){return ui.tip?`<div class="tipcard" role="status"><b>TIP</b><p>${esc(ui.tip.text)}</p><button class="btn sm" data-act="tipok">OK</button></div>`:''}
 
 /* ============ 튜토리얼 ============ */
 const miniTile=(id,q)=>{const c=CH[id];return `<div class="tile" style="--c:${c.col}"><div class="bub"><span>${esc(q)}</span></div><div class="nm"><span class="code">${c.code}</span></div><div class="hb"><i style="width:100%"></i></div><div class="hb s"><i style="width:80%"></i></div></div>`};
 const TUT=[
- {t:'WHAT IS THIS?',kr:'이 게임은',body:'괴도단 세 명을 메멘토스에 보내고, 그들이 알아서 벌이는 소동을 <b>구경하는</b> 관찰 게임이에요. 당신은 지휘관이 아니라 지켜보는 사람이에요.',
+ {t:'WHAT IS THIS?',kr:'이 게임은',body:'괴도단 세 명을 메멘토스에 보내고, 그들이 알아서 벌이는 소동을 <b>구경하는</b> 관찰 게임입니다. 당신은 지휘관이 아니라 지켜보는 사람입니다.',
   vis:()=>`<div class="party mini">${miniTile('joker','맡겨 둬.')}${miniTile('ryuji','일단 부딪혀 보자고!')}${miniTile('akechi','예상대로네.')}</div>`},
- {t:'THE GOAL',kr:'목표',body:'탐사에서 <b>엔과 보물</b>을 벌어 오세요. 르블랑을 꾸미고 모나 버스를 튜닝하면 새 후일담과 더 깊은 구역이 열려요. <b>120가지 파티 조합</b>과 숨겨진 역을 모두 찾아보세요.',
+ {t:'THE GOAL',kr:'목표',body:'탐사에서 <b>엔과 보물</b>을 벌어 오십시오. 르블랑을 꾸미고 모나 버스를 튜닝하면 새 후일담과 더 깊은 구역이 열립니다. <b>120가지 파티 조합</b>과 숨겨진 역을 모두 찾아보십시오.',
   vis:()=>`<ol class="loop">${[['INFILTRATE','메멘토스 탐사'],['EARN ¥','엔 · 보물'],['INVEST','르블랑에 투자'],['UNLOCK','새 대화 · 깊은 구역']].map(([e,k],i)=>`<li style="--n:${i}"><b>${e}</b><small>${k}</small></li>`).join('')}</ol>`},
- {t:'ASSEMBLE',kr:'파티 편성',body:'10명 중 <b>3명</b>을 고르세요. 유형마다 잘하는 행동이 달라서, 조합에 따라 전혀 다른 하루가 펼쳐져요. 특정 두 사람이 함께 가면 <b>조합 이벤트</b>도 일어나요.',
+ {t:'ASSEMBLE',kr:'파티 편성',body:'10명 중 <b>3명</b>을 고르십시오. 유형마다 잘하는 행동이 달라서, 조합에 따라 전혀 다른 하루가 펼쳐집니다. 특정 두 사람이 함께 가면 <b>조합 이벤트</b>도 일어납니다.',
   vis:()=>`<div class="types">${Object.entries(TYPES).map(([k,t])=>{const s=t.w.reduce((a,b)=>a+b,0),m=CHARS.filter(c=>c.type===k);return `<div class="ty"><b>${t.en}</b><small>${t.label}</small><span class="w">${t.w.map((v,j)=>`<i style="width:${v/s*100}%;background:${WCOL[j]}"></i>`).join('')}</span><em>${m.map(c=>`<span style="color:${c.col}">${c.code}</span>`).join(' ')}</em></div>`}).join('')}</div><div class="legend">${['탐색','교류','지원','독자·돌발'].map((l,i)=>`<span><i style="background:${WCOL[i]}"></i>${l}</span>`).join('')}</div>`},
- {t:'OBSERVE',kr:'탐사',body:'탐사는 <b>7턴</b>이에요. 매 턴 다음 구역을 고르면 괴도단이 알아서 움직여요. 중요한 순간엔 게임이 멈추고 <b>선택지</b>가 떠요. 앞에서 생긴 <b>[태그]</b>는 나중 사건을 바꿔요.',
+ {t:'OBSERVE',kr:'탐사',body:'탐사는 <b>7턴</b>입니다. 매 턴 다음 구역을 고르면 괴도단이 알아서 움직입니다. 중요한 순간에는 게임이 멈추고 <b>선택지</b>가 나타납니다. 앞에서 생긴 <b>[태그]</b>는 나중 사건을 바꿉니다.',
   vis:()=>`<ol class="strip demo">${['gate','pass','lost','plat'].map((id,i)=>`<li class="${i===1?'cur':''} ${i===3?'lock':''}">${ZONES[id].esh}</li>`).join('')}</ol>
-  <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -10 · 함정 해제 + 추가 추리</small></span></div>
+  <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -15 · 안전하게 보물 1개</small></span></div>
   <div class="ptags"><span class="tag">[함정 의심]</span><span class="tag">[수상한 음료]</span><span class="tag">[100엔 손실]</span></div>`},
- {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아져요. HP가 0이 되면 전투불능, <b>전원이 쓰러지면</b> 번 돈의 40%만 들고 돌아와요. 구역을 고를 때 <b>RETURN NOW</b>로 번 걸 챙겨 돌아올 수 있어요.',
+ {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아집니다. HP가 0이 되면 전투불능이며, <b>전원이 쓰러지면</b> 번 돈의 40%만 들고 돌아옵니다. 구역을 고를 때 <b>RETURN NOW</b>로 번 것을 챙겨 돌아올 수 있습니다.',
   vis:()=>`<ul class="keys">${[['PAUSE','진행을 멈추고 천천히 읽기'],['1x · 2x','진행 속도'],['AUTO · MANUAL','수동이면 NEXT로 한 줄씩 넘기기'],['CURRY','르블랑 카레로 전원 회복'],['ESCAPE','지금까지 번 것을 들고 귀환']].map(([k,d])=>`<li><b>${k}</b><span>${d}</span></li>`).join('')}</ul>`},
- {t:'INVEST',kr:'르블랑',body:'돌아오면 <b>활동 보고서</b>와 르블랑 후일담이 나와요. 번 엔으로 소품(새 후일담 + 버프), 모나 버스(깊은 구역 개방), 잠입 도구를 사서 다음 탐사를 준비하세요.',
+ {t:'INVEST',kr:'르블랑',body:'돌아오면 <b>활동 보고서</b>와 르블랑 후일담이 나옵니다. 번 엔으로 소품(새 후일담 + 버프), 모나 버스(깊은 구역 개방), 잠입 도구를 사서 다음 탐사를 준비하십시오.',
   vis:()=>`<div class="invest">${PROPS.slice(0,3).map(p=>`<div><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg><b>${p.en}</b></div>`).join('')}</div><div class="lv">${[1,2,3,4].map(i=>`<i class="${i<=2?'on':''}"></i>`).join('')}</div><p class="sub" style="margin:0">MONA BUS Lv.2 — 버려진 플랫폼 개방</p>`}];
 function vTut(){
  const k=ui.tstep,st=TUT[k],last=k===TUT.length-1;
@@ -1172,7 +1172,7 @@ function showBanner(b){
  el.innerHTML=`<span>${rn(b.t)}<small>${esc(b.s)}</small></span>`;document.body.appendChild(el);
  setTimeout(()=>el.remove(),1150);
 }
-function spend(c){if(S.yen<c){ui.msg='엔이 부족해요. 메멘토스에서 더 벌어 오세요.';return false}S.yen-=c;return true}
+function spend(c){if(S.yen<c){ui.msg='엔이 부족합니다. 메멘토스에서 더 벌어 오십시오.';return false}S.yen-=c;return true}
 
 /* ============ 입력 ============ */
 let sx=null;
@@ -1206,8 +1206,8 @@ $('#app').addEventListener('click',e=>{
  if(a==='buy'){const p=PROPS.find(x=>x.id===v);if(p&&!has(p.id)&&spend(p.cost)){S.props.push(p.id);ui.msg=`${p.name} 배치 완료! ${p.unlock} 해금 · ${p.eff}`}save();render();return}
  if(a==='bus'){const nb=BUS[S.bus+1];if(nb&&spend(nb.cost)){S.bus++;ui.msg=`모나 버스 Lv.${S.bus} 튜닝 완료! ${nb.eff}`}save();render();return}
  if(a==='pick'){const c=PICK[S.pick+1];if(c&&spend(c)){S.pick++;ui.msg=`자물쇠 따개 Lv.${S.pick} 강화 완료!`}save();render();return}
- if(a==='smoke'){if(S.smoke<9&&spend(600)){S.smoke++;ui.msg='연막탄을 하나 챙겼어요.'}save();render();return}
- if(a==='curry-buy'){if(S.curry<9&&spend(400)){S.curry++;ui.msg='르블랑 카레를 포장했어요.'}save();render();return}
+ if(a==='smoke'){if(S.smoke<9&&spend(600)){S.smoke++;ui.msg='연막탄을 하나 챙겼습니다.'}save();render();return}
+ if(a==='curry-buy'){if(S.curry<9&&spend(400)){S.curry++;ui.msg='르블랑 카레를 포장했습니다.'}save();render();return}
  if(a==='reset'){if(!ui.reset){ui.reset=true;render();return}S=DEF();save();ui.reset=false;render();return}
 });
 render();
