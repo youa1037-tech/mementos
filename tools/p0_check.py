@@ -1,4 +1,4 @@
-"""P0 회귀 검사: 리뷰에서 나온 신뢰 버그 6개가 다시 생기지 않았는지 확인 (개발용)
+"""P0 회귀 검사: 리뷰에서 나온 신뢰 버그와 선택의 값(무리수 손실·정석 보너스·기세)이 유지되는지 확인 (개발용)
 
 사용법: python3 tools/p0_check.py [index.html 경로]
 크롬 경로를 지정하려면 CHROME=/usr/bin/google-chrome
@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 src=open(sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(__file__),'..','index.html'),encoding='utf-8').read()
 MARK="render();\n}\n</script>"
 assert src.count(MARK)==1
-HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout};\n"+MARK
+HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout,hp,momShift,spillAmt};\n"+MARK
 tmp=tempfile.NamedTemporaryFile('w',suffix='.html',delete=False,encoding='utf-8',dir='/tmp');tmp.write(src.replace(MARK,HOOK));tmp.close()
 ok=True
 def check(name,cond,info=''):
@@ -34,7 +34,9 @@ with sync_playwright() as p:
   check('curry mid-turn rewinds with run',r=={'hp':90,'curry':1},{'mid':mid,'after':r})
   # 3 귀환 예상액 = 정산
   r=pg.evaluate("""()=>{const g=window.__g,r=g.run;r.yen=1704;r.tval=0;r.heat=4;r.phase='choose';g.render();const t=document.querySelector('.cash p').innerText;g.endRun('retreat');return {t,inc:g.ui.res.inc}}""")
-  check('cashout estimate matches report',('1,772' in r['t']) and r['inc']==1772,r)
+  import re as _re
+  est=int(_re.search(r'¥([\d,]+)',r['t']).group(1).replace(',',''))
+  check('cashout estimate matches report',est==r['inc'] and '위험 수당 ¥68' in r['t'],{'est':est,'inc':r['inc']})
   # 4 막차 승차권
   r=pg.evaluate("""()=>{const g=window.__g;let five=0,seven=0;for(let i=0;i<400;i++){g.newRun(['joker','mona','ann']);g.run.manual=true;g.run.maxT=i%2?5:7;g.run.relics=[];const o=g.relicOffer();o[1].fn();const x=g.run.ev.choices.map(c=>c.label).join();if(x.includes('막차'))i%2?five++:seven++}return {five,seven}}""")
   check('R-13 never offered in 5-turn run',r['five']==0 and r['seven']>0,r)
@@ -44,6 +46,17 @@ with sync_playwright() as p:
   # 6 사건 대표 대사
   r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','ann','ryuji']);const e=g.EVENTS.find(x=>x.id==='E-012');const out=[];for(let i=0;i<20;i++){const d=e.make();out.push([d.who,d.q])}return out}""")
   check('stand-in speaker omits generic find quote',all(w is None and q is None for w,q in r),r[:2])
+  # 7 결정적 1컷: 쓰러지기 직전까지 몰린 판은 '평범한 날'이 아니다
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);const r=g.run;r.moments=[];const m=r.party[1];g.hp(m,-(m.hp-15));return g.pickCut(r,4000)}""")
+  check('close call becomes 구사일생 cut',r['k']=='구사일생' and '모르가나' in r['t'],r)
+  # 8 선택의 값: 무리수 손실과 정석 보너스가 선택지에 숫자로 보인다
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);const r=g.run;r.yen=3000;r.heat=5;const e=g.EVENTS.find(x=>x.id==='E-008').make();
+   return {a:e.choices[0].sub,b:e.choices[1].sub,c:e.choices[2].sub,spill:g.spillAmt()}}""")
+  check('gamble shows yen at risk',r['spill']==660 and '실패\u00a0시\u00a0-\u2060¥660' in r['a'],r)
+  check('steady choice shows bonus',('정석\u00a0보너스' in r['b']) and ('정석' not in r['a']) and ('-¥' not in r['c']),r)
+  # 9 기세: 한 칸당 탐색 수확 ±15%, HUD에 FLOW 표시
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);g.run.mom=0;g.momShift(1);g.momShift(1);g.momShift(5);g.ui.screen='explore';g.render();return {mom:g.run.mom,hud:(document.querySelector('#flowtag')||{}).innerText||''}}""")
+  check('momentum clamps and shows in HUD',r['mom']==3 and 'FLOW ▲3' in r['hud'],r)
   check('no page errors',not errs,errs[:3])
   b.close()
 print('ALL OK' if ok else 'SOME FAILED');sys.exit(0 if ok else 1)
