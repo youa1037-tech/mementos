@@ -84,6 +84,7 @@ h1,h2,h3{font-family:var(--hd);font-weight:400;line-height:1.05;margin:0;text-wr
 .zn small{color:var(--mut);font-size:13px;font-family:var(--sys);word-spacing:-.22em}
 .money{font-family:var(--disp);font-size:21px;white-space:nowrap}
 .money small{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:var(--mut);margin-left:6px}
+.xrow{display:flex;gap:4px;justify-content:flex-end}.tag.flow.up{color:#9ff0ae;background:#1d3a24}.tag.flow.dn{color:#ffb1b1;background:#4a1517}
 .ptags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
 .tag{font-size:13px;padding:2px 8px;background:var(--p2);color:var(--gold);white-space:nowrap}
 .mood{font-family:var(--en);letter-spacing:.05em;font-size:14px;color:#141012}
@@ -806,9 +807,15 @@ function say(c,k,t){const tc=t&&(t.c||t);let L=(c.L[k]||[]).filter(l=>ok(l.c,{ta
  const sp=L.filter(l=>l.c.length),l=sp.length&&chance(.6)?pick(sp):pick(L);rc.push(l.t);if(rc.length>8)rc.shift();return fill(l.t,{target:tc,who:c})}
 const yenMul=()=>DAY('yen')||1;
 const SHEET_YEN=.7;/* 시트 콘텐츠의 엔 보상 일괄 배율 (docs/balance.md) */
-function applyFx(m,list){m=m||pick(alive());const r=[];if(!m)return '';for(const f of list||[]){
- if(f.k==='yen'){let y=R(Math.min(f.a,f.b),Math.max(f.a,f.b));if(y>0)y=Math.round(y*yenMul()*SHEET_YEN);else y=Math.max(-run.yen,y);run.yen+=y;r.push(`${y<0?'-':'+'}¥${fmt(Math.abs(y))}`)}
- else if(f.k==='tre'){const z=Zc();for(let i=0;i<f.v;i++)addTre(200+z.risk*80,400+z.risk*120);r.push(`보물 +${f.v}`)}/* 시트 보물은 개수는 그대로, 한 개 값은 탐색 보물보다 낮게 */
+/* 선택의 값 (docs/balance.md choice-v1): 무리수가 실패하면 번 엔을 흘리고, 자원을 쓰는 정석은 엔을 더 받는다 */
+const SPILL_BASE=.12,SPILL_RISK=.02,STEADY=1.6,WEAK_YEN=1.6;
+/* 기세(FLOW): 머리를 쓴 선택이 통하면 ▲, 무리수가 실패하면 ▼. 한 칸당 탐색 엔·탐색 보물 값 ±15% (-3~+3) */
+const MOM_MAX=3,MOM_STEP=.15;
+function momShift(n){if(!run||!n)return '';const b=run.mom||0;run.mom=clamp(b+n,-MOM_MAX,MOM_MAX);return run.mom===b?'':` · 기세 ${n>0?'▲':'▼'}`}
+const spillAmt=()=>run&&!tutRun()?Math.round(run.yen*(SPILL_BASE+run.heat*SPILL_RISK)):0;/* 첫 판(맛보기)은 흘리지 않음 */
+function applyFx(m,list,ym=1){m=m||pick(alive());const r=[];if(!m)return '';for(const f of list||[]){
+ if(f.k==='yen'){let y=R(Math.min(f.a,f.b),Math.max(f.a,f.b));if(y>0)y=Math.round(y*yenMul()*SHEET_YEN*ym);else y=Math.max(-run.yen,y);run.yen+=y;r.push(`${y<0?'-':'+'}¥${fmt(Math.abs(y))}`)}
+ else if(f.k==='tre'){const z=Zc();for(let i=0;i<f.v;i++)addTre(Math.round((200+z.risk*80)*ym),Math.round((400+z.risk*120)*ym));r.push(`보물 +${f.v}`)}/* 시트 보물은 개수는 그대로, 한 개 값은 탐색 보물보다 낮게 */
  else if(f.k==='mood'){addMood(f.v);r.push(`분위기 ${f.v>0?'+':''}${f.v}`)}
  else if(f.k==='hp'){const v=f.v<0?-Math.round(-f.v*dmgMul()):f.v;(f.all?alive():[m]).forEach(x=>hp(x,v));r.push(`${f.all?'전원 ':''}HP ${v>0?'+':''}${v}`)}
  else if(f.k==='sp'){(f.all?alive():[m]).forEach(x=>x.sp=clamp(x.sp+f.v,0,x.msp));r.push(`${f.all?'전원 ':''}SP ${f.v>0?'+':''}${f.v}`)}
@@ -817,6 +824,7 @@ function applyFx(m,list){m=m||pick(alive());const r=[];if(!m)return '';for(const
  else if(f.k==='untag')delTag(f.v)}
  return r.join(' · ')}
 function hp(m,d){if(m.hp<=0&&d>0)return;m.hp=clamp(m.hp+d,0,100);if(m.hp<=0&&tutRun()){m.hp=1;run.rescue=true}
+ if(d<0&&m.hp<=25&&!run.close){run.close=1;moment('구사일생',58,{이름:m.c.name})}/* 쓰러지기 직전까지 몰렸거나 쓰러진 동료가 있던 판은 '평범한 날'이 아니다 */
  if(d<0&&m.hp>0&&m.hp<=30&&hasR('R-10')&&!run.r10){run.r10=1;alive().forEach(x=>hp(x,25));relicPay('R-10','전원 HP +25')}}/* 첫 판은 HP 1에서 멈추고 모르가나가 구출 (T-SAFE) */
 function addTag(l,w=null){if(!run.tags.some(t=>t.l===l&&t.w===w)){run.tags.push({l,w});tagHook(l,w)}}
 const hasTag=(l,w)=>run.tags.some(t=>t.l===l&&(w===undefined||t.w===w));
@@ -852,10 +860,11 @@ function auto0(){
 function actExplore(m){
  const z=Zc();
  const tc=z.tre+(has('cushion')?.06:0)+(mem('mona')?.04:0)+(m.c.type==='support'?.03:0)+(DAY('tre')||0);
- if(chance(tc)){addTre(300+z.risk*150,600+z.risk*200);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 잡동사니 사이에서 보물을 찾아냈다.`,q:say(m.c,'treasure'),res:'보물 +1'}}
+ const mm=1+(run.mom||0)*MOM_STEP;/* 기세는 탐색 엔·탐색 보물 값에 */
+ if(chance(tc)){addTre(Math.round((300+z.risk*150)*mm),Math.round((600+z.risk*200)*mm));m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 잡동사니 사이에서 보물을 찾아냈다.`,q:say(m.c,'treasure'),res:'보물 +1'}}
  if((run.zone==='pass'||run.zone==='lost')&&!hasTag(CLUE)&&chance(.07+(has('easel')?.08:0)+(DAY('clue')||0)+(z.clue||0))){addTag(CLUE);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 벽면에서 지도에 없는 선로 표시를 발견했다.`,q:say(m.c,'find'),res:'태그: 단서'}}
  let rm=1;if(hasR('R-03')&&run.heat>=5)rm*=1.4;if(hasR('R-09')&&run.mood>=65)rm*=1.25;if(hasR('R-13')&&run.turn>=6)rm*=1.5;
- const b0=R(z.loot[0],z.loot[1])*yenMul(),y=Math.round(b0*rm);run.yen+=y;m.mvp+=1;if(rm>1)run.relicYen=(run.relicYen||0)+y-Math.round(b0);
+ const b0=R(z.loot[0],z.loot[1])*yenMul()*mm,y=Math.round(b0*rm);run.yen+=y;m.mvp+=1;if(rm>1)run.relicYen=(run.relicYen||0)+y-Math.round(b0);/* 기세는 b0에 */
  return {who:m.id,exp:y,n:`${ig(m.c.name)} ${pick(z.scout)}`,q:say(m.c,'find'),res:`+¥${fmt(y)}${rm>1?' ◆':''}`};/* exp: 평범한 탐색, 로그에서 묶인다 */
 }
 /* 관찰 손맛: 말풍선을 누르면 조커가 한마디 거든다 (판당 3번). 지친 동료는 다독이고, 가끔은 쌍대사를 부추긴다 */
@@ -924,12 +933,12 @@ function shadowKind(){const z=run.zone,c=Object.entries(SHADOWS).filter(([,v])=>
 function fight(p,sp,k){
  const out=[],al=alive(),K=SHADOWS[k]||{},weak=sp&&K.weak===sp;
  if(sp){const t=run.tags.find(x=>x.l===sp),m=(t&&t.w&&mem(t.w))||mem(TAGOWN[sp])||pick(al);m.mvp+=weak?3:2;out.push({who:m.id,n:weak?`${ig(m.c.name)} ${K.name}의 약점을 정확히 찔렀다! [${sp}]`:`${ig(m.c.name)} 준비해 둔 수를 꺼냈다. [${sp}]`,q:say(m.c,'enemy')})}
- if(chance(p)){const z=Zc(),y=Math.round(R(200,400)*(1+z.risk*.5)*(DAY('fightYen')||1)*(z.fightMul||1)*(hasR('R-13')&&run.turn>=6?1.5:1)*(K.yen||1)*yenMul());run.yen+=y;const m=pick(al),d=pick(al),dmg=R(3,10);m.mvp+=2;hp(d,-dmg);if(m!==d&&chance(.3))chemShift(m.id,d.id,'승리');
-  out.push({who:m.id,n:`섀도를 쓰러뜨렸다! (${d.c.name} HP -${dmg})`,q:say(m.c,'win'),res:`+¥${fmt(y)}`});
+ if(chance(p)){const z=Zc(),y=Math.round(R(200,400)*(1+z.risk*.5)*(DAY('fightYen')||1)*(z.fightMul||1)*(hasR('R-13')&&run.turn>=6?1.5:1)*(K.yen||1)*(weak?WEAK_YEN:1)*yenMul());run.yen+=y;const m=pick(al),d=pick(al),dmg=R(3,10);m.mvp+=2;hp(d,-dmg);if(m!==d&&chance(.3))chemShift(m.id,d.id,'승리');
+  out.push({who:m.id,n:`섀도를 쓰러뜨렸다! (${d.c.name} HP -${dmg})`,q:say(m.c,'win'),res:`+¥${fmt(y)}${weak?' · 약점 보너스':''}${sp?momShift(1):''}`});
   if(K.mood){addMood(K.mood);out.push({sys:1,text:'섀도 떼를 몰아내자 다들 기세가 올랐다.',res:`분위기 +${K.mood}`})}
-  if(chance((K.loot||.15)+(has('cushion')?.05:0))){addTre(500,900);out.push({sys:1,text:'섀도가 반짝이는 무언가를 떨어뜨렸다.',res:'보물 +1'})}
+  if(chance((K.loot||.15)+(weak?.25:0)+(has('cushion')?.05:0))){addTre(500,900);out.push({sys:1,text:'섀도가 반짝이는 무언가를 떨어뜨렸다.',res:'보물 +1'})}
  }else{run.loss++;const half=hasTag('신중 모드');if(half)delTag('신중 모드');
-  if(K.steal&&run.yen>0){const y=Math.round(run.yen*K.steal);run.yen-=y;out.push({sys:1,warn:1,text:`${K.name}가 엔 주머니를 낚아채 달아났다!`,res:`-¥${fmt(y)}`})}
+  const y=Math.min(run.yen,K.steal?Math.round(run.yen*K.steal):spillAmt());const mv=momShift(-1);if(y>0||mv){if(y>0)run.yen-=y;out.push({sys:1,warn:1,text:y>0?(K.steal?`${K.name}가 엔 주머니를 낚아채 달아났다!`:'허둥대며 물러나는 사이 엔 주머니가 찢어졌다!'):'섀도에게 밀려 기세가 꺾였다.',res:(y>0?`-¥${fmt(y)}`:'')+(y>0?mv:mv.slice(3))})}
   for(const m of shuffle(al).slice(0,K.hit||2)){let d=Math.round(R(14,26)*dmgMul()*(K.dmg||1));if(half)d=Math.round(d/2);hp(m,-d);out.push({who:m.id,n:`섀도의 반격! (${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
   addMood(-6);if(half)out.push({sys:1,text:'[신중 모드] 덕분에 피해가 절반으로 줄었다.'})}
  return out;
@@ -943,10 +952,11 @@ function evade(k){const K=SHADOWS[k]||{};
 function shadowSeen(k){const c=S.codex.shadows||(S.codex.shadows=[]);if(!c.includes(k)){c.push(k);save()}}
 function shadowChoices(k,known){
  const K=SHADOWS[k]||{},p=winP(k),held=Object.keys(TAGOWN).filter(t=>hasTag(t)),sp=held.includes(K.weak)?K.weak:held[0],weak=!!sp&&sp===K.weak,kw=weak&&known,bp=Math.min(.97,p+(weak?.4:.3)),jk=mem('joker');
- const c=[{label:'싸운다',sub:`승리 확률 약 ${pct(p)}`,go:()=>fight(p,null,k)},
+ const ly=Math.min(run.yen,K.steal?Math.round(run.yen*K.steal):spillAmt()),lose=ly?` · 지면\u00a0-\u2060¥${fmt(ly)}`:'';/* 지면 잃는 엔을 미리 보여 준다 */
+ const c=[{label:'싸운다',sub:`승리 확률 약 ${pct(p)}${lose}`,go:()=>fight(p,null,k)},
   {label:'회피한다',sub:S.smoke>0?`연막탄 사용 (보유 ${S.smoke}) · 무피해`:`연막탄 없음 · 피해 위험 있음${K.evade?' · 빨라서 피하기 어려움':''}${mem('kasumi')?' (카스미 회피 보너스)':''}`,go:()=>evade(k)},
-  {label:kw?'약점을 찌른다':'특수 행동',sub:sp?`[${sp}] 태그 소비${kw?' · 약점!':''} · 승리 확률 약 ${pct(bp)}`:'소비할 상태 태그가 없다',dis:!sp,go:()=>{delTag(sp);return fight(bp,sp,k)}}];
- if(jk)c.push({label:'조커의 기책',sub:jk.sp>=8?`조커 SP -8 · 승리 확률 약 ${pct(Math.min(.97,p+.22))}`:'조커 SP 부족',dis:jk.sp<8,go:()=>{jk.sp-=8;jk.mvp+=2;return [{who:'joker',n:'조커가 가면에 손을 가져갔다.',q:say(jk.c,'gambit')},...fight(Math.min(.97,p+.22),null,k)]}});
+  {label:kw?'약점을 찌른다':'특수 행동',sub:sp?`[${sp}] 태그 소비${kw?` · 약점!\u00a0×${WEAK_YEN}`:''} · 승리 확률 약 ${pct(bp)}${lose}`:'소비할 상태 태그가 없다',dis:!sp,go:()=>{delTag(sp);return fight(bp,sp,k)}}];
+ if(jk)c.push({label:'조커의 기책',sub:jk.sp>=8?`조커 SP -8 · 승리 확률 약 ${pct(Math.min(.97,p+.22))}${lose}`:'조커 SP 부족',dis:jk.sp<8,go:()=>{jk.sp-=8;jk.mvp+=2;return [{who:'joker',n:'조커가 가면에 손을 가져갔다.',q:say(jk.c,'gambit')},...fight(Math.min(.97,p+.22),null,k)]}});
  return c;
 }
 
@@ -1058,8 +1068,11 @@ for(const e of SCRIPT.events){const needs=[...e.c.filter(c=>c.k==='tag').map(c=>
   const sk=/SHADOW|AMBUSH|DEMON/i.test(e.en)?'enemy':/TRAP/i.test(e.en)?'trap':/COFFER|CHEST|TREASURE|COIN|GOLD|SUITCASE/i.test(e.en)?'treasure':'find';
   const sq=stand&&sk!=='find'?say(sp.c,sk):null;/* 대신 나선 멤버: 사물에 맞는 범주(적·함정·보물)만, 아니면 인용문 생략 */
   return {title:e.title,intro:fill(e.intro,o),who:stand&&!sq?null:sp.id,q:stand?sq:fill(e.q,o),choices:e.choices.map(c=>{const p=c.p>=1?1:clamp(c.p+(DAY('luck')||0),.05,.95);
-   return {label:fill(c.label,o),sub:p<1?`성공 확률 약 ${pct(p)} · ${c.sub}`:c.sub,go:()=>{const win=p>=1||chance(p),r=win||!c.ng?c.ok:c.ng,out=[];
-    const res=applyFx(sp,r.fx);
+   const pays=c.ok.fx.some(f=>(f.k==='yen'&&Math.max(f.a,f.b)>0)||f.k==='tre'),gam=p<.8&&!!c.ng&&pays,st=pays&&c.ok.fx.some(f=>f.k==='sp'&&f.v<0),sa=gam?spillAmt():0;
+   const sub=(p<1?`성공 확률 약 ${pct(p)} · ${c.sub}`:c.sub)+(sa?` · 실패\u00a0시\u00a0-\u2060¥${fmt(sa)}`:'')+(st?` · 정석\u00a0보너스\u00a0×${STEADY}`:'');
+   return {label:fill(c.label,o),sub,go:()=>{const win=p>=1||chance(p),r=win||!c.ng?c.ok:c.ng,out=[];
+    let res=applyFx(sp,r.fx,win&&st?STEADY:1);if(win&&st)res+=' · 정석 보너스'+momShift(1);
+    if(!win&&gam){const y=Math.min(run.yen,sa);if(y>0)run.yen-=y;res=(res?res+' · ':'')+(y>0?`허둥대다 -¥${fmt(y)}`:'')+momShift(-1)}
     out.push(win?{sys:1,text:fill(r.n,o)||'…',res}:{sys:1,warn:1,text:fill(r.n,o)||'실패했다.',res});
     if(r.q)out.push({who:sp.id,n:'',q:stand?say(sp.c,win?'win':'hurt'):fill(r.q,o)});return out}}})}}})}
 const COMBOS=EVENTS.filter(e=>e.combo);
@@ -1207,7 +1220,7 @@ function chemLine(){const rel=run.rel||{},L=(((SCRIPT.chem)||{}).lines||[]).filt
 const CUT_DEF={'대실패':['{이름}, 오늘도 해냈다 — 나쁜 쪽으로'],'감싸기':['쓰러지기 직전, {이름}(이)가 {대상} 앞을 막아섰다'],
  '긴급 구출·전멸':['모나 버스, 오늘도 쓰러진 괴도단을 싣고 달린다'],'조합 이벤트':['{이름} — 이 조합이라서 가능했던 장면'],
  '사슬 결말':['{이름}, 마침내 그 끝을 보다'],'거두는 자 탈출':['쇠사슬 소리를 등지고, 괴도단은 {엔}을 들고 튀었다'],
- '케미 반전':['{이름}(과)와 {대상}, 오늘부터 조금 다른 사이'],'유물 대박':['{이름} 하나로 {엔}을 챙긴 날'],
+ '케미 반전':['{이름}(과)와 {대상}, 오늘부터 조금 다른 사이'],'구사일생':['{이름}, 쓰러지기 직전까지 몰렸다가 기어이 살아 돌아왔다','아슬아슬했다 — {이름}(이)가 무너지기 직전에 버텨 낸 날'],'유물 대박':['{이름} 하나로 {엔}을 챙긴 날'],
  '히든':['존재하지 않는 역에서 돌아온 사람들'],'평범한 날':['{역}에서 보낸 평범하고 시끄러운 하루']};
 function moment(k,score,v={}){if(!run)return;(run.moments||(run.moments=[])).push({k,score,v})}
 function pickCut(r,inc){const M=r.moments||[];let top=M.length?Math.max(...M.map(x=>x.score)):0;const best=top?pick(M.filter(x=>x.score===top)):{k:'평범한 날',v:{}};
@@ -1249,7 +1262,7 @@ function sfxLine(b){if(!run||ui.screen!=='explore'||FF)return;const r=b.res||'';
 
 /* ============ 진행 중인 판 저장: 턴이 끝나 역을 고를 때마다. 메인에서 CONTINUE ============ */
 const RKEY='todays-mementos-run';
-const RUN_KEYS=['turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
+const RUN_KEYS=['mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
 /* 카레(S.curry)는 바로 저장되지만 판은 체크포인트에서만 저장된다. 체크포인트 이후 카레 변동(S.runCurry)을 따로 적어 두고, 이어하기 때 판과 함께 되감는다 */
 function curryAdd(n){S.curry=clamp(S.curry+n,0,99);if(run&&!run.settled)S.runCurry=(S.runCurry||0)+n;save()}
 function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)return;
@@ -1529,7 +1542,7 @@ function vExplore(){
   <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
- return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></header>
+ return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><div class="xrow">${r.mom?`<span class="tag flow ${r.mom>0?'up':'dn'}" id="flowtag" title="기세 ${r.mom>0?'+':''}${r.mom} · 탐색 수확 ${r.mom>0?'+':''}${Math.round(r.mom*MOM_STEP*100)}%">FLOW ${r.mom>0?'▲':'▼'}${Math.abs(r.mom)}</span>`:''}<span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></div></header>
  ${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
  ${(()=>{const rl=Object.entries(r.rel||{}).filter(([k])=>k.split('+').every(id=>r.party.some(m=>m.id===id))),rc=r.relics||[];
   return rl.length||rc.length?`<div class="rels">${rc.map(id=>`<span class="relic" title="${esc(relicOf(id).eff)}">◆ ${esc(relicOf(id).name)}</span>`).join('')}${rl.map(([k,v])=>`<span class="rel r${['의기투합','티격태격','냉전','뜻밖의 신뢰'].indexOf(v)}">${k.split('+').map(id=>CH[id].code).join(' × ')} · ${v}</span>`).join('')}</div>`:''})()}
@@ -1632,9 +1645,9 @@ const TUT=[
   vis:()=>`<ol class="loop">${[['INFILTRATE','메멘토스 탐사'],['EARN ¥','엔 · 보물'],['INVEST','르블랑에 투자'],['UNLOCK','새 대화 · 깊은 역']].map(([e,k],i)=>`<li style="--n:${i}"><b>${e}</b><small>${k}</small></li>`).join('')}</ol>`},
  {t:'ASSEMBLE',kr:'파티 편성',body:'10명 중 <b>3명</b>을 고르십시오. 유형마다 잘하는 행동이 달라서, 조합에 따라 전혀 다른 하루가 펼쳐집니다. 특정 두 사람이 함께 가면 <b>조합 이벤트</b>도 일어납니다.',
   vis:()=>`<div class="types">${Object.entries(TYPES).map(([k,t])=>{const s=t.w.reduce((a,b)=>a+b,0),m=CHARS.filter(c=>c.type===k);return `<div class="ty"><b>${t.en}</b><small>${t.label}</small><span class="w">${t.w.map((v,j)=>`<i style="width:${v/s*100}%;background:${WCOL[j]}"></i>`).join('')}</span><em>${m.map(c=>`<span style="color:${c.col}">${c.code}</span>`).join(' ')}</em></div>`}).join('')}</div><div class="legend">${WL.map((l,i)=>`<span><i style="background:${WCOL[i]}"></i>${l}</span>`).join('')}</div>`},
- {t:'OBSERVE',kr:'탐사',body:'탐사는 <b>7턴</b>입니다. 매 턴 다음 구역을 고르면 괴도단이 알아서 움직입니다. 중요한 순간에는 게임이 멈추고 <b>선택지</b>가 나타납니다. 앞에서 생긴 <b>[태그]</b>는 나중 사건을 바꿉니다.',
+ {t:'OBSERVE',kr:'탐사',body:'탐사는 <b>7턴</b>입니다. 매 턴 다음 구역을 고르면 괴도단이 알아서 움직입니다. 중요한 순간에는 게임이 멈추고 <b>선택지</b>가 나타납니다. 앞에서 생긴 <b>[태그]</b>는 나중 사건을 바꿉니다. 무리수는 실패하면 번 엔을 흘리고, SP나 태그를 쓰는 <b>정석</b>은 보상이 커집니다. 머리를 쓴 선택이 통하면 <b>기세(FLOW ▲)</b>가 올라 탐색 수확이 늘어납니다.',
   vis:()=>`<ol class="strip demo">${['gate','pass','lost','plat'].map((id,i)=>`<li class="${i===1?'cur':''} ${i===3?'lock':''}">${ZONES[id].esh}</li>`).join('')}</ol>
-  <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58%</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -15 · 안전하게 보물 1개</small></span></div>
+  <div class="demo-ch"><span class="k">A</span><span><b>바로 연다</b><small>성공 확률 약 58% · 실패 시 -¥420</small></span></div><div class="demo-ch"><span class="k">B</span><span><b>아케치에게 조사를 맡긴다</b><small>SP -15 · 안전하게 보물 1개 · 정석 보너스 ×1.6</small></span></div>
   <div class="ptags"><span class="tag">[함정 의심]</span><span class="tag">[수상한 음료]</span><span class="tag">[100엔 손실]</span></div>`},
  {t:'CONTROLS',kr:'조작',body:'깊은 구역에 머물수록 <b>위험도(RISK)</b>가 쌓여 섀도가 더 세지고 기습도 잦아집니다. HP가 0이 되면 전투불능이며, <b>전원이 쓰러지면</b> 번 돈의 40%만 들고 돌아옵니다. 구역을 고를 때 <b>RETURN NOW</b>로 번 것을 챙겨 돌아올 수 있습니다.',
   vis:()=>`<ul class="keys">${[['PAUSE','진행을 멈추고 천천히 읽기'],['1x · 2x','진행 속도'],['AUTO · MANUAL','수동이면 NEXT로 한 줄씩 넘기기'],['CURRY','르블랑 카레로 전원 회복'],['ESCAPE','지금까지 번 것을 들고 귀환']].map(([k,d])=>`<li><b>${k}</b><span>${d}</span></li>`).join('')}</ul>`},
