@@ -602,6 +602,11 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .shot small{position:absolute;top:-11px;left:10px;background:#141012;color:#fff;font:400 13px var(--en);letter-spacing:.08em;padding:2px 8px}
 .shot figcaption{font:400 clamp(19px,4.6vw,23px)/1.3 'Jua',sans-serif;color:#141012}
 .report.anim .shot{animation:slash .5s 1.1s both}
+.msnd{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:3;min-height:36px;padding:4px 10px;background:#141012;color:var(--ink);font:400 13px var(--en);letter-spacing:.06em}
+.ctl .snd{min-width:44px}
+.mmenu.m5{--off:11px;--ang:7.6deg;--len:83px}
+@media(max-height:720px) and (max-width:600px){.mmenu.m5{--rh:70px;--ang:9deg;--len:71px}}
+@media(min-width:760px){.mmenu.m5{--off:30px;--ang:18deg;--len:97px}}
 </style>
 </head>
 <body>
@@ -1063,7 +1068,7 @@ const RELICS=[['R-01','사고뭉치 보험증','PRANKSTER POLICY','사고가 날
 const relicOf=id=>{const s=((SCRIPT.relics)||[]).find(r=>r.id===id)||{},d=RELICS.find(r=>r[0]===id);return {id,name:s.name||d[1],en:s.en||d[2],eff:d[3],desc:s.desc||''}};
 const hasR=id=>!!run&&(run.relics||[]).includes(id);
 function relicPay(id,res,yen=0){if(yen){run.yen+=yen;run.relicYen=(run.relicYen||0)+yen}run.q.unshift({sys:1,relic:1,text:`◆ ${relicOf(id).name} 발동`,res})}
-function relicOffer(){const own=run.relics||(run.relics=[]);if(run.tut||own.length>=2)return null;
+function relicOffer(){const own=run.relics||(run.relics=[]);if((run.tut&&own.length)||own.length>=2)return null;/* 첫 판은 한 번(맛보기) */
  const cand=shuffle(RELICS.map(r=>r[0]).filter(id=>!own.includes(id))).slice(0,3);
  const d={title:'인지 유물',en:'COGNITIVE RELIC',intro:'선로 위에 이 세계의 인지가 뭉친 물건들이 떨어져 있다. 하나만 챙길 수 있다.',who:null,
   choices:cand.map(id=>{const r=relicOf(id);return {label:r.name,sub:r.eff,go:()=>{own.push(id);return [{sys:1,relic:1,text:`◆ ${ul(r.name)} 챙겼다.${r.desc?' '+r.desc:''}`,res:r.eff}]}}})};
@@ -1081,8 +1086,8 @@ const REAPER_DEF={warn1:[{t:'…어디선가 쇠사슬 끌리는 소리가 들�
  appear:[{t:'선로 끝에서 쇠사슬을 늘어뜨린 거대한 그림자가 걸어 나왔다. 거두는 자다!'}],escape:[{t:'쇠사슬 소리를 뒤로하고, 괴도단은 전속력으로 모나 버스에 올라탔다.'}],
  caught:[{t:'쇠사슬이 괴도단을 휘감았다. 모나 버스가 간신히 쓰러진 동료들을 끌어냈다.'}]};
 function reaperLines(st){const L=((SCRIPT.reaper)||[]).filter(x=>x.st===st),n=L.filter(x=>!x.who),c=L.filter(x=>x.who&&mem(x.who)),out=[];
- const nar=n.length?pick(n):(c.length?null:pick(REAPER_DEF[st]));if(nar)out.push({sys:1,warn:1,reap:1,text:nar.t});
- if(c.length){const x=pick(c);out.push({who:x.who,n:'',q:x.t})}return out}
+ const nar=n.length?pick(n):(c.length?null:pick(REAPER_DEF[st]));if(nar)out.push({sys:1,warn:1,reap:1,st,text:nar.t});
+ if(c.length){const x=pick(c);out.push({who:x.who,n:'',q:x.t,reap:1,st})}return out}
 function reaperTick(){if(run.tut)return [];const out=[];
  if(run.heat>=10&&!run.rw1){run.rw1=1;out.push(...reaperLines('warn1'))}
  if(run.heat>=11&&!run.rw2){run.rw2=1;out.push(...reaperLines('warn2'))}
@@ -1104,8 +1109,8 @@ function relNext(p,t){switch(t){/* 시트 '안내' 탭의 관계 규칙과 같�
 const CHEM_DEF={'의기투합':'{A}(과)와 {B}(이)가 눈빛을 주고받았다. 죽이 척척 맞는다.','티격태격':'{A}(과)와 {B}(이)가 투닥거리기 시작했다.',
  '냉전':'{A}(과)와 {B} 사이에 냉랭한 공기가 흐른다.','뜻밖의 신뢰':'{A}(과)와 {B} 사이에 뜻밖의 신뢰가 싹텄다.'};
 const fillAB=(t,A,B)=>fill(String(t||'').replace(/\{A\}/g,A.c.name).replace(/\{B\}/g,B.c.name));
-function chemShift(a,b,trig){if(!run||tutRun()||a===b)return;const A=mem(a),B=mem(b);if(!A||!B)return;
- const rel=run.rel||(run.rel={}),k=rkey(a,b),p=rel[k]||null,n=relNext(p,trig);if(!n||n===p)return;rel[k]=n;
+function chemShift(a,b,trig,force){if(!run||(tutRun()&&!force)||a===b)return;const A=mem(a),B=mem(b);if(!A||!B)return;
+ const rel=run.rel||(run.rel={}),k=rkey(a,b),p=rel[k]||null,n=force||relNext(p,trig);if(!n||n===p)return;rel[k]=n;
  if(n==='뜻밖의 신뢰'||(p==='냉전'&&n==='의기투합'))moment('케미 반전',70,{이름:A.c.name,대상:B.c.name});
  if(n==='뜻밖의 신뢰'&&hasR('R-12')){const z=Zc(),y=Math.round(400*yenMul());addTre(200+z.risk*80,400+z.risk*120);relicPay('R-12','보물 +1 · +¥'+fmt(y),y)}
  const S_=(((SCRIPT.chem)||{}).shifts||[]).filter(x=>x.trig===trig&&x.rel===n),m=f=>S_.filter(f);
@@ -1135,8 +1140,48 @@ function pickCut(r,inc){const M=r.moments||[];let top=M.length?Math.max(...M.map
 function idleLine(){const L=((SCRIPT.idle)||[]).filter(x=>mem(x.who)&&ok(x.c,{who:x.who}));if(!L.length)return null;
 const x=pick(L),m=mem(x.who);if(hasR('R-11')){alive().forEach(y=>y.sp=clamp(y.sp+4,0,y.msp));relicPay('R-11','전원 SP +4')}return x.n?{who:m.id,n:fill(x.n,{who:m.c}),q:x.q}:{who:m.id,n:'',q:x.q}}
 
+/* ============ 효과음: 음원 파일 없이 WebAudio로 합성 (S.mute로 끔) ============ */
+let AC=null,sfxLast={};
+function sfx(k){if(S.mute)return;const now=performance.now();if(now-(sfxLast[k]||0)<70)return;sfxLast[k]=now;
+ try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){return}
+ const t=AC.currentTime+.01,M=AC.createGain();M.gain.value=.9;M.connect(AC.destination);
+ const o=(type,f0,f1,dur,vol,d=0)=>{const g=AC.createGain(),os=AC.createOscillator();os.type=type;os.frequency.setValueAtTime(f0,t+d);if(f1)os.frequency.exponentialRampToValueAtTime(f1,t+d+dur);
+  g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(vol,t+d+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d+dur);os.connect(g).connect(M);os.start(t+d);os.stop(t+d+dur+.03)};
+ const nz=(dur,vol,hp=800,d=0)=>{const n=Math.floor(AC.sampleRate*dur),b=AC.createBuffer(1,n,AC.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);
+  const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();f.type='highpass';f.frequency.value=hp;g.gain.value=vol;s.buffer=b;s.connect(f).connect(g).connect(M);s.start(t+d)};
+ switch(k){
+  case 'select':o('square',520,780,.07,.05);break;
+  case 'talk':o('triangle',700,0,.05,.035);break;
+  case 'coin':o('square',988,0,.06,.04);o('square',1319,0,.12,.04,.06);break;
+  case 'hit':nz(.16,.22,180);o('sawtooth',170,60,.15,.07);break;
+  case 'turn':nz(.32,.1,1600);o('sine',220,440,.28,.05);break;
+  case 'stamp':o('square',190,90,.12,.11);nz(.08,.18,300);break;
+  case 'good':o('triangle',660,0,.08,.05);o('triangle',880,0,.13,.05,.08);break;
+  case 'bad':o('sawtooth',300,140,.24,.05);break;
+  case 'chain':for(let i=0;i<4;i++){nz(.06,.16,2600,i*.11);o('square',130+i*9,0,.06,.04,i*.11)}break;
+  case 'reaper':o('sawtooth',92,44,1.1,.11);for(let i=0;i<6;i++){nz(.07,.18,2200,.2+i*.13);o('square',120,0,.05,.035,.2+i*.13)}break;
+  case 'relic':[784,988,1175,1568].forEach((f,i)=>o('triangle',f,0,.14,.045,i*.06));break;
+  case 'chem':o('sine',523,0,.2,.06);o('sine',659,0,.24,.05,.09);break}}
+function sfxLine(b){if(!run||ui.screen!=='explore')return;const r=b.res||'';
+ const k=b.reap?(b.st==='appear'?'reaper':'chain'):b.relic?'relic':b.chem?'chem':b.arrive?'turn':(b.warn||/HP -/.test((b.n||'')+r))?'hit':/\+¥/.test(r)?'coin':null;if(k)sfx(k)}
+
+/* ============ 진행 중인 판 저장: 턴이 끝나 역을 고를 때마다. 메인에서 CONTINUE ============ */
+const RKEY='todays-mementos-run';
+const RUN_KEYS=['turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen'];
+function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)return;
+ try{const r=run,s={v:1,party:r.party.map(m=>({id:m.id,hp:m.hp,sp:m.sp,msp:m.msp,mvp:m.mvp,mis:m.mis,down:m.down})),last:r.last&&r.last.id,day:r.day&&r.day.id,log:r.log.slice(-40)};
+  for(const k of RUN_KEYS)s[k]=r[k];localStorage.setItem(RKEY,JSON.stringify(s))}catch(e){}}
+function runSnap(){try{const s=JSON.parse(localStorage.getItem(RKEY)||'null');return s&&s.v===1&&s.map&&s.party?s:null}catch(e){return null}}
+function clearRun(){try{localStorage.removeItem(RKEY)}catch(e){}}
+function resumeRun(){const s=runSnap();if(!s)return false;
+ run=Object.assign({q:[],log:[],ev:null,stamp:null,paused:false,chemUsed:[],banner:null},s,{phase:'choose'});
+ run.party=s.party.map(p=>Object.assign({c:CH[p.id],bub:'',face:p.down?'×':'',bat:-1},p));run.last=run.party.find(m=>m.id===s.last)||null;
+ run.day=SCRIPT.days.find(d=>d.id===s.day)||null;run.dy=run.ly=run.yen;run.log=s.log;log({sys:1,text:'— 이어서 진행합니다 —'});
+ ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);render();return true}
+
 /* ============ 진행 루프 ============ */
 function newRun(ids){
+ clearRun();
  run={party:ids.map(id=>({id,c:CH[id],hp:100,sp:has('tea')?55:50,msp:has('tea')?55:50,mvp:0,mis:0,bub:'',face:'',bat:-1,down:false})),
   turn:1,zone:'gate',mood:clamp(60+(has('game')?8:0),0,100),yen:0,tre:0,tval:0,tags:[],used:{},q:[],phase:'running',log:[],beat:0,clock:180+R(0,40),
   speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0,heat:0,stamp:null,chains:[],pairs:[],day:null,maxT:7};
@@ -1155,7 +1200,8 @@ function enterZone(id){const s=stOf(id),Z=ZONES[s.t];run.at=run.map.st.indexOf(s
  if(Z.arrive)run.q.push({fn:Z.arrive});
  if(run.reaper)run.q.push({fn:reaperStrike});
  if(Z.risk&&chance(Math.min(.85,run.heat*.12*(Z.amb||1))))run.q.push({fn:ambush});
- if(tutRun()&&run.turn===3)run.q.push({fn:tutTag});
+ if(tutRun()&&run.turn===3)run.q.push({fn:tutTag},{fn:()=>{chemShift('futaba','mona','쌍대사','의기투합');return null}});/* 첫 판 맛보기: 관계 하나 */
+ if(tutRun()&&run.turn===5)run.q.push({fn:()=>{run.rw1=1;return {sys:1,warn:1,reap:1,text:'…아주 멀리서 쇠사슬 끌리는 소리가 들린 것 같다.'}}});/* 첫 판 맛보기: 쇠사슬 소리만 */
  for(let i=0;i<Z.acts;i++){run.q.push({fn:autoAction});if(i===0)run.q.push({fn:chainTick})}
  run.q.push({fn:relCheck},{fn:maybeEvent});
  if(Z.acts>2&&chance(.5))run.q.push({fn:autoAction});
@@ -1172,7 +1218,7 @@ function endTurnFn(){
  const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})`};run.turn++;
  const rp=reaperTick();if(rp.length)run.q.push(...rp);
  if(run.turn>run.maxT)run.q.push({sys:1,text:`${run.maxT}턴 탐사 완료. 모나 버스가 귀환 준비를 마쳤다.`},{fn:()=>{endRun('complete');return null}});
- else{if(!run.tut&&(run.turn===3||run.turn===5))run.q.push({fn:relicOffer});run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 역을 고를 차례입니다.`}}})}
+ else{if(run.turn===3||(!run.tut&&run.turn===5))run.q.push({fn:relicOffer});run.q.push({fn:()=>{run.phase='choose';return {sys:1,text:`T${run.turn} — 다음 역을 고를 차례입니다.`}}})}
  return b;
 }
 function log(b){
@@ -1180,6 +1226,7 @@ function log(b){
  b.t=`${String(Math.floor(run.clock/60)%60).padStart(2,'0')}:${String(run.clock%60).padStart(2,'0')}`;
  run.log.push(b);if(run.log.length>160)run.log.shift();
  if(b.ev&&/^사슬 — /.test(b.text||''))run.chainSeen=true;
+ sfxLine(b);
  if(b.arrive){const z=ZONES[stOf(b.arrive).t];run.banner={t:`TURN ${run.turn}`,s:`${z.en} · ${z.name}`}}
  if(b.who&&b.q){const m=run.party.find(x=>x.id===b.who);if(m){m.bub=b.q;m.bat=run.beat;m.face=/[?？]/.test(b.q)?'?':/…/.test(b.q)?'…':/!/.test(b.q)?'!':'♪'}}
 }
@@ -1197,7 +1244,7 @@ function step(){
  if(b)log(b);
  const tm=run.party.reduce((s,m)=>s+m.mis,0);if(tm>(run.lastMis||0)&&hasR('R-01')){const y=Math.round(250*yenMul());relicPay('R-01','+¥'+fmt(y),y)}run.lastMis=tm;
  checkDown();
- if(run.phase==='choose')tip('choose');
+ if(run.phase==='choose'){tip('choose');saveRun()}
  else if(run.phase==='running'&&run.tags.length)tip('tag');
  render();
 }
@@ -1208,7 +1255,7 @@ function lineDelay(){const b=run.log[run.log.length-1],n=b?((b.text||b.n||'')+(b
 function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual||tq)return;T=setTimeout(()=>{step();schedule()},lineDelay())}
 function move(z){if(run.phase!=='choose'||!stOf(z)||!canEnter(z))return;if(DAY('moveHp')&&z!==curSt().id){alive().forEach(x=>hp(x,-DAY('moveHp')));log({sys:1,text:'멈춘 에스컬레이터를 걸어 올랐다.',res:`전원 HP -${DAY('moveHp')}`})}run.phase='running';enterZone(z);step();schedule()}
 function choose(i){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';
- log({sys:1,text:`▶ 선택: ${c.label}`});const out=c.go();run.stamp=resultStamp(c.label,out);run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
+ log({sys:1,text:`▶ 선택: ${c.label}`});const out=c.go();run.stamp=resultStamp(c.label,out);sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
 /* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
 function resultStamp(label,out){const bl=out.filter(b=>!b.fn),txt=b=>(b.n||'')+(b.text||'')+(b.res||'');
  const bad=bl.some(b=>b.warn||/HP -|실패|-¥|분위기 -/.test(txt(b))),good=bl.some(b=>/\+/.test(b.res||''));
@@ -1243,7 +1290,7 @@ function endRun(reason){
   kind:rescue?'rescue':reason,reason:rescue?'첫 정찰 · 모르가나 긴급 구출':{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:`전원 전투불능 · 긴급 회수 (수익 ${WIPE_KEEP*100}%)`}[reason],
   after:afterStory(r,reason)};
  if(r.escLines)ui.res.after.splice(1,0,...r.escLines.map(b=>b.who?{who:b.who,q:b.q}:{n:b.text}));
- ui.tip=null;ui.copy='';ui.screen='result';ui.enter=true;ui.rc=false;render();window.scrollTo(0,0);
+ ui.tip=null;ui.copy='';ui.screen='result';ui.enter=true;ui.rc=false;clearRun();render();window.scrollTo(0,0);[600,770,940,1110,1280].slice(0,st).forEach(d=>setTimeout(()=>sfx('stamp'),d));
 }
 function afterStory(r,reason){
  const ids=r.party.map(m=>m.id),inP=id=>ids.includes(id),L=[{n:'르블랑 다락방. 탐사를 마친 괴도단이 소파와 의자에 아무렇게나 늘어졌다.'}];
@@ -1311,14 +1358,14 @@ function mainGoal(){/* 다음 투자 목표: 지금 살 수 있는 것, 아니�
  if(!c.length)return 'LEBLANC FULLY FURNISHED';
  const now=c.filter(x=>x.c<=S.yen);return now.length?`READY TO BUY · <b>${esc(now[now.length-1].n)}</b>`:`NEXT · <b>${esc(c[0].n)}</b> · ¥${fmt(c[0].c-S.yen)} TO GO`}
 function vMain(){
- const dy=SCRIPT.days.find(d=>d.id===S.today),cx=S.codex;
- const M=[['go:party','INFILTRATE',!S.tut?'첫 정찰 · 모르가나가 안내합니다':dy?`TODAY · ${esc(dy.en)}`:'메멘토스로 출발'],
+ const dy=SCRIPT.days.find(d=>d.id===S.today),cx=S.codex,sv=runSnap();
+ const M=[...(sv?[['continue','CONTINUE',`T${sv.turn} · ${esc(ZONES[sv.map.st[sv.at].t].en)} · ¥${fmt(sv.yen)}`]]:[]),['go:party','INFILTRATE',sv?'새로 시작하면 진행 중인 판은 사라집니다':!S.tut?'첫 정찰 · 모르가나가 안내합니다':dy?`TODAY · ${esc(dy.en)}`:'메멘토스로 출발'],
   ['go:shop','LEBLANC',`PROPS ${S.props.length}/${PROPS.length} · MONA BUS LV.${S.bus}`],
   ['go:codex','CODEX',`COMBOS ${cx.combos.length}/120 · STORIES ${Object.values(cx.chains||{}).filter(v=>v==='end').length}/${SCRIPT.chains.length}`],
   ['howto','HOW TO PLAY','MANUAL · REPLAY TUTORIAL']];
- return `<main class="mstage"><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
+ return `<main class="mstage"><button class="msnd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'SFX OFF':'SFX ON'}</button><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
  <section class="mground"><div class="mbg" aria-hidden="true"><div class="mslab"></div>${MAIN_ART.city}${MAIN_ART.tun}</div>
- <ul class="mmenu">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
+ <ul class="mmenu ${M.length>4?'m5':''}">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
  <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${fmt(S.yen)}</b><span>RUNS ${cx.reports} · BEST ${cx.best?'★'.repeat(cx.best):'—'}</span></p><p class="pg">${mainGoal()}</p></div></div>
  </section></main>`;
 }
@@ -1381,7 +1428,7 @@ function vExplore(){
  <section class="party">${tiles}</section>
  <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox"><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
  ${r.phase==='event'?vEvent():(r.evIn=false,'')}
- ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
+ ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button>${run_&&(r.manual||r.paused)?'<button class="next" data-act="next">NEXT ▶</button>':''}</div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div></footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
  return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})${x.cut?`\n결정적 1컷: ${x.cut.t}`:''}\n정산 수익: ¥${fmt(x.inc)}${x.bonus?` (위험 수당 +¥${fmt(x.bonus)})`:''} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
@@ -1467,7 +1514,7 @@ function vTut(){
  const k=ui.tstep,st=TUT[k],last=k===TUT.length-1;
  return `<main class="tut"><header class="sky tsky"><div class="tbar"><div class="prog" aria-label="${k+1} / ${TUT.length}">${TUT.map((_,i)=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div><button class="skip" data-act="tutskip">SKIP</button></div><h2>${rn(st.t)}</h2></header>
  <section class="tcard"><div class="tvis">${st.vis()}</div><p class="tbody">${st.body}</p></section>
- ${ui.tafter==='main'?`<div class="topts"><button class="btn ghost sm" data-act="tutreplay">REPLAY TUTORIAL</button><button class="btn ghost sm" data-act="hints" aria-pressed="${!S.hintsOff}">TIPS ${S.hintsOff?'OFF':'ON'}</button></div>`:''}
+ ${ui.tafter==='main'?`<div class="topts"><button class="btn ghost sm" data-act="tutreplay">REPLAY TUTORIAL</button><button class="btn ghost sm" data-act="hints" aria-pressed="${!S.hintsOff}">TIPS ${S.hintsOff?'OFF':'ON'}</button><button class="btn ghost sm" data-act="mute" aria-pressed="${!S.mute}">SFX ${S.mute?'OFF':'ON'}</button></div>`:''}
  <footer class="tnav"><button class="btn ghost sm" data-act="tutprev" ${k?'':'disabled'}>← BACK</button><button class="btn" data-act="tutnext">${last?'START':'NEXT →'}</button></footer></main>`;
 }
 function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;save();ui.screen=ui.tafter;ui.enter=true;render();window.scrollTo(0,0);return}ui.tstep=n;ui.enter=true;render();window.scrollTo(0,0)}
@@ -1517,7 +1564,7 @@ const TUTC={mona:'#FFD43B',futaba:'#4ADE80',joker:'#E60012'};
 /* 새 기능 안내 기본 문구 (시트 '튜토리얼' 탭에 같은 단계 ID가 있으면 그쪽이 우선) */
 const TUT_HINT_DEF={
  'N-유물':[{o:'1',who:'mona',t:'오, 이건 **인지 유물**이야! 이번 판에서만 효과가 있는 물건이라고.',hl:['.evt .ch'],ch:[],go:'tap'},{o:'2',who:'mona',t:'파티랑 상황에 맞는 걸 골라 봐. 사고뭉치가 많으면 **사고가 돈이 되는** 것도 있다고!',hl:['.evt .ch'],ch:[],go:'tap'}],
- 'N-거두는자':[{o:'1',who:'futaba',t:'잠깐, 이 소리… **위험도**가 10을 넘었어! 12가 되면 **거두는 자**가 나타나.',hl:['#risktag'],ch:[],go:'tap'},{o:'2',who:'futaba',t:'나타나면 매 턴 엄청 아파. 그 전에 **RETURN NOW**로 튈지, 한 턴 더 버틸지 잘 골라!',hl:['#risktag'],ch:[],go:'tap'}],
+ 'N-거두는자':[{o:'1',who:'futaba',t:'잠깐, 이 쇠사슬 소리… **위험도**가 10을 넘으면 들리는 경고야. 12에서 버티면 **거두는 자**가 나타날 수 있어.',hl:['#risktag'],ch:[],go:'tap'},{o:'2',who:'futaba',t:'나타나면 매 턴 엄청 아파. 그 전에 **RETURN NOW**로 튈지, 한 턴 더 버틸지 잘 골라!',hl:['#risktag'],ch:[],go:'tap'}],
  'N-케미':[{o:'1',who:'mona',t:'저 둘, 분위기가 묘한데? 탐사 중에 두 사람 사이에 **관계**가 생기고 바뀌기도 해.',hl:['.rels'],ch:[],go:'tap'},{o:'2',who:'mona',t:'감싸 주거나 사고를 치면 관계가 뒤집힌다고. **냉전**이면 분위기가 떨어지고, **의기투합**이면 올라가지!',hl:['.rels'],ch:[],go:'tap'}]};
 const tutDone=id=>(S.tutorialStep||[]).includes(id);
 const tutRun=()=>!!run&&run.tut&&!run.tutOff;
@@ -1554,7 +1601,11 @@ function tutCheck(){if(tq)return;const sc=ui.screen,want=id=>!tutDone(id);
    if(ph==='choose'&&want('T-4'))return tutOpen('T-4');
    if(ph==='event'&&run.evId==='vend'&&want('T-5'))return tutOpen('T-5');
    if(ph==='running'&&run.tags.length&&(tutDone('T-5')||run.turn>=3)&&want('T-6'))return tutOpen('T-6');
-   if(ph==='choose'&&(run.heat>=4||run.turn>=4)&&(tutDone('T-6')||run.turn>=4)&&want('T-7'))return tutOpen('T-7');}
+   if(ph==='choose'&&(run.heat>=4||run.turn>=4)&&(tutDone('T-6')||run.turn>=4)&&want('T-7'))return tutOpen('T-7');
+   const sn=id=>(S.seenHints||[]).includes(id);/* 첫 판 맛보기 안내 */
+   if(ph==='event'&&run.evId==='relic'&&!sn('N-유물'))return tutOpen('N-유물');
+   if(ph==='running'&&tutDone('T-6')&&$('#app .rels .rel')&&!sn('N-케미'))return tutOpen('N-케미');
+   if(ph==='running'&&run.rw1&&!sn('N-거두는자'))return tutOpen('N-거두는자');}
   if(sc==='result'&&want('T-8'))return tutOpen('T-8');
   return}
  /* 2~3판째 안내: 처음 그 기능이 보일 때 한 번, 한 판에 하나만 */
@@ -1581,6 +1632,7 @@ function tutDraw(){const el=$('#tutlayer');if(!tq){el.innerHTML='';el.className=
  else body=`<p class="ttext">${tutBold(l.t)}</p>`+(l.go==='choice'?`<div class="tch" role="group" aria-label="조커의 대답"><span class="tj">JOKER</span>${l.ch.map((x,i)=>`<button data-t="ch:${i}">${esc(x)}</button>`).join('')}</div>`:
   l.go==='act'?'<p class="tdo">강조된 곳을 직접 눌러 보십시오.</p>':'<button class="tnext" data-t="next" aria-label="다음">▼</button>');
  el.className='on';
+ sfx('talk');
  el.innerHTML=`<svg class="tdim" aria-hidden="true"></svg><div class="tdlg ${RM?'':'tin'}" role="dialog" aria-modal="true" aria-label="${N?'안내':'튜토리얼'}" style="--tc:${col}">${c?`<div class="tname"><b>${c.code}</b><span>${c.name}</span></div>`:''}<button class="tskip" data-t="skip">${N?'닫기':'SKIP'}</button>${body}</div>`;
  const ts=tutTargets();if(ts[0]){const r=ts[0].getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)ts[0].scrollIntoView({block:'center'})}
  tutSpot(true);
@@ -1617,10 +1669,13 @@ $('#app').addEventListener('pointerup',e=>{if(ui.screen!=='tutorial'||!sx)return
 $('#app').addEventListener('click',e=>{
  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
  const [a,v]=b.dataset.act.split(':');
+ if(a!=='mute')sfx('select');
  if(a!=='retreat')ui.rc=false;if(a!=='reset')ui.reset=false;
  if(a==='howto'){ui.screen='tutorial';ui.tstep=0;ui.tafter='main';ui.enter=true;render();window.scrollTo(0,0);return}
  if(a==='tutreplay'){S.tut=false;S.tutorialStep=[];save();ui.screen='main';ui.enter=true;render();window.scrollTo(0,0);return}
  if(a==='hints'){S.hintsOff=!S.hintsOff;save();render();return}
+ if(a==='mute'){S.mute=!S.mute;save();if(!S.mute)sfx('select');render();return}
+ if(a==='continue'){if(!resumeRun()){ui.msg='';render()}return}
  if(a==='tutnext'){tutGo(1);return}
  if(a==='tutprev'){tutGo(-1);return}
  if(a==='tutskip'){ui.tstep=TUT.length-1;tutGo(1);return}
