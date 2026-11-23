@@ -949,12 +949,13 @@ const EVENTS=[
 /* 시트 사건: 선택지마다 성공·실패 결과, 효과는 applyFx로 */
 for(const e of SCRIPT.events){const needs=[...e.c.filter(c=>c.k==='tag').map(c=>c.v),...e.choices.flatMap(c=>[...c.ok.fx,...((c.ng||{}).fx||[])]).filter(f=>f.k==='untag').map(f=>f.v)];
  EVENTS.push({id:e.id,en:e.en,zones:e.zones,min:e.min,w:e.c.length?5:3,req:()=>ok(e.c)&&!needs.some(t=>chainNeeds(t)),make(){
-  const sp=mem(e.who)||pick(alive()),o={who:sp.c};
-  return {title:e.title,intro:fill(e.intro,o),who:sp.id,q:fill(e.q,o),choices:e.choices.map(c=>{const p=c.p>=1?1:clamp(c.p+(DAY('luck')||0),.05,.95);
+  const sp=mem(e.who)||pick(alive()),o={who:sp.c},stand=!!e.who&&sp.id!==e.who;/* 정해진 화자가 없으면 대신 나선 멤버는 자기 말투로 (시트 대사는 원래 화자의 것) */
+  const sk=/SHADOW|AMBUSH|DEMON/i.test(e.en)?'enemy':/TRAP/i.test(e.en)?'trap':/COFFER|CHEST|TREASURE|COIN|GOLD|SUITCASE/i.test(e.en)?'treasure':'find';
+  return {title:e.title,intro:fill(e.intro,o),who:sp.id,q:stand?say(sp.c,sk):fill(e.q,o),choices:e.choices.map(c=>{const p=c.p>=1?1:clamp(c.p+(DAY('luck')||0),.05,.95);
    return {label:fill(c.label,o),sub:p<1?`성공 확률 약 ${pct(p)} · ${c.sub}`:c.sub,go:()=>{const win=p>=1||chance(p),r=win||!c.ng?c.ok:c.ng,out=[];
     const res=applyFx(sp,r.fx);
     out.push(win?{sys:1,text:fill(r.n,o)||'…',res}:{sys:1,warn:1,text:fill(r.n,o)||'실패했다.',res});
-    if(r.q)out.push({who:sp.id,n:'',q:fill(r.q,o)});return out}}})}}})}
+    if(r.q)out.push({who:sp.id,n:'',q:stand?say(sp.c,win?'win':'hurt'):fill(r.q,o)});return out}}})}}})}
 const COMBOS=EVENTS.filter(e=>e.combo);
 
 function maybeEvent(){
