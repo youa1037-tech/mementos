@@ -41,7 +41,7 @@ for(let k=0;k<a.n;k++){
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
    if(a.strat==='smart'){/* 화면에 보이는 확률·손실·보너스만 읽고 기대값으로 고른다 */
     const low=Math.min(...r.party.filter(m=>m.hp>0).map(m=>m.hp));let bs=-1e9;
-    c.forEach((x,j)=>{if(x.dis)return;const s=x.sub||'',pm=s.match(/확률 약 (\d+)%/),p=pm?+pm[1]/100:1,lm=s.match(/-¥([\d,]+)/),loss=lm?+lm[1].replace(/,/g,''):0;
+    c.forEach((x,j)=>{if(x.dis)return;const s=x.sub||'',pm=s.match(/확률 약 (\d+)%/),p=pm?+pm[1]/100:1,lm=s.match(/-⁠?¥([\d,]+)/),loss=lm?+lm[1].replace(/,/g,''):0;
      let R=/대박|높은 보상|거액/.test(s)?1500:(/보물|엔|보상|승리|확률/.test(s)||/싸운다|약점|특수|기책/.test(x.label))?800:80;if(/×1\.\d/.test(s))R*=1.5;
      let pen=/피해|위험|HP/.test(s)&&!/무피해/.test(s)?(low<45?700:150):0;if(/SP -/.test(s))pen+=60;
      const sc=p*R-(1-p)*(loss+pen);if(sc>bs){bs=sc;i=j}})}

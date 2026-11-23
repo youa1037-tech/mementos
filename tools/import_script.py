@@ -90,6 +90,11 @@ def name_id(v, where):
     return CH[v]
 
 
+# 판을 넘어 쌓이는 것들 (docs/persistence.md): 컨디션 · 기억
+COND = {'최상': 'fresh', '상쾌': 'fresh', '보통': 'normal', '지침': 'tired'}
+MEMS = ['MEM_SAVED', 'MEM_SPLASH', 'MEM_CRITFAIL', 'MEM_REAPER', 'MEM_JACKPOT']
+
+
 def conds(text, where):
     out = []
     for tok in [t.strip() for t in SEP.split(s(text)) if t.strip()]:
@@ -130,6 +135,22 @@ def conds(text, where):
             if r not in RESULT:
                 unknown.append(f'{where}: 결과 "{r}"'); continue
             out.append({'k': 'result', 'v': RESULT[r]}); continue
+        m = re.fullmatch(r'컨디션\s*:\s*(최상|상쾌|보통|지침)', tok)
+        if m:
+            out.append({'k': 'cond', 'v': COND[m[1]]}); continue
+        m = re.fullmatch(r'기억\s*:\s*(MEM_[A-Z]+)', tok)
+        if m:
+            if m[1] not in MEMS:
+                unknown.append(f'{where}: 기억 "{m[1]}"'); continue
+            out.append({'k': 'mem', 'v': m[1]}); continue
+        m = re.fullmatch(r'관계\s*:\s*Lv\.?\s*(\d)\s*\+?\s*(이상)?', tok)
+        if m:
+            out.append({'k': 'bond', 'v': int(m[1])}); continue
+        if tok.startswith('소원완료:'):
+            i = name_id(tok.split(':', 1)[1].strip(), where)
+            if i:
+                out.append({'k': 'wish', 'v': i})
+            continue
         if tok in ('없음', '-'):
             continue
         unknown.append(f'{where}: 조건 "{tok}"')
@@ -257,7 +278,8 @@ def new_tabs(wb, out):
         if end:
             m = re.match(r'(\S+?)\s*:\s*(.+)', end)
             endo = {'who': name_id(m[1], w), 'q': m[2].strip()} if m else {'who': a, 'q': end}
-        lines.append({'a': a, 'b': b, 'rel': r, 'qa': s(d['A 대사']), 'qb': s(d['B 대사']), 'end': endo})
+        lv = re.search(r'Lv\.?\s*(\d)\s*전용', s(d.get('메모')))  # 메모에 '영구 관계 Lv.3 전용'이면 그 단계부터
+        lines.append({'a': a, 'b': b, 'rel': r, 'qa': s(d['A 대사']), 'qb': s(d['B 대사']), 'end': endo, **({'lv': int(lv[1])} if lv else {})})
     for d in tab('케미 변화'):
         w = f"케미 변화 {d['_row']}행"; a = any_id(d['캐릭터 A'], w); b = any_id(d['캐릭터 B'], w)
         tr = TRIG.get(s(d['계기'])); r = s(d['바뀐 관계'])

@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 src=open(sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(__file__),'..','index.html'),encoding='utf-8').read()
 MARK="render();\n}\n</script>"
 assert src.count(MARK)==1
-HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout,hp,momShift,spillAmt};\n"+MARK
+HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout,hp,momShift,spillAmt,save};\n"+MARK
 tmp=tempfile.NamedTemporaryFile('w',suffix='.html',delete=False,encoding='utf-8',dir='/tmp');tmp.write(src.replace(MARK,HOOK));tmp.close()
 ok=True
 def check(name,cond,info=''):
@@ -57,6 +57,20 @@ with sync_playwright() as p:
   # 9 기세: 한 칸당 탐색 수확 ±15%, HUD에 FLOW 표시
   r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);g.run.mom=0;g.momShift(1);g.momShift(1);g.momShift(5);g.ui.screen='explore';g.render();return {mom:g.run.mom,hud:(document.querySelector('#flowtag')||{}).innerText||''}}""")
   check('momentum clamps and shows in HUD',r['mom']==3 and 'FLOW ▲3' in r['hud'],r)
+  # 10 쉬는 시간: 고른 두 사람의 관계·HP·기세·도감
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);const r=g.run;r.mom=0;r.party.forEach(m=>m.hp=50);const e=g.EVENTS.find(x=>x.id==='break').make();
+   const out=e.choices[0].go();const f=out[out.length-1];if(f.fn)f.fn();const k=['joker','mona'].sort().join('+');
+   return {n:e.choices.length,mom:r.mom,hp:r.party[0].hp,rel:(r.rel||{})[k]||null,cx:(g.S.codex.breaks||[]).includes(k),again:e.choices.length}}""")
+  check('break scene bonds a pair',r['mom']==1 and r['hp']==60 and r['rel']=='의기투합' and r['cx'] and r['n']==4,r)
+  # 11 영구 관계·기억·컨디션·소원 (docs/persistence.md)
+  r=pg.evaluate("""()=>{const g=window.__g,S=g.S;S.tut=true;S.bonds={'akechi+joker':{aff:85,last:'냉전'}};S.mems={ryuji:[{id:'MEM_SAVED',t:'ann',ttl:1}]};S.cond={ryuji:{streak:3,rest:0},ann:{streak:0,rest:2}};S.wish={ryuji:{step:2,prog:0}};S.codex.cards=[];
+   g.newRun(['joker','akechi','mona']);const a={rel:g.run.rel['akechi+joker'],mood:g.run.mood};
+   g.newRun(['ryuji','ann','mona']);const r=g.run;const b={c1:r.cond.ryuji,c2:r.cond.ann};r.reaper=true;r.relSeen={'ann+ryuji':['의기투합']};r.rel={'ann+ryuji':'의기투합'};g.endRun('retreat');
+   const x=g.ui.res;return {...a,...b,mem:(S.mems.ryuji||[]).map(m=>m.id),aff:S.bonds['ann+ryuji'].aff,streak:S.cond.ryuji.streak,rest:S.cond.akechi?S.cond.akechi.rest:null,card:S.codex.cards,wish:S.wish.ryuji,after:x.after.some(l=>/라멘|류지/.test((l.q||l.n||''))),log:x.pz.wish.find(w=>w.id==='ryuji')}}""")
+  check('bond carries last state and Lv3 mood',r['rel']=='냉전' and r['mood']>=68,r)
+  check('condition from streak/rest',r['c1']=='tired' and r['c2']=='fresh',r)
+  check('memory ttl expires and new ones land',('MEM_SAVED' not in r['mem']) and ('MEM_REAPER' in r['mem']) and r['aff']==10,r)
+  check('wish completes → ending card',r['card']==['ryuji'] and r['wish']['step']==3 and r['log'].get('card'),r)
   check('no page errors',not errs,errs[:3])
   b.close()
 print('ALL OK' if ok else 'SOME FAILED');sys.exit(0 if ok else 1)
