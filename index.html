@@ -711,6 +711,11 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .eauto i b{display:block;height:100%;background:var(--c);transform-origin:left;transform:scaleX(var(--s));animation:eabar var(--ms) linear forwards}
 @keyframes eabar{from{transform:scaleX(var(--s))}to{transform:scaleX(0)}}
 .pk{display:inline-block;margin-right:8px;padding:1px 7px;font-size:13px;color:var(--mut);border:1px solid rgba(255,255,255,.18);vertical-align:1px}
+/* 장면 탭 대기 */
+.stepper.hold .next{animation:tapb 1s steps(2) infinite}
+@keyframes tapb{50%{transform:skew(-6deg) translateY(-3px)}}
+.logbox.holding{cursor:pointer}
+.logbox.holding #log li:last-child p{outline:2px solid rgba(246,241,234,.18);outline-offset:4px}
 </style>
 </head>
 <body>
@@ -997,7 +1002,7 @@ function actPair(who){
  const x=cand[wpick(cand.map(mw))],a=mem(x.a);run.pairs.push(x.id);
  const out=[{who:x.a,n:'',q:fill(x.qa,{who:a.c})},{who:x.b,n:'',q:fill(x.qb,{who:mem(x.b).c})}];
  if(x.end&&x.end.who&&mem(x.end.who))out.push({who:x.end.who,n:'',q:x.end.q});
- const res=applyFx(a,x.fx);if(res)out[out.length-1].res=res;
+ const res=applyFx(a,x.fx);if(res)out[out.length-1].res=res;out[out.length-1].hold=1;/* 쌍대사 = 장면: 다 나오면 탭 대기 */
  if(hasR('R-02')){alive().forEach(y=>hp(y,6));relicPay('R-02','전원 HP +6')}if(chance(.5))chemShift(x.a,x.b,'쌍대사');return out}
 function actSocial(m){
  const o=alive().filter(x=>x!==m);if(!o.length)return actExplore(m);
@@ -1084,7 +1089,7 @@ function breakScene(a,b){run.brk=(run.brk||0)+1;(run.brkD||(run.brkD=[])).push(r
  if(x){run.pairs.push(x.id);out=[{who:x.a,n:'',q:fill(x.qa,{who:mem(x.a).c})},{who:x.b,n:'',q:fill(x.qb,{who:mem(x.b).c})}];if(x.end&&x.end.who&&mem(x.end.who))out.push({who:x.end.who,n:'',q:x.end.q})}
  else out=[{who:a.id,n:`${ig(a.c.name)} ${b.c.name} 옆에 털썩 앉았다.`,q:say(a.c,'chat')},{who:b.id,n:'',q:say(b.c,'reply',a)}];
  hp(a,10);hp(b,10);addMood(6);a.mvp+=1;b.mvp+=1;
- out[out.length-1].res=`${a.c.name}·${b.c.name} HP +10 · 분위기 +6${momShift(1)}${nw?' · 도감 NEW':''}`;
+ out[out.length-1].res=`${a.c.name}·${b.c.name} HP +10 · 분위기 +6${momShift(1)}${nw?' · 도감 NEW':''}`;out[out.length-1].hold=1;
  out.push({fn:()=>{chemShift(a.id,b.id,'휴식');return null}});return out}
 const BREAK_IN=['한적한 벤치에 자리가 났다. 잠깐 숨 돌리고 가자.','안내 방송이 끊긴 틈, 오늘 처음으로 조용해졌다.','꺼진 자판기 옆에 둘쯤은 앉아 쉴 만한 자리가 있다.'];
 const EVENTS=[
@@ -1350,6 +1355,7 @@ function chemShift(a,b,trig,force){if(!run||(tutRun()&&!force)||a===b)return;con
  const qa=row&&row.qa?own(row.a,A,row.qa):null,qb=row&&row.qb?own(row.b,B,row.qb):null;
  if(qa)out.push({who:a,n:'',q:qa});if(qb)out.push({who:b,n:'',q:qb});
  if(n==='냉전'&&hasR('R-05')){alive().forEach(x=>x.sp=clamp(x.sp+8,0,x.msp));addMood(4);out.push({sys:1,relic:1,text:`◆ ${relicOf('R-05').name} 발동`,res:'전원 SP +8 · 분위기 +4'})}
+ {const l=[...out].reverse().find(b=>b&&!b.fn);if(l)l.hold=1}/* 케미 변화 = 장면 */
  run.q.unshift(...out)}
 function chemLine(){const rel=run.rel||{},L=(((SCRIPT.chem)||{}).lines||[]).filter(x=>rel[rkey(x.a,x.b)]===x.rel&&mem(x.a)&&mem(x.b)&&(!x.lv||bondTier(x.a,x.b)>=x.lv)&&!(run.chemUsed||[]).includes(x));
  if(!L.length)return null;const x=pick(L);(run.chemUsed||(run.chemUsed=[])).push(x);
@@ -1559,7 +1565,7 @@ function step(){
  while(b&&b.fn){const r=b.fn();if(!run||run.phase==='done')return;
   if(Array.isArray(r)){run.q.unshift(...r);b=run.q.shift()}else b=r;
   if(!b){if(run.phase==='running'&&run.q.length)b=run.q.shift();else break}}
- if(b)log(b);
+ if(b){log(b);if(b.hold&&!FF&&!run.manual&&!tutRun())run.hold=true}
  const tm=run.party.reduce((s,m)=>s+m.mis,0);if(tm>(run.lastMis||0)&&hasR('R-01')){const y=Math.round(250*yenMul());relicPay('R-01','+¥'+fmt(y),y)}run.lastMis=tm;
  checkDown();
  if(run.phase==='choose'){tip('choose');saveRun()}
@@ -1576,14 +1582,18 @@ let FF=false;const ffStop=b=>{if(!b)return false;if(b.reap){if(b.who||run.ffR===
 function fastForward(){if(!run||run.phase!=='running'||tq)return;FF=true;
  try{for(let i=0;i<120&&run&&run.phase==='running'&&!tq;i++){const n=run.log.length;step();if(run.log.length>n&&ffStop(run.log[run.log.length-1]))break}}finally{FF=false}
  sfx('select');render()}
-function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual||tq)return;T=setTimeout(()=>{step();schedule()},lineDelay())}
+const HOLD_AUTO=12000;/* 자동 결정 방침일 때 장면 대기 최대 시간 */
+function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual||tq)return;
+ if(run.hold){if(pol()!=='manual')T=setTimeout(()=>{if(run&&run.hold){run.hold=false;render();step();schedule()}},HOLD_AUTO/(run.speed===2?2:1));return}
+ T=setTimeout(()=>{step();schedule()},lineDelay())}
+function goOn(){if(!run)return;run.hold=false;step();if(!run.manual&&!run.paused)schedule();render()}
 function move(z){if(run.phase!=='choose'||!stOf(z)||!canEnter(z))return;if(DAY('moveHp')&&z!==curSt().id){alive().forEach(x=>hp(x,-DAY('moveHp')));log({sys:1,text:'멈춘 에스컬레이터를 걸어 올랐다.',res:`전원 HP -${DAY('moveHp')}`})}run.phase='running';enterZone(z);step();schedule()}
 /* 작전 방침: 사건이 오래 멈춰 있으면 그 자리의 동료가 방침과 자기 성격대로 고른다 (켜 놓고 구경하기) */
 const POLICY={chem:{en:'LET THEM BE',kr:'성격대로',d:'사건에서 오래 기다리면 그 자리의 동료가 자기 성격대로 고릅니다.'},
  loot:{en:'LOOT FIRST',kr:'보물 우선',d:'사건에서 오래 기다리면 보물과 엔이 큰 쪽으로 고릅니다.'},
  safe:{en:'SAFETY FIRST',kr:'안전 제일',d:'사건에서 오래 기다리면 성공 확률이 높고 다치지 않는 쪽으로 고릅니다.'},
  manual:{en:'MY CALL',kr:'직접 고르기',d:'사건마다 직접 고를 때까지 기다립니다.'}};
-const pol=()=>POLICY[S.policy]?S.policy:'chem';
+const pol=()=>POLICY[S.policy]?S.policy:'manual';/* 선택형 이야기 게임: 기본은 직접 고르기 (docs/direction.md) */
 const AUTO_MS=9000;/* 1배속 기준 대기 시간. 2배속이면 절반 */
 let AT=null;
 const autoOn=()=>!!run&&!run.tut&&!tq&&!run.manual&&pol()!=='manual';
@@ -1603,7 +1613,7 @@ function armAuto(){clearTimeout(AT);AT=null;if(!(run&&run.phase==='event'&&run.e
  if(!run.evAt){run.evAt=Date.now()+(run.evLeft||autoMs());run.evLeft=0}AT=setTimeout(autoDecide,Math.max(0,run.evAt-Date.now()))}
 function choose(i,by){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';run.evAt=0;run.evLeft=0;clearTimeout(AT);
  const pk=c.label+(by?` · ${CH[by].code}의 판단`:'');const out=c.go();/* 고른 선택지는 따로 한 줄 대신 결과 첫 줄 앞에 붙인다 (반복 줄 줄이기) */
- const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});run.stamp=resultStamp(c.label,out);sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
+ const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});{const l=[...out].reverse().find(b=>b&&!b.fn);if(l)l.hold=1}/* 고른 결과 = 장면 */run.stamp=resultStamp(c.label,out);sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
 /* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
 function resultStamp(label,out){const bl=out.filter(b=>!b.fn),txt=b=>(b.n||'')+(b.text||'')+(b.res||'');
  const good=bl.some(b=>/\+/.test(b.res||'')),bad=bl.some(b=>b.warn||/실패|-¥|분위기 -/.test(txt(b)))||(!good&&bl.some(b=>/HP -/.test(txt(b))));/* 이기면서 조금 긁힌 건 성공으로 */
@@ -1817,9 +1827,9 @@ function vExplore(){
  ${(()=>{const rl=Object.entries(r.rel||{}).filter(([k])=>k.split('+').every(id=>r.party.some(m=>m.id===id))),rc=r.relics||[];
   return rl.length||rc.length?`<div class="rels">${rc.map(id=>`<span class="relic" title="${esc(relicOf(id).eff)}">◆ ${esc(relicOf(id).name)}</span>`).join('')}${rl.map(([k,v])=>`<span class="rel r${['의기투합','티격태격','냉전','뜻밖의 신뢰'].indexOf(v)}">${k.split('+').map(id=>CH[id].code).join(' × ')} · ${v}</span>`).join('')}</div>`:''})()}</div>
  <section class="party">${tiles}</section>
- <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox"><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
+ <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox ${r.hold&&!r.manual?'holding':''}" ${r.hold&&!r.manual?'data-act="next"':''}><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
  ${r.phase==='event'?vEvent():(r.evIn=false,'')}
- ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
+ ${vStamp()}${vTip()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&r.hold&&!r.manual&&!r.paused?'<div class="stepper hold"><button class="next" data-act="next">TAP ▶</button></div>':''}${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
  return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})${x.cut?`\n결정적 1컷: ${x.cut.t}`:''}\n정산 수익: ¥${fmt(x.inc)}${x.bonus?` (위험 수당 +¥${fmt(x.bonus)})`:''}${x.team?` (팀워크 수당 +¥${fmt(x.team)})`:''} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
@@ -2133,7 +2143,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='hud'){ui.hud=!ui.hud;render();return}
  if(a==='speed'){run.speed=run.speed===1?2:1;render();schedule();return}
  if(a==='manual'){run.manual=!run.manual;render();schedule();return}
- if(a==='next'){step();return}
+ if(a==='next'){if(run&&run.hold){goOn();return}step();return}
  if(a==='ff'){fastForward();return}
  if(a==='lg'){const k=+v;ui.lgOpen=[...(ui.lgOpen||[]),k].slice(-30);render();return}
  if(a==='curry'){useCurry();return}
