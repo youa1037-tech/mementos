@@ -17,6 +17,8 @@
 | reaper | 30 |
 | cuts | 33 |
 | relics | 13 |
+| evIntro | 0 |
+| zones | 11 |
 
 ## 시트 숫자 위에 덮어쓴 밸런스 조정
 
