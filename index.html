@@ -1330,7 +1330,6 @@ function vParty(){
  if(!tp&&!S.today&&SCRIPT.days.length){const c=SCRIPT.days.filter(d=>d.id!==S.lastDay);S.today=pick(c.length?c:SCRIPT.days).id;save()}
  const dy=tp?null:SCRIPT.days.find(d=>d.id===S.today);
  const sel=ui.sel,key=[...sel].sort().join('+'),full=sel.length===3,f=CH[ui.focus]||CHARS[0];
- const combos=COMBOS.filter(e=>e.combo.every(id=>sel.includes(id))).map(e=>e.name);
  const tc={};sel.forEach(id=>{const t=TYPES[CH[id].type].en;tc[t]=(tc[t]||0)+1});
  const wOf=c=>TYPES[c.type].w.map((v,j)=>Math.max(1,v+c.adj[j]));
  const fw=wOf(f),fs=fw.reduce((a,b)=>a+b,0);
@@ -1342,7 +1341,7 @@ function vParty(){
  <div class="dock">
   <div class="detail" style="--c:${f.col}"><span class="code">${f.code}</span><b>${f.name} · ${TYPES[f.type].en}</b><p>${f.trait}</p><p class="wn">${WL.map((l,j)=>`${l} ${Math.round(fw[j]/fs*100)}`).join(' · ')}</p></div>
   <div class="drow"><div class="slots">${[0,1,2].map(i=>{const c=CH[sel[i]];return c?`<span class="slot f" style="--c:${c.col}"><i></i>${c.code}</span>`:'<span class="slot"><i></i>?</span>'}).join('')}</div>
-  <div class="dinfo">${full?`${S.codex.combos.includes(key)?'도감에 있는 조합':'<span class="new">NEW COMBO!</span> 출격하면 도감 등록'}${combos.length?` · 조합 이벤트 <b>${combos.map(esc).join(', ')}</b>`:''}<br>${Object.entries(tc).map(([k,v])=>`${k} ×${v}`).join(' · ')}`:`CURRY <b>${S.curry}</b> · SMOKE <b>${S.smoke}</b> · LOCKPICK <b>LV.${S.pick}</b> · BUS <b>LV.${S.bus}</b>`}</div></div>
+  <div class="dinfo">${full?`${S.codex.combos.includes(key)?'':'<span class="new">NEW COMBO!</span><br>'}${Object.entries(tc).map(([k,v])=>`${k} ×${v}`).join(' · ')}`:`CURRY <b>${S.curry}</b> · SMOKE <b>${S.smoke}</b> · LOCKPICK <b>LV.${S.pick}</b> · BUS <b>LV.${S.bus}</b>`}</div></div>
   <div class="drow"><div class="row" style="margin-left:0;flex:1"><button class="btn ghost sm" data-act="random" ${tp?'disabled':''}>RANDOM</button><button class="btn" style="flex:1" data-act="start" ${full?'':'disabled'}>${full?'START MISSION':`PICK ${3-sel.length} MORE`}</button></div></div>
  </div></main>`;
 }
