@@ -4,16 +4,16 @@
 
 | 항목 | 개수 |
 |---|---|
-| lines | 289 |
+| lines | 349 |
 | solo | 80 |
-| pairs | 75 |
+| pairs | 99 |
 | events | 26 |
 | chains | 6 |
 | days | 12 |
-| afters | 35 |
+| afters | 53 |
 | tut | 15 |
 | chem | 2 |
-| idle | 32 |
+| idle | 72 |
 | reaper | 30 |
 | cuts | 33 |
 | relics | 13 |
