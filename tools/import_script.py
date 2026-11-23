@@ -46,6 +46,17 @@ BALANCE = {
     ('C-006', 'end'): {'fx': '보물+2 · 엔+800 · SP+15'},
 }
 
+# 대실패 해프닝(단독행동) 피해 조정: 위험도 배율이 붙으면 깊은 구역에서 전멸 원인이 됨 (docs/balance.md sitcom-v3)
+SOLO_BALANCE = {
+    '조커': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기+4',
+    '모르가나': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기+3',
+    '류지': 'HP-4(전원) · 사고+3 · 태그:대실패(본인) · 분위기-4',
+    '안': 'HP-4(전원) · 사고+3 · 태그:대실패(본인) · 태그:도발',
+    '유스케': 'HP-6 · SP-6 · 사고+3 · 태그:대실패(본인) · 분위기+3',
+    '아케치': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기-3',
+    '카스미': 'HP-5 · 사고+3 · 태그:대실패(본인) · 분위기+5',
+}
+
 unknown = []
 
 
@@ -85,7 +96,8 @@ def conds(text, where):
         if tok == '단서':
             out.append({'k': 'tag', 'v': CLUE}); continue
         if tok.startswith('태그:'):
-            out.append({'k': 'tag', 'v': tok[3:].strip()}); continue
+            m = re.fullmatch(r'(.+?)\(본인\)', tok[3:].strip())
+            out.append({'k': 'tag', 'v': m[1].strip(), 'w': 'self'} if m else {'k': 'tag', 'v': tok[3:].strip()}); continue
         if tok.startswith('파티:'):
             ids = [name_id(x, where) for x in tok[3:].split('+')]
             out.append({'k': 'party', 'v': [i for i in ids if i]}); continue
@@ -139,6 +151,35 @@ def effects(text, where):
     return out
 
 
+def own_tags(out):
+    """'본인' 태그(효과에서 늘 '(본인)'으로만 붙는 태그, 예: 대실패)는 누가 가졌는지까지 본다.
+    - 기본대사 '태그:X'      → 말하는 사람이 아닌 다른 누군가가 X를 가졌을 때 (동료 반응)
+    - 기본대사 '태그:X(본인)' → 말하는 사람이 X를 가졌을 때
+    - 쌍대사 '태그:X'        → 캐릭터 A가 X를 가졌을 때
+    - 후일담 '태그:X' + 첫 줄 필요 캐릭터 → 그 캐릭터가 X를 가졌을 때
+    """
+    fx = [f for x in out['solo'] for f in x['fx']] + [f for x in out['pairs'] for f in x['fx']]
+    fx += [f for e in out['events'] for c in e['choices'] for f in c['ok']['fx'] + (c.get('ng') or {}).get('fx', [])]
+    fx += [f for c in out['chains'] for st in c['steps'].values() for f in st['fx']]
+    given = {}
+    for f in fx:
+        if f['k'] == 'tag':
+            given.setdefault(f['v'], set()).add(bool(f.get('own')))
+    own = {v for v, s_ in given.items() if s_ == {True}}
+    def mark(cs, w):
+        for c in cs:
+            if c['k'] == 'tag' and c['v'] in own and 'w' not in c:
+                c['w'] = w
+    for l in out['lines']:
+        mark(l['c'], 'other')
+    for p in out['pairs']:
+        mark(p['c'], 'a')
+    for a in out['afters']:
+        if a['lines'] and a['lines'][0]['need']:
+            mark(a['c'], a['lines'][0]['need'])
+    return own
+
+
 def prob(v):
     v = s(v)
     if not v:
@@ -184,7 +225,10 @@ def main():
         w = f"단독행동 {d['_row']}행"
         who = name_id(d['캐릭터'], w)
         if who:
-            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(d['효과'], w)})
+            fx = d['효과']
+            if '대실패(본인)' in s(fx) and s(d['캐릭터']) in SOLO_BALANCE:
+                fx = SOLO_BALANCE[s(d['캐릭터'])]
+            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(fx, w)})
     for d in rows(wb['쌍대사']):
         w = f"쌍대사 {s(d['ID'])}"
         a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w)
@@ -252,6 +296,7 @@ def main():
         cur['lines'].append({'need': name_id(d['필요 캐릭터'], w), 'who': name_id(d['화자(없으면 서술)'], w), 't': s(d['내용'])})
     for a in out['afters']:
         a.pop('raw')
+    own_tags(out)
 
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
     p = os.path.join(ROOT, 'index.html'); html = open(p, encoding='utf-8').read()
@@ -266,6 +311,8 @@ def main():
            '', '## 시트 숫자 위에 덮어쓴 밸런스 조정', '',
            '안전한 선택지가 위험한 선택지보다 늘 이득이던 곳과, 보상이 너무 큰 곳을 고쳤어요. 시트도 같이 고쳐 두면 다음 반영 때 이 표가 필요 없어져요.', '',
            '| 대상 | 바뀐 값 |', '|---|---|'] + [f'| {k[0]} {k[1]} | ' + ' / '.join(f'{kk}: {vv}' for kk, vv in v.items()) + ' |' for k, v in BALANCE.items()] + [
+           f'| 단독행동 {k} 대실패 | 효과: {v} |' for k, v in SOLO_BALANCE.items()] + [
+           '', '대실패처럼 늘 (본인)으로 붙는 태그는 누가 가졌는지까지 봅니다. 기본대사의 그냥 `태그:대실패`는 말하는 사람이 아닌 동료가 실패했을 때, `태그:대실패(본인)`은 본인이 실패했을 때 나옵니다. 쌍대사는 캐릭터 A가 실패했을 때, 후일담은 첫 줄의 필요 캐릭터가 실패했을 때 나옵니다.'] + [
            '', '## 읽지 못했거나 건너뛴 표기', ''] + ([f'- {u}' for u in unknown] or ['없음'])
     open(os.path.join(ROOT, 'docs', 'script-import.md'), 'w', encoding='utf-8').write('\n'.join(rep) + '\n')
     print(counts); print('unknown', len(unknown)); [print(' ', u) for u in unknown]
