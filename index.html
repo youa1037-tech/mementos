@@ -252,7 +252,7 @@ textarea{width:100%;max-width:520px;display:block;margin:14px auto 0;min-height:
 .drow{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap}
 .drow .row{margin-left:auto}
 .ex{padding-top:0}
-.xbar{position:sticky;top:0;z-index:15;background:rgba(15,11,12,.96);margin:0 calc(-1*max(3vw,10px));padding:8px max(3vw,10px);gap:4px 12px;flex-wrap:nowrap}
+.xbar{position:sticky;top:0;z-index:15;background:#0f0b0c;margin:0 calc(-1*max(3vw,10px));padding:8px max(3vw,10px);gap:4px 12px;flex-wrap:nowrap}
 .xr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
 .party{margin-top:8px;gap:6px}
 .tile{padding:6px 8px 8px}
@@ -687,6 +687,13 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 @keyframes art-shake{50%{transform:translateX(1px)}}
 @keyframes art-nod{50%{transform:translateY(2px)}}
 .psel .rt.on .art.stand{animation-name:art-hop-c}@keyframes art-hop-c{0%,100%{transform:translateX(-50%)}50%{transform:translate(-50%,-4px)}}
+@media(max-width:600px){
+.tile .nm{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:4px;row-gap:1px;align-items:end}
+.tile .nm .art{grid-row:1/3;grid-column:1;margin:-12px 0 0}
+.tile .nm .code{grid-row:1;grid-column:2/4;overflow:hidden;text-overflow:clip;font-size:clamp(13px,3.6vw,17px)}
+.tile .nm .face{grid-row:2;grid-column:2;justify-self:start;width:20px;height:20px;font-size:13px}
+.tile .nm .hpn{grid-row:2;grid-column:3;margin-left:0}
+}
 </style>
 </head>
 <body>
@@ -1309,7 +1316,11 @@ function chemShift(a,b,trig,force){if(!run||(tutRun()&&!force)||a===b)return;con
  const S_=(((SCRIPT.chem)||{}).shifts||[]).filter(x=>x.trig===trig&&x.rel===n),m=f=>S_.filter(f);
  const row=pick(m(x=>x.a===a&&x.b===b).concat([]))||pick(m(x=>x.a===a&&x.b==='*'))||pick(m(x=>x.a==='*'&&x.b===b))||pick(m(x=>x.a==='*'&&x.b==='*'))||null;
  const out=[{sys:1,chem:1,text:fillAB(row&&row.n||CHEM_DEF[n],A,B),res:`${A.c.code} × ${B.c.code} · ${n}`}];
- if(row&&row.qa)out.push({who:a,n:'',q:fillAB(row.qa,A,B)});if(row&&row.qb)out.push({who:b,n:'',q:fillAB(row.qb,A,B)});
+ /* 시트의 '*'(누구나) 자리 대사는 공용 문장이라 캐릭터 말투와 어긋난다(예: 존댓말 쓰는 카스미의 반말). 그 자리는 그 캐릭터 자신의 대사로 대신한다 */
+ const CK={'냉전':'argue','티격태격':'argue','의기투합':'win','뜻밖의 신뢰':'reply'}[n]||'reply';
+ const own=(x,m,t)=>{if(x!=='*')return fillAB(t,A,B);const q=say(m.c,CK);return q&&q!=='…'?q:null};
+ const qa=row&&row.qa?own(row.a,A,row.qa):null,qb=row&&row.qb?own(row.b,B,row.qb):null;
+ if(qa)out.push({who:a,n:'',q:qa});if(qb)out.push({who:b,n:'',q:qb});
  if(n==='냉전'&&hasR('R-05')){alive().forEach(x=>x.sp=clamp(x.sp+8,0,x.msp));addMood(4);out.push({sys:1,relic:1,text:`◆ ${relicOf('R-05').name} 발동`,res:'전원 SP +8 · 분위기 +4'})}
  run.q.unshift(...out)}
 function chemLine(){const rel=run.rel||{},L=(((SCRIPT.chem)||{}).lines||[]).filter(x=>rel[rkey(x.a,x.b)]===x.rel&&mem(x.a)&&mem(x.b)&&(!x.lv||bondTier(x.a,x.b)>=x.lv)&&!(run.chemUsed||[]).includes(x));
