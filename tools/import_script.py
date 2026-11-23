@@ -57,6 +57,21 @@ SOLO_BALANCE = {
     '카스미': 'HP-5 · 사고+3 · 태그:대실패(본인) · 분위기+5',
 }
 
+# 튜토리얼 '하이라이트 대상' 이름 → 화면 요소 (CSS 선택자)
+HL = {
+    '3인 파티 슬롯': '.slots', '잠금 멤버 카드': '.cards', 'START': '[data-act="start"]',
+    '말풍선': '.party', '행동 로그': '.logbox', 'HP 막대': '.party', '분위기': '#moodtag',
+    '배속': '[data-act="speed"]', '일시정지': '[data-act="pause"]', '구역 이동 지도': '.map',
+    '통로': '[data-act="move:pass"]', '보관실': '[data-act="move:lost"]', '구역': '.node.opt',
+    '사건 팝업창': '.evt', '사건 선택지': '.evt .ch', '충돌 선택지': '.evt .ch',
+    '활성 상태 태그': '.ptags, .tile .mt', 'RISK 표시': '#risktag', 'RISK': '#risktag', 'RETURN NOW': '[data-act="cashout"]',
+    '보고서 카드': '.report', '후일담': '.after', '수익 정산': '.report dl', '르블랑': '[data-act="go:shop"]',
+    '르블랑 가기': '[data-act="go:shop"]', '오늘의 메멘토스 배너': '.today', '캐릭터 선택 그리드': '.cards',
+    '사슬 배지': '.logbox', '도감': '[data-act="go:codex"]', '모나 버스 튜닝': '[data-act="bus"]',
+}
+GO = {'탭': 'tap', '선택': 'choice', '버튼 누름': 'act', '구역 클릭': 'act', '선택지 클릭': 'act',
+      '선택 후 행동': 'choice', '선택 후 버튼': 'choice', '탭 (T-8 직행)': 'tap'}
+
 unknown = []
 
 
@@ -180,6 +195,43 @@ def own_tags(out):
     return own
 
 
+def tutorial(wb):
+    """튜토리얼 탭 → {단계 ID: [대사 줄]}. 탭이 없으면 index.html에 있던 것을 그대로 둔다."""
+    if '튜토리얼' not in wb.sheetnames:
+        try:
+            html = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
+            old = json.loads(html[html.index('/*SCRIPT-BEGIN*/') + 29:html.index(';/*SCRIPT-END*/')])
+            unknown.append('튜토리얼 탭이 없어 지난번 튜토리얼 대사를 그대로 씀')
+            return old.get('tut', {})
+        except Exception:
+            unknown.append('튜토리얼 탭이 없음'); return {}
+    out = {}
+    for d in rows(wb['튜토리얼']):
+        sid = s(d['단계 ID']); w = f"튜토리얼 {sid}-{s(d['순서'])}"
+        if not sid or not s(d['대사']):
+            unknown.append(f'{w}: 단계 ID나 대사가 빈 칸'); continue
+        who = name_id(s(d['화자']).split(',')[0], w)
+        hl = []
+        for nm in [x.strip() for x in SEP.split(s(d['하이라이트 대상'])) if x.strip()]:
+            k = re.sub(r'\s*버튼$', '', nm)
+            sel = HL.get(nm) or HL.get(k)
+            if sel:
+                hl.append(sel)
+            else:
+                unknown.append(f'{w}: 하이라이트 대상 "{nm}"')
+        go = GO.get(s(d['넘어가는 조건']))
+        if not go:
+            unknown.append(f"{w}: 넘어가는 조건 \"{s(d['넘어가는 조건'])}\" → 탭으로 처리"); go = 'tap'
+        ch = [x.strip() for x in SEP.split(s(d.get('조커 대답 선택지'))) if x.strip()][:2]
+        if go == 'choice' and len(ch) < 2:
+            unknown.append(f'{w}: 선택인데 조커 대답이 두 개가 아님 → 탭으로 처리'); go = 'tap'
+        if go == 'act' and not hl:
+            unknown.append(f'{w}: 눌러야 넘어가는데 하이라이트 대상이 없음 → 탭으로 처리'); go = 'tap'
+        o = s(d['순서']); o = o[:-2] if o.endswith('.0') else o
+        out.setdefault(sid, []).append({'o': o, 'who': who, 't': s(d['대사']), 'hl': hl, 'ch': ch if go == 'choice' else [], 'go': go})
+    return out
+
+
 def prob(v):
     v = s(v)
     if not v:
@@ -297,6 +349,7 @@ def main():
     for a in out['afters']:
         a.pop('raw')
     own_tags(out)
+    out['tut'] = tutorial(wb)
 
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
     p = os.path.join(ROOT, 'index.html'); html = open(p, encoding='utf-8').read()
