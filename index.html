@@ -1273,7 +1273,7 @@ function chainTick(){if(tutRun())return null;
 function openEvent(e){
  run.evId=e.id;run.used[e.id]=(run.used[e.id]||0)+1;run.evTurn=run.turn;
  if(e.combo){moment('조합 이벤트',55,{이름:e.name});if(!S.codex.events.includes(e.id)){S.codex.events.push(e.id);save()}}
- const d=e.make();d.en=(e.combo?'COMBO: ':'')+(d.en||e.en);{const xs=((SCRIPT.evIntro||{})[e.id+(d.kind?':'+d.kind:'')]||[]);if(xs.length&&d.intro)d.intro=pick([d.intro,...xs.map(t=>fill(t,{who:d.who?CH[d.who]:null}))])}/* 시트에 더 쓴 소개 문장과 섞어 고른다 */if(run.st)run.st.ev.push(d.title||e.id);const b=[{sys:1,ev:1,text:`돌발 사건 — ${d.title}`},{sys:1,text:d.intro}];
+ const d=e.make();d.en=(e.combo?'COMBO: ':'')+(d.en||e.en);{const rm=alive().map(m=>({m,x:memsOf(m.id).find(y=>y.id==='MEM_CHOICE'&&y.ev===d.title)})).find(o=>o.x);if(rm){const tx=`${rm.m.c.name}의 기억: 지난번엔 '${rm.x.pick}' — ${rm.x.ok?'잘 풀렸다':'일이 꼬였다'}`;d.note=d.note?d.note+' · '+tx:tx;d.recall=rm.m.id}}/* 같은 사건 재회 */{const xs=((SCRIPT.evIntro||{})[e.id+(d.kind?':'+d.kind:'')]||[]);if(xs.length&&d.intro)d.intro=pick([d.intro,...xs.map(t=>fill(t,{who:d.who?CH[d.who]:null}))])}/* 시트에 더 쓴 소개 문장과 섞어 고른다 */if(run.st)run.st.ev.push(d.title||e.id);const b=[{sys:1,ev:1,text:`돌발 사건 — ${d.title}`},{sys:1,text:d.intro}];
  if(d.who)b.push({who:d.who,n:'',q:d.q});
  if(d.after)b.push({who:d.after.who,n:'',q:d.after.q});
  if(d.auto)return b.concat(d.auto);
@@ -1457,11 +1457,12 @@ const bondName=(t,last)=>t===2&&(last==='티격태격'||last==='냉전')?'애증
 const pairsOf=ids=>{const o=[];for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++)o.push([ids[i],ids[j]]);return o};
 const runPairs=()=>run?pairsOf(run.party.map(m=>m.id)):[];
 const partyTier=()=>Math.max(0,...runPairs().map(([a,b])=>bondTier(a,b)));
-const MEMS={MEM_SAVED:{ttl:3,t:'{t}(이)가 감싸 줬다 ♥'},MEM_SPLASH:{ttl:2,t:'{t}의 대실패에 휘말림'},MEM_CRITFAIL:{ttl:2,t:'지난 판 흑역사가 떠오름'},MEM_REAPER:{ttl:3,t:'거두는 자에게서 생환!'},MEM_JACKPOT:{ttl:2,t:'보물 대박의 짜릿함'}};
+const MEMS={MEM_SAVED:{ttl:3,t:'{t}(이)가 감싸 줬다 ♥'},MEM_SPLASH:{ttl:2,t:'{t}의 대실패에 휘말림'},MEM_CRITFAIL:{ttl:2,t:'지난 판 흑역사가 떠오름'},MEM_REAPER:{ttl:3,t:'거두는 자에게서 생환!'},MEM_JACKPOT:{ttl:2,t:'보물 대박의 짜릿함'},
+ MEM_BOLD_WIN:{ttl:2,t:'무리수가 통했다 — 기세등등'},MEM_BOLD_FAIL:{ttl:2,t:'무리하다 크게 데었다'},MEM_CHOICE:{ttl:3,t:'지난번 일'}};/* 사건 선택이 남기는 기억 (docs/direction.md 5) */
 const memsOf=id=>(S.mems||{})[id]||[];
 const hasMem=(who,id,t)=>memsOf(who).some(x=>x.id===id&&(t===undefined||x.t===t));
-const memTxt=x=>fill(MEMS[x.id].t.replace('{t}',x.t&&CH[x.t]?CH[x.t].name:'동료'));
-function memAdd(who,id,t=null){if(run&&MEMS[id])(run.memQ||(run.memQ=[])).push({who,id,t})}
+const memTxt=x=>x.id==='MEM_CHOICE'?`지난번 「${x.ev}」에서 '${x.pick}' — ${x.ok?'잘 풀렸다':'일이 꼬였다'}`:fill(MEMS[x.id].t.replace('{t}',x.t&&CH[x.t]?CH[x.t].name:'동료'));
+function memAdd(who,id,t=null,ex={}){if(run&&MEMS[id])(run.memQ||(run.memQ=[])).push({who,id,t,...ex})}
 /* 컨디션: 출격 금지는 없다. 두 판 쉬면(소품 커피·홍차 세트나 다트 보드가 있으면 한 판) 상쾌, 3연속 출격이면 지침 */
 const condOf=id=>{const x=(S.cond||{})[id];if(!x)return 'normal';if(x.streak>=3)return 'tired';if(x.rest>=(has('tea')||has('dart')?1:2))return 'fresh';return 'normal'};
 const COND_KR={fresh:'상쾌',normal:'보통',tired:'지침'};
@@ -1510,7 +1511,8 @@ function persistStart(){
  const CARRY={'의기투합':'지난번 호흡이 아직 살아 있다.','티격태격':'오늘도 티격태격할 기세다.','뜻밖의 신뢰':'사이엔 지난번의 믿음이 남아 있다.','냉전':'지난번 냉전이 아직 안 풀렸다.'};
  const pr=pairsOf(ids).map(([a,b])=>({a,b,o:bondOf(a,b)})).filter(x=>x.o.last||tierOf(x.o.aff)>=1).sort((p,q)=>(q.o.last==='냉전')-(p.o.last==='냉전')||q.o.aff-p.o.aff).slice(0,2);/* 이어진 관계는 두 쌍까지만: 냉전 먼저 */
  for(const {a,b,o} of pr){const t=tierOf(o.aff);log({sys:1,chem:1,text:`${wa(CH[a].name)} ${CH[b].name}, ${o.last?CARRY[o.last]:'같이 다닌 시간이 쌓였다.'}`,res:`${CH[a].code} × ${CH[b].code} · ${o.last||'평범'} · Lv.${t} ${bondName(t,o.last)}${t>=3?' · 분위기 +8':''}`})}
- let mc=0;for(const m of run.party){const x=memsOf(m.id).find(y=>!y.t||ids.includes(y.t));if(x&&mc++<2)log({sys:1,text:`${m.c.name}의 기억 — ${memTxt(x)}`,res:`${x.ttl}판 남음`})}
+ let mc=0;for(const m of run.party){const ms=memsOf(m.id),x=ms.find(y=>y.id==='MEM_CHOICE')||ms.find(y=>!y.t||ids.includes(y.t));if(x&&mc++<2){log({sys:1,text:`${m.c.name}의 기억 — ${memTxt(x)}`,res:`${x.ttl}판 남음`});
+  const k=x.id==='MEM_CHOICE'?(x.ok?'win':'hurt'):x.id==='MEM_BOLD_FAIL'||x.id==='MEM_CRITFAIL'?'hurt':'chat',q=say(m.c,k);if(q&&q!=='…')log({who:m.id,n:'',q})}}
 }
 /* 판 끝: 관계 누적 → 기억 ttl → 컨디션 → 소원. 첫 판(정찰)도 센다 */
 function persistEnd(r,reason){
@@ -1521,8 +1523,8 @@ function persistEnd(r,reason){
   if(d!==BOND_RUN||t1!==t0)out.bonds.push({a,b,d,aff:o.aff,t0,t1,last:cur})}/* 같이 다닌 +2만 있으면 일지에 안 적는다 */
  const M=S.mems||(S.mems={});for(const id of Object.keys(M)){M[id]=M[id].map(x=>({...x,ttl:x.ttl-1})).filter(x=>x.ttl>0);if(!M[id].length)delete M[id]}
  if(r.tre>=JACKPOT_TRE)ids.forEach(id=>memAdd(id,'MEM_JACKPOT'));if(r.reaper&&ok)ids.forEach(id=>memAdd(id,'MEM_REAPER'));
- const seenQ=new Set();for(const q of r.memQ||[]){const key=q.who+q.id+q.t;if(seenQ.has(key))continue;seenQ.add(key);
-  const L=M[q.who]||(M[q.who]=[]),i=L.findIndex(x=>x.id===q.id&&x.t===q.t);if(i>=0)L.splice(i,1);L.push({id:q.id,t:q.t,ttl:MEMS[q.id].ttl});while(L.length>3)L.shift();out.mems.push(q)}
+ const seenQ=new Set();for(const q of r.memQ||[]){const key=q.who+q.id+q.t+(q.ev||'');if(seenQ.has(key))continue;seenQ.add(key);
+  const L=M[q.who]||(M[q.who]=[]),i=L.findIndex(x=>x.id===q.id&&x.t===q.t&&(x.ev||'')===(q.ev||''));if(i>=0)L.splice(i,1);L.push({id:q.id,t:q.t,ttl:MEMS[q.id].ttl,...(q.ev?{ev:q.ev,pick:q.pick,ok:q.ok}:{})});while(L.length>3)L.shift();out.mems.push(q)}
  ids.forEach(outOf);const C=S.cond||(S.cond={});for(const c of CHARS){const x=C[c.id]||(C[c.id]={streak:0,rest:0});if(ids.includes(c.id)){x.streak++;x.rest=0;S.out[c.id]=(S.out[c.id]||0)+1}else{x.rest++;x.streak=0}}
  out.wish=wishCheck(r,ok);save();return out}
 function newRun(ids){
@@ -1629,6 +1631,7 @@ function autoPick(d,m){const ty=m.c.type,P=pol();let best=-1,bs=-1e9;
   const p=pm?+pm[1]/100:/위험|피해|함정|실패/.test(t)?.6:1,pay=/보물|대박|¥|엔/.test(t)?1:0,risky=p<.8||/실패\s*시|피해|위험/.test(t)?1:0,heal=/회복|HP \+|SP \+|쉬|휴식|무피해/.test(t)?1:0;
   let v=ty==='rush'?pay+risky*.6+(1-p)*.3:ty==='analyst'?p*1.2+pay*.4:ty==='support'?heal+p*.6-risky*.4:Math.random()+pay*.3;
   if(P==='loot')v+=pay*1.2+(1-p)*.2;else if(P==='safe')v+=p*1.2+heal*.4-risky*.6;else v*=1.3;
+  if(hasMem(m.id,'MEM_BOLD_FAIL'))v-=risky*.8;if(hasMem(m.id,'MEM_BOLD_WIN'))v+=risky*.5;/* 지난번 무리수의 결과가 성격처럼 남는다 */
   v+=Math.random()*.25;if(v>bs){bs=v;best=i}});return best}
 function autoDecide(){AT=null;if(!run||run.phase!=='event'||!run.ev||!autoOn())return;const d=run.ev,m=decider(d);if(!m)return;const i=autoPick(d,m);if(i<0)return;
  const q=say(m.c,'decide');log({who:m.id,n:`기다리다 못한 ${ig(m.c.name)} 먼저 나섰다.`,q:q&&q!=='…'?q:say(m.c,'reply')});choose(i,m.id)}
@@ -1636,9 +1639,12 @@ function armAuto(){clearTimeout(AT);AT=null;if(!(run&&run.phase==='event'&&run.e
  const hold=()=>{if(run.evAt){run.evLeft=Math.max(1500,run.evAt-Date.now());run.evAt=0}};/* 멈춘 동안(일시정지·안내창·다른 화면)은 남은 시간을 보관 */
  if(ui.screen!=='explore'||!autoOn()||run.paused)return hold();
  if(!run.evAt){run.evAt=Date.now()+(run.evLeft||autoMs());run.evLeft=0}AT=setTimeout(autoDecide,Math.max(0,run.evAt-Date.now()))}
-function choose(i,by){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';run.evAt=0;run.evLeft=0;clearTimeout(AT);
+function choose(i,by){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;const ed=run.ev;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';run.evAt=0;run.evLeft=0;clearTimeout(AT);
  const pk=c.label+(by?` · ${CH[by].code}의 판단`:'');const out=c.go();/* 고른 선택지는 따로 한 줄 대신 결과 첫 줄 앞에 붙인다 (반복 줄 줄이기) */
- const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});{const l=[...out].reverse().find(b=>b&&!b.fn);if(l)l.hold=1}/* 고른 결과 = 장면 */run.stamp=resultStamp(c.label,out);sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
+ const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});{const l=[...out].reverse().find(b=>b&&!b.fn);if(l)l.hold=1}/* 고른 결과 = 장면 */run.stamp=resultStamp(c.label,out);
+ if(!tutRun()&&ed&&ed.title){const t=(c.label||'')+' '+(c.sub||''),pm=t.match(/성공 확률 약 (\d+)%/),risky=(pm&&+pm[1]<80)||/실패\s*시/.test(t),won=run.stamp.k!=='bad';
+  const named=CHARS.find(ch=>(c.label||'').includes(ch.name)&&mem(ch.id)),aid=named?named.id:by&&mem(by)?by:ed.who&&mem(ed.who)?ed.who:null;
+  if(aid&&(risky||named)){memAdd(aid,'MEM_CHOICE',null,{ev:ed.title,pick:c.label,ok:won});if(risky)memAdd(aid,won?'MEM_BOLD_WIN':'MEM_BOLD_FAIL')}}/* 선택이 남기는 것: 다음 판 시작 · 같은 사건 · 자동 판단으로 이어진다 */sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
 /* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
 function resultStamp(label,out){const bl=out.filter(b=>!b.fn),txt=b=>(b.n||'')+(b.text||'')+(b.res||'');
  const good=bl.some(b=>/\+/.test(b.res||'')),bad=bl.some(b=>b.warn||(!b.relic&&/실패|-¥|분위기 -/.test(txt(b))))/* 유물 설명 속 '대실패'는 결과가 아님 */||(!good&&bl.some(b=>/HP -/.test(txt(b))));/* 이기면서 조금 긁힌 건 성공으로 */

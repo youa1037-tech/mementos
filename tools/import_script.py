@@ -92,7 +92,7 @@ def name_id(v, where):
 
 # 판을 넘어 쌓이는 것들 (docs/persistence.md): 컨디션 · 기억
 COND = {'최상': 'fresh', '상쾌': 'fresh', '보통': 'normal', '지침': 'tired'}
-MEMS = ['MEM_SAVED', 'MEM_SPLASH', 'MEM_CRITFAIL', 'MEM_REAPER', 'MEM_JACKPOT']
+MEMS = ['MEM_SAVED', 'MEM_SPLASH', 'MEM_CRITFAIL', 'MEM_REAPER', 'MEM_JACKPOT', 'MEM_BOLD_WIN', 'MEM_BOLD_FAIL', 'MEM_CHOICE']
 
 
 def conds(text, where):
