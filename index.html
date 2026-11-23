@@ -694,6 +694,13 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .tile .nm .face{grid-row:2;grid-column:2;justify-self:start;width:20px;height:20px;font-size:13px}
 .tile .nm .hpn{grid-row:2;grid-column:3;margin-left:0}
 }
+/* 폰 상단: 평소엔 턴·구역·엔·RISK만. MOOD·FLOW·LOOT·칩 줄은 MOOD ▾로 펼침 (버튼 색이 지금 분위기) */
+.hudt{display:none}
+@media(max-width:600px){
+.ex:not(.hudo) #moodtag,.ex:not(.hudo) #flowtag,.ex:not(.hudo) .money small,.ex:not(.hudo) .chipbar{display:none}
+.hudt{display:inline-block;color:#141012;font:400 14px/1 var(--en);letter-spacing:.04em;padding:5px 8px;border:0;cursor:pointer}
+.ex.hudo .hudt{padding:5px 9px}
+}
 </style>
 </head>
 <body>
@@ -839,7 +846,16 @@ const MVPWHY={wild:'판을 뒤집는 한 수',analyst:'함정·리스크 사전 
 /* ============ 유틸 ============ */
 const $=s=>document.querySelector(s);
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const pick=a=>a[Math.floor(Math.random()*a.length)];
+const pick0=a=>a[Math.floor(Math.random()*a.length)];
+/* 문장 고르기: 이번 판에 이미 나왔거나 최근 3판에 나온 문장은 뒤로 미룬다 (10판째 반복률 줄이기). 문장이 아닌 것(아이디 등)은 그냥 무작위 */
+const txtKey=x=>{const t=typeof x==='string'?x:x&&(typeof x.t==='string'?x.t:typeof x.n==='string'?x.n:null);if(!t||t.length<6||!/[가-힣]/.test(t))return null;
+ let h=2166136261;for(let i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619);return (h>>>0).toString(36)};
+let RECENT=new Set(),SEEN=new Set();
+function pick(a){if(!a||a.length<2)return a&&a[0];const k0=txtKey(a[0]);if(!k0)return pick0(a);
+ const ks=a.map(txtKey),f1=a.filter((_,i)=>!SEEN.has(ks[i])&&!RECENT.has(ks[i])),f2=f1.length?f1:a.filter((_,i)=>!SEEN.has(ks[i]));
+ const x=pick0(f2.length?f2:a),k=txtKey(x);if(k)SEEN.add(k);return x}
+function recentStart(){SEEN=new Set();RECENT=new Set([].concat(...(S.recent||[])))}
+function recentEnd(){const R=S.recent||(S.recent=[]);R.push([...SEEN].slice(-500));while(R.length>3)R.shift()}
 const chance=p=>Math.random()<p;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
@@ -1382,7 +1398,7 @@ function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)retu
   for(const k of RUN_KEYS)s[k]=r[k];localStorage.setItem(RKEY,JSON.stringify(s));if(S.runCurry){S.runCurry=0;save()}}catch(e){}}
 function runSnap(){try{const s=JSON.parse(localStorage.getItem(RKEY)||'null');return s&&s.v===1&&s.map&&s.party?s:null}catch(e){return null}}
 function clearRun(){try{localStorage.removeItem(RKEY)}catch(e){}if(S.runCurry){S.runCurry=0;save()}}
-function resumeRun(){const s=runSnap();if(!s)return false;if(S.runCurry){S.curry=clamp(S.curry-S.runCurry,0,99);S.runCurry=0;save()}
+function resumeRun(){const s=runSnap();if(!s)return false;recentStart();if(S.runCurry){S.curry=clamp(S.curry-S.runCurry,0,99);S.runCurry=0;save()}
  run=Object.assign({q:[],log:[],ev:null,stamp:null,paused:false,chemUsed:[],banner:null},s,{phase:'choose'});
  run.party=s.party.map(p=>Object.assign({c:CH[p.id],bub:'',face:p.down?'×':'',bat:-1},p));run.last=run.party.find(m=>m.id===s.last)||null;
  run.day=SCRIPT.days.find(d=>d.id===s.day)||null;run.dy=run.ly=run.yen;run.log=s.log;log({sys:1,text:'— 이어서 진행합니다 —'});
@@ -1469,7 +1485,7 @@ function persistEnd(r,reason){
  ids.forEach(outOf);const C=S.cond||(S.cond={});for(const c of CHARS){const x=C[c.id]||(C[c.id]={streak:0,rest:0});if(ids.includes(c.id)){x.streak++;x.rest=0;S.out[c.id]=(S.out[c.id]||0)+1}else{x.rest++;x.streak=0}}
  out.wish=wishCheck(r,ok);save();return out}
 function newRun(ids){
- clearRun();
+ clearRun();recentStart();
  run={party:ids.map(id=>({id,c:CH[id],hp:100,sp:has('tea')?55:50,msp:has('tea')?55:50,mvp:0,mis:0,bub:'',face:'',bat:-1,down:false})),
   turn:1,zone:'gate',mood:clamp(60+(has('game')?8:0),0,100),yen:0,tre:0,tval:0,tags:[],used:{},q:[],phase:'running',log:[],beat:0,clock:180+R(0,40),
   speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0,heat:0,stamp:null,chains:[],pairs:[],day:null,maxT:7};
@@ -1582,7 +1598,7 @@ function endRun(reason){
  const mvp=[...r.party].sort((a,b)=>b.mvp-a.mvp)[0],mis=[...r.party].sort((a,b)=>b.mis-a.mis)[0];
  const misWhy=m=>hasTag('100엔 손실',m.id)?'자판기 100엔 분실':hasTag('배탈',m.id)?'수상한 음료 시음':hasTag('함정 발동',m.id)?'보물상자 함정 발동':'크고 작은 헛발질';
  const line=r.hidden?'존재하지 않는 역은, 분명히 존재했다.':hasTag('함정 발동')?'보물상자는 함부로 열지 말 것.':hasTag('100엔 손실')?'메멘토스 자판기는 믿지 말 것.':hasTag('배탈')?'정체불명의 음료는 마시지 말 것.':reason==='forced'?'무리한 탐사는 금물. 다음엔 카레를 챙기자.':r.mood>=70?'오늘의 괴도단, 분위기 최고.':'무사 귀환. 내일도 메멘토스!';
- S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);S.lastChains=r.chains.map(x=>x.id);S.lastDay=S.today;S.today=null;save();
+ recentEnd();S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);S.lastChains=r.chains.map(x=>x.id);S.lastDay=S.today;S.today=null;save();
  if(reason==='forced'||rescue)moment('긴급 구출·전멸',rescue?88:90,{});if(r.hidden)moment('히든',85,{});
  if(r.reaper&&reason!=='forced'){moment('거두는 자 탈출',72,{});r.escLines=reaperLines('escape')}
  if((r.relicYen||0)>=800&&(r.relics||[]).length)moment('유물 대박',50,{이름:relicOf(r.relics[0]).name,엔:'¥'+fmt(r.relicYen)});
@@ -1756,7 +1772,8 @@ function vExplore(){
   <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
- return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><div class="xrow">${r.mom?`<span class="tag flow ${r.mom>0?'up':'dn'}" id="flowtag" title="기세 ${r.mom>0?'+':''}${r.mom} · 탐색 수확 ${r.mom>0?'+':''}${Math.round(r.mom*MOM_STEP*100)}%">FLOW ${r.mom>0?'▲':'▼'}${Math.abs(r.mom)}</span>`:''}<span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></div></header>
+ const ho=ui.hud||r.tut||!!tq;/* 첫 판과 튜토리얼 중에는 다 펼쳐 둔다 (강조 대상이 칩·태그일 수 있음) */
+ return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''} ${ho?'hudo':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><div class="xrow">${r.mom?`<span class="tag flow ${r.mom>0?'up':'dn'}" id="flowtag" title="기세 ${r.mom>0?'+':''}${r.mom} · 탐색 수확 ${r.mom>0?'+':''}${Math.round(r.mom*MOM_STEP*100)}%">FLOW ${r.mom>0?'▲':'▼'}${Math.abs(r.mom)}</span>`:''}<span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span><button class="hudt m-${ml.k}" data-act="hud" aria-expanded="${ho}" aria-label="분위기 ${ml.l} · 상태 더 보기">${ho?'▴':'MOOD ▾'}</button></div></div></header>
  <div class="chipbar">${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
  ${(()=>{const rl=Object.entries(r.rel||{}).filter(([k])=>k.split('+').every(id=>r.party.some(m=>m.id===id))),rc=r.relics||[];
   return rl.length||rc.length?`<div class="rels">${rc.map(id=>`<span class="relic" title="${esc(relicOf(id).eff)}">◆ ${esc(relicOf(id).name)}</span>`).join('')}${rl.map(([k,v])=>`<span class="rel r${['의기투합','티격태격','냉전','뜻밖의 신뢰'].indexOf(v)}">${k.split('+').map(id=>CH[id].code).join(' × ')} · ${v}</span>`).join('')}</div>`:''})()}</div>
@@ -1921,7 +1938,7 @@ function countYen(){
  raf=requestAnimationFrame(tick);
 }
 function showBanner(b){
- if(RM)return;document.querySelectorAll('.banner').forEach(x=>x.remove());
+ if(RM||tq)return;document.querySelectorAll('.banner').forEach(x=>x.remove());
  const el=document.createElement('div');el.className='banner';el.setAttribute('aria-hidden','true');
  el.innerHTML=`<span>${rn(b.t)}<small>${esc(b.s)}</small></span>`;document.body.appendChild(el);
  setTimeout(()=>el.remove(),1150);
@@ -1943,7 +1960,7 @@ const tutDone=id=>(S.tutorialStep||[]).includes(id);
 const tutRun=()=>!!run&&run.tut&&!run.tutOff;
 let tq=null;/* 지금 떠 있는 단계: {id, lines, i, br(조커가 고른 가지 A/B), skip(건너뛰기 확인 중)} */
 function tutOpen(id){const L=(SCRIPT.tut||{})[id]||TUT_HINT_DEF[id];if(!L||!L.length)return false;
- tq={id,lines:L,i:0,br:null,skip:false};
+ tq={id,lines:L,i:0,br:null,skip:false};document.querySelectorAll('#app .ex').forEach(e=>e.classList.add('hudo'));document.querySelectorAll('.banner').forEach(x=>x.remove());/* 배너가 강조 대상을 덮지 않게 */
  if(id==='T-6'&&run){run.stamp=null;document.querySelectorAll('#app .rstamp').forEach(e=>e.remove())}/* 결과 표시가 태그를 가리지 않게 */
  if(id[0]==='N'){(S.seenHints||(S.seenHints=[])).push(id);S.hintSlot=S.codex.reports;save()}
  tutDraw();return true}
@@ -2013,7 +2030,11 @@ function tutDraw(){const el=$('#tutlayer');if(!tq){el.innerHTML='';el.className=
  const f=el.querySelector('.tch button,.tnext')||el.querySelector('.tdlg');if(f){if(f.classList.contains('tdlg'))f.tabIndex=-1;f.focus({preventScroll:true})}}
 /* 스포트라이트: 강조 대상 둘레만 밝게, 빨간 점선 테두리와 화살표. 화면이 움직이면 다시 잰다 */
 function tutSpot(force){const el=$('#tutlayer');if(!tq||!el.firstChild)return;
- const W=innerWidth,H=innerHeight,P=6,rs=tutTargets().map(t=>{const r=t.getBoundingClientRect();return {x:Math.round(r.left-P),y:Math.round(r.top-P),w:Math.round(r.width+P*2),h:Math.round(r.height+P*2)}});
+ const W=innerWidth,H=innerHeight,P=6,tg=tutTargets();
+ /* 폰에서 강조 대상이 화면이나 사건 시트 밖에 있으면 먼저 보이게 스크롤 (첫 사건에서 선택지가 대화창 아래에 숨던 문제) */
+ for(const t of tg){const r=t.getBoundingClientRect();if(r.bottom>H-4||r.top<0){t.scrollIntoView({block:'nearest',inline:'nearest'});break}}
+ const inSheet=tg.some(t=>t.closest('.evt'));
+ const rs=tg.map(t=>{const r=t.getBoundingClientRect();return {x:Math.round(r.left-P),y:Math.round(r.top-P),w:Math.round(r.width+P*2),h:Math.round(r.height+P*2)}});
  const sv=el.querySelector('.tdim'),key=JSON.stringify(rs)+W+'x'+H;if(!force&&sv.dataset.k===key)return;sv.dataset.k=key;
  sv.setAttribute('viewBox',`0 0 ${W} ${H}`);sv.setAttribute('width',W);sv.setAttribute('height',H);
  const a=rs[0],up=a&&a.y<90,ar=a?(up?`<path class="tarrow" d="M${a.x+a.w/2-11} ${a.y+a.h+22}l11-14l11 14z"/>`:`<path class="tarrow" d="M${a.x+a.w/2-11} ${a.y-22}l11 14l11-14z"/>`):'';
@@ -2021,7 +2042,7 @@ function tutSpot(force){const el=$('#tutlayer');if(!tq||!el.firstChild)return;
  <rect width="${W}" height="${H}" fill="rgba(8,4,5,${rs.length?.68:.45})" mask="url(#tmask)"/>${rs.map(r=>`<rect class="tring" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="6"/>`).join('')}${ar}`;
  /* 대화창은 강조 대상을 덜 가리는 쪽(위/아래)에 */
  const d=el.querySelector('.tdlg'),dh=d.offsetHeight+24,cover=y0=>rs.reduce((s,r)=>s+Math.max(0,Math.min(r.y+r.h,y0+dh)-Math.max(r.y,y0))/Math.max(1,Math.min(r.h,H)),0);
- d.classList.toggle('top',rs.length>0&&cover(0)<cover(H-dh))}
+ d.classList.toggle('top',rs.length>0&&(inSheet||cover(0)<cover(H-dh)))}/* 사건 시트는 화면 아래에 붙어 있으니 대화창은 위로 */
 /* 대화창이 떠 있는 동안: 강조한 곳(눌러야 넘어가는 줄)만 누를 수 있고, 나머지를 누르면 다음 줄로 */
 document.addEventListener('click',e=>{if(!tq||e.target.closest('#tutlayer'))return;const l=tutLine();
  if(l.go==='act'&&!tq.skip&&tutTargets().some(t=>t.contains(e.target))){/* 대상이 여럿이면 마지막 것만 다음 줄로, 앞의 것은 그냥 조작 */
@@ -2069,6 +2090,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='move'){move(v);return}
  if(a==='choice'){choose(+v);return}
  if(a==='pause'){run.paused=!run.paused;render();schedule();return}
+ if(a==='hud'){ui.hud=!ui.hud;render();return}
  if(a==='speed'){run.speed=run.speed===1?2:1;render();schedule();return}
  if(a==='manual'){run.manual=!run.manual;render();schedule();return}
  if(a==='next'){step();return}
