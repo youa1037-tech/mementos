@@ -2390,7 +2390,9 @@ function tutDraw(){const el=$('#tutlayer');if(!tq){el.innerHTML='';el.className=
 function tutSpot(force){const el=$('#tutlayer');if(!tq||!el.firstChild)return;
  const W=innerWidth,H=innerHeight,P=6,tg=tutTargets();
  /* 폰에서 강조 대상이 화면이나 사건 시트 밖에 있으면 먼저 보이게 스크롤 (첫 사건에서 선택지가 대화창 아래에 숨던 문제) */
- for(const t of tg){const r=t.getBoundingClientRect();if(r.bottom>H-4||r.top<0){t.scrollIntoView({block:'nearest',inline:'nearest'});break}}
+ /* 대화창 한 줄마다 자동 스크롤은 한 번만. 강조 대상이 여럿이면(보고서 + 후일담처럼) 하나라도 보이면 스크롤하지 않는다 — 둘이 한 화면에 안 들어가 위아래로 끝없이 튀던 문제 */
+ const lk=tq.id+'#'+tq.i;if(tq.sk!==lk&&tg.length){const B=tg.map(t=>t.getBoundingClientRect()),full=r=>r.top>=0&&r.bottom<=H-4,part=r=>r.top<H-4&&r.bottom>0;
+  if(tg.length===1?!full(B[0]):!B.some(part)){tg[0].scrollIntoView({block:'nearest',inline:'nearest'});tq.sk=lk}}
  const inSheet=tg.some(t=>t.closest('.evt'));
  const rs=tg.map(t=>{const r=t.getBoundingClientRect();return {x:Math.round(r.left-P),y:Math.round(r.top-P),w:Math.round(r.width+P*2),h:Math.round(r.height+P*2)}});
  const sv=el.querySelector('.tdim'),key=JSON.stringify(rs)+W+'x'+H;if(!force&&sv.dataset.k===key)return;sv.dataset.k=key;
