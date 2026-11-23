@@ -146,6 +146,9 @@ def conds(text, where):
         m = re.fullmatch(r'관계\s*:\s*Lv\.?\s*(\d)\s*\+?\s*(이상)?', tok)
         if m:
             out.append({'k': 'bond', 'v': int(m[1])}); continue
+        m = re.fullmatch(r'도전\s*(\d)\s*(이상)?', tok)
+        if m:
+            out.append({'k': 'lv', 'v': int(m[1])}); continue
         if tok.startswith('소원완료:'):
             i = name_id(tok.split(':', 1)[1].strip(), where)
             if i:
