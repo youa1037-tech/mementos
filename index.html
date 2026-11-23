@@ -789,7 +789,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 #doors i{position:absolute;top:0;bottom:0;width:50.5%;background:#b9b2ac;transition:transform .4s var(--snap,ease)}
 #doors i::before{content:'';position:absolute;top:22%;height:30%;left:18%;right:14%;background:#16233a;border:6px solid #6f6863}
 #doors i::after{content:'';position:absolute;left:0;right:0;top:62%;height:16px;background:var(--red)}
-#doors i:first-child{left:0;transform:translateX(-101%);border-right:3px solid #141012}#doors i:last-child{right:0;transform:translateX(101%);border-left:3px solid #141012}
+#doors i:first-of-type{left:0;transform:translateX(-101%);border-right:3px solid #141012}#doors i:last-of-type{right:0;transform:translateX(101%);border-left:3px solid #141012}/* 마지막 자식은 <b> 글자라 last-child가 안 맞던 문제 */
 #doors b{position:absolute;left:50%;top:12%;transform:translate(-50%,-30px) rotate(-3deg);font-family:var(--en);font-weight:400;font-size:38px;background:var(--ink);color:#141012;padding:2px 14px;opacity:0;transition:opacity .2s,transform .3s}
 #doors.shut{pointer-events:auto}#doors.shut i{transform:none}#doors.shut b{opacity:1;transform:translate(-50%,0) rotate(-3deg)}
 #doors.open i{transition-duration:.35s}
