@@ -30,14 +30,15 @@ for(let k=0;k<a.n;k++){
   if(r.phase==='choose'){
    const al=r.party.filter(m=>m.hp>0);
    if(a.strat==='cautious'&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
-   const opts=[r.zone,...g.ZONES[r.zone].links].filter(g.canEnter);
+   const cur=r.map.st[r.at],opts=[cur.id,...cur.links].filter(g.canEnter),kOf=id=>r.map.st.find(s=>s.id===id).k;
    const order=a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
-   g.move(order.find(o=>opts.includes(o)));continue}
+   let to=cur.id;for(const k of order){const c=opts.filter(o=>kOf(o)===k);if(c.length){to=c[Math.floor(Math.random()*c.length)];break}}
+   g.move(to);continue}
   if(r.phase==='event'){ch++;const c=r.ev.choices;ev.push(r.ev.title);let i=c.findIndex(x=>!x.dis);
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
    g.choose(i);continue}
   g.step()}
- const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:/긴급/.test(x.reason),ret:/자발/.test(x.reason),hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id})}
+ const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id})}
 return out}
 """
 
