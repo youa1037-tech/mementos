@@ -13,10 +13,10 @@
    PICTURE: 붉은 선로가 소실점으로 빨려 드는 터널 포스터, 탐사 중엔 노선도와 말풍선
    COLOUR and TYPE: 먹색 바탕, 신호 빨강, 종이 흰색 / Black Han Sans + Anton + Noto Sans KR
    LAYOUT: 모바일 한 줄 스택, 넓은 화면은 노선도 | 로그 두 칸 */
-:root{color-scheme:dark;--bg:#0f0b0c;--p:#1b1416;--p2:#2a1e22;--ink:#f6f1ea;--mut:#b9aca5;--red:#e5191c;--red2:#8e0f13;--gold:#f5b942;--line:#3b2b2f;--line2:#4a3237;--faint:#8d807a;--hd:'Black Han Sans','Noto Sans KR',sans-serif;--en:'Anton','Black Han Sans',sans-serif;--disp:'Archivo Black','Black Han Sans',sans-serif}
+:root{color-scheme:dark;--bg:#0f0b0c;--p:#1b1416;--p2:#2a1e22;--ink:#f6f1ea;--mut:#b9aca5;--red:#e5191c;--red2:#8e0f13;--gold:#f5b942;--line:#3b2b2f;--line2:#4a3237;--faint:#8d807a;--redt:#ff5a5a;--hd:'Black Han Sans','Noto Sans KR',sans-serif;--en:'Anton','Black Han Sans',sans-serif;--disp:'Archivo Black','Black Han Sans',sans-serif}
 :root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg) radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 'Noto Sans KR',system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+body{word-break:keep-all;overflow-wrap:anywhere;margin:0;background:var(--bg) radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 'Noto Sans KR',system-ui,sans-serif;overflow-x:clip;min-height:100vh}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 h1,h2,h3{font-family:var(--hd);font-weight:400;line-height:1.05;margin:0;text-wrap:balance}
@@ -92,7 +92,7 @@ h1,h2,h3{font-family:var(--hd);font-weight:400;line-height:1.05;margin:0;text-wr
 .tile{background:var(--p);padding:8px;border-top:3px solid var(--c);transition:opacity .3s}
 .tile.down{opacity:.45;filter:grayscale(1)}
 .bub{position:relative;background:var(--ink);color:#141012;font-size:13px;line-height:1.35;padding:6px 8px;border-radius:12px 12px 12px 2px;margin-bottom:12px;transform-origin:14px 100%}
-.bub span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.7em}
+.bub span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
 .bub::after{content:'';position:absolute;left:10px;bottom:-8px;border-style:solid;border-width:8px 9px 0 0;border-color:var(--ink) transparent transparent}
 .bub.fresh{animation:pop .45s cubic-bezier(.34,1.56,.64,1)}
 @keyframes pop{0%{transform:scale(.4) rotate(-7deg);opacity:0}60%{transform:scale(1.06) rotate(1deg);opacity:1}100%{transform:none}}
@@ -162,7 +162,7 @@ button.node.opt:hover{background:var(--line)}
 #log em{display:inline-block;font-style:normal;font-size:13px;background:var(--p2);color:var(--gold);padding:0 6px;margin-left:6px}
 #log li.sys p{color:var(--mut)}
 #log li.ev p{color:#fff;font-family:var(--hd);font-size:18px;border-left-color:var(--red)}
-#log li.turn p{color:var(--red);font-family:var(--hd)}
+#log li.turn p{color:var(--redt);font-family:var(--hd)}
 #log li.warn p{color:#ff7a7a;font-weight:700}
 .evt{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#150f11;border-top:4px solid var(--red);padding:16px max(4vw,14px) calc(18px + env(safe-area-inset-bottom));box-shadow:0 -24px 48px rgba(0,0,0,.7);max-height:78vh;overflow:auto}
 .evt>div{max-width:640px;margin:0 auto}
@@ -245,7 +245,7 @@ textarea{width:100%;max-width:520px;display:block;margin:14px auto 0;min-height:
 .party{margin-top:8px;gap:6px}
 .tile{padding:6px 8px 8px}
 .nm .hpn{margin-left:auto;font-family:var(--en);font-size:16px;line-height:1}
-.nm .hpn.low{color:var(--red)}
+.nm .hpn.low{color:var(--redt)}
 .strip{display:none;list-style:none;margin:0;padding:0}
 .strip li{flex:1;position:relative;text-align:center;font-size:13px;color:var(--mut);padding-top:18px;white-space:nowrap}
 .strip li::before{content:'';position:absolute;top:6px;left:0;right:0;height:3px;background:var(--line2)}
@@ -331,7 +331,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .evt h3{font-size:28px;line-height:1.15;margin-bottom:2px}
 .evt .kr{font-size:14px;color:var(--mut);margin:0 0 4px;font-weight:700}
 .sub{display:block;font:700 13px/1.3 'Noto Sans KR',sans-serif;color:var(--mut);margin-top:4px}
-.evt .intro b{color:var(--red)}
+.evt .intro b{color:var(--redt)}
 .ch{background:none;border:0;width:auto;max-width:calc(100% - var(--i)*16px);margin-left:calc(var(--i)*16px);padding:6px 16px 6px 4px;position:relative;isolation:isolate;min-height:52px}
 .ch::before{content:'';position:absolute;inset:0 -6px 0 -8px;z-index:-1;background:var(--red);clip-path:polygon(1% 12%,100% 0,97% 90%,0 100%);transform:scaleX(0);transform-origin:left;transition:transform .16s cubic-bezier(.2,.9,.25,1.1)}
 .ch:hover:not(:disabled)::before,.ch:focus-visible::before,.ch:active:not(:disabled)::before{transform:none}
@@ -450,6 +450,9 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .today b i{font-style:normal;font-family:var(--en);font-size:15px;color:var(--mut);letter-spacing:.04em;margin-left:6px}
 .today p{margin:4px 0 0;font-size:14px;color:#ebe3dd}.today p.rule{color:var(--gold);font-weight:700}
 .today p.dq em{font-style:normal;font-family:var(--en);margin-right:6px;letter-spacing:.03em}
+@media(max-width:600px){#log li{grid-template-columns:minmax(0,1fr)}#log time{display:none}
+ .ch{max-width:calc(100% - var(--i)*6px);margin-left:calc(var(--i)*6px)}}
+@media(min-width:900px){.bub{font-size:14px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -555,7 +558,7 @@ const pct=p=>Math.round(p*100)+'%';
 const bat=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0};
 const ig=w=>w+(bat(w)?'이':'가'),un=w=>w+(bat(w)?'은':'는'),ul=w=>w+(bat(w)?'을':'를'),wa=w=>w+(bat(w)?'과':'와');
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-function rn(t){let h=7,d=0;const sp=[...t].map((c0,i)=>{let ch=c0;if(ch===' ')return '</span><span class="rn-sp"></span><span class="rnword">';h=(h*31+ch.charCodeAt(0)*(i+3))%10007;const v=h%6;if(/[A-HJKM-Z]/.test(ch)&&i>0&&(h>>7)%3===0)ch=ch.toLowerCase();const r=((h>>4)%7-3)*2,b=(h>>6)%3===0;d+=[1,2,1,1,3,1,2][h%7]*33;return `<span class="rn rn${v}${b?' rnb':''}" style="--r:${r}deg;--rd:${d}ms">${esc(ch)}</span>`}).join('');return `<span class="sr">${esc(t)}</span><span aria-hidden="true"><span class="rnword">${sp}</span></span>`}
+function rn(t){let h=7,d=0;const sp=[...t].map((c0,i)=>{let ch=c0;if(ch===' ')return '</span><span class="rn-sp"></span><wbr><span class="rnword">';h=(h*31+ch.charCodeAt(0)*(i+3))%10007;const v=h%6;if(/[A-HJKM-Z]/.test(ch)&&i>0&&(h>>7)%3===0)ch=ch.toLowerCase();const r=((h>>4)%7-3)*2,b=(h>>6)%3===0;d+=[1,2,1,1,3,1,2][h%7]*33;return `<span class="rn rn${v}${b?' rnb':''}" style="--r:${r}deg;--rd:${d}ms">${esc(ch)}</span>`}).join('');return `<span class="sr">${esc(t)}</span><span aria-hidden="true"><span class="rnword">${sp}</span></span>`}
 const wpick=w=>{let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){if((r-=w[i])<0)return i}return w.length-1};
 
 /* ============ 저장 (LocalStorage) ============ */
@@ -1136,9 +1139,11 @@ function vTut(){
 function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;save();ui.screen=ui.tafter;ui.enter=true;render();window.scrollTo(0,0);return}ui.tstep=n;ui.enter=true;render();window.scrollTo(0,0)}
 function render(){
  const ol=$('#log'),stick=!ol||ol.scrollHeight-ol.scrollTop-ol.clientHeight<40,top=ol?ol.scrollTop:0;
+ const fa=document.activeElement,fk=fa&&fa.closest&&fa.closest('#app')&&fa.dataset?fa.dataset.act:null;
  const app=$('#app');app.innerHTML=({main:vMain,party:vParty,explore:vExplore,result:vResult,shop:vShop,codex:vCodex,tutorial:vTut})[ui.screen]();
  app.classList.toggle('scr-in',!!ui.enter&&!RM);ui.enter=false;
  const l=$('#log');if(l)l.scrollTop=stick?l.scrollHeight:top;
+ if(fk){const el=[...document.querySelectorAll('#app [data-act]')].find(x=>x.dataset.act===fk);if(el)el.focus({preventScroll:true})}
  if(ui.screen==='explore'&&run){countYen();if(run.banner){showBanner(run.banner);run.banner=null}}
  const inc=$('#inc');if(inc&&inc.dataset.to)countTo(inc,0,+inc.dataset.to,1100,500);
 }
