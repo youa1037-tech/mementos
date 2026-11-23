@@ -1627,10 +1627,10 @@ function choose(i,by){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!
  const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});{const l=[...out].reverse().find(b=>b&&!b.fn);if(l)l.hold=1}/* 고른 결과 = 장면 */run.stamp=resultStamp(c.label,out);sfx(run.stamp.k==='bad'?'bad':'good');run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
 /* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
 function resultStamp(label,out){const bl=out.filter(b=>!b.fn),txt=b=>(b.n||'')+(b.text||'')+(b.res||'');
- const good=bl.some(b=>/\+/.test(b.res||'')),bad=bl.some(b=>b.warn||/실패|-¥|분위기 -/.test(txt(b)))||(!good&&bl.some(b=>/HP -/.test(txt(b))));/* 이기면서 조금 긁힌 건 성공으로 */
+ const good=bl.some(b=>/\+/.test(b.res||'')),bad=bl.some(b=>b.warn||(!b.relic&&/실패|-¥|분위기 -/.test(txt(b))))/* 유물 설명 속 '대실패'는 결과가 아님 */||(!good&&bl.some(b=>/HP -/.test(txt(b))));/* 이기면서 조금 긁힌 건 성공으로 */
  let sum=bl.map(b=>b.res).filter(Boolean).join(' · ');const w=bl.find(b=>b.warn);if(w)sum=w.text+(sum?' · '+sum:'');if(!sum){const f=bl.find(b=>b.text||b.n);sum=f?(f.text||f.n):'…'}
  return {label,sum:sum.length>60?sum.slice(0,59)+'…':sum,k:bad?'bad':good?'good':'',until:Date.now()+2600,shown:false}}
-function vStamp(){const x=run.stamp;if(!x||Date.now()>x.until)return '';const an=!x.shown;x.shown=true;
+function vStamp(){const x=run.stamp;if(!x||Date.now()>x.until||run.hold)return '';/* 장면 대기 중엔 읽을 줄을 가리지 않게 */const an=!x.shown;x.shown=true;
  return `<div class="rstamp ${x.k} ${an?'anim':''}" role="status"><small>▶ ${esc(x.label)}</small><b>${esc(x.sum)}</b></div>`}
 function useCurry(){if(!run||S.curry<1||run.phase==='done')return;curryAdd(-1);
  for(const m of run.party){if(m.hp<=0){m.hp=30;m.down=false}else hp(m,30);m.sp=clamp(m.sp+10,0,m.msp)}
