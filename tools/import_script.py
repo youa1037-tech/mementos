@@ -146,6 +146,12 @@ def conds(text, where):
         m = re.fullmatch(r'관계\s*:\s*Lv\.?\s*(\d)\s*\+?\s*(이상)?', tok)
         if m:
             out.append({'k': 'bond', 'v': int(m[1])}); continue
+        m = re.fullmatch(r'관계\s*:\s*(의기투합|티격태격|냉전|뜻밖의 신뢰)', tok)
+        if m:
+            out.append({'k': 'rel', 'v': m[1]}); continue
+        m = re.fullmatch(r'위험도\s*(\d+)\s*이상', tok)
+        if m:
+            out.append({'k': 'heat', 'v': int(m[1])}); continue
         m = re.fullmatch(r'도전\s*(\d)\s*(이상)?', tok)
         if m:
             out.append({'k': 'lv', 'v': int(m[1])}); continue
@@ -326,6 +332,51 @@ def new_tabs(wb, out):
         if ONLY_DONE and s(d.get('상태')) not in ('완료', '게임 반영'):
             continue
         out['evIntro'].setdefault(eid, []).append(t)
+    # 조합 확장: 조합 사건(두 갈래 결말) · 조합 시너지(판 전체 규칙) · 유물 시너지(조건부 강화)
+    skip = lambda d: s(d.get('상태')) == '예시' or (ONLY_DONE and s(d.get('상태')) not in ('완료', '게임 반영'))
+    out['combos'] = []
+    for d in tab('조합 사건'):
+        w = f"조합 사건 {s(d.get('ID'))}"
+        if skip(d) or not s(d.get('제목')):
+            continue
+        a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w)
+        if not (a and b):
+            unknown.append(f'{w}: 캐릭터 확인'); continue
+        ch = []
+        for k in '①②':
+            if not s(d.get(f'{k} 버튼 문구')):
+                continue
+            r = s(d.get(f'{k} 관계'))
+            ch.append({'label': s(d[f'{k} 버튼 문구']), 'sub': s(d.get(f'{k} 설명')), 'n': s(d.get(f'{k} 결말 서술')), 'qa': s(d.get(f'{k} A 대사')),
+                       'qb': s(d.get(f'{k} B 대사')), 'fx': effects(d.get(f'{k} 효과'), f'{w} {k}'), 'rel': r if r in RELS else None})
+        if len(ch) < 2:
+            unknown.append(f'{w}: 결말이 두 개가 아님'); continue
+        zones = [ZONE[z.strip()] for z in SEP.split(s(d.get('구역'))) if z.strip() in ZONE]
+        out['combos'].append({'id': s(d['ID']), 'a': a, 'b': b, 'title': s(d['제목']), 'en': s(d.get('영문 제목')), 'zones': zones,
+                              'c': conds(d.get('필요 조건(선택)'), w), 'intro': s(d.get('도입 서술')), 'qa': s(d.get('A 대사')), 'qb': s(d.get('B 대사')), 'ch': ch})
+    EFF = ['탐색 엔 +%', '보물 발견 +%', '섀도 승리 확률 +%p', '사건 성공 확률 +%p', '함정 피해 -%', '회피 성공 +%p', '시작 분위기 +', '쉬는 시간 회복 ×', '위험 수당 +%', '쌍대사 빈도 ×']
+    COST = ['없음', '의견 충돌 빈도 ×', '냉전 확률 +%p', '이동할 때 HP -', 'SP 소모 +%', '대실패 빈도 ×', '매 턴 분위기 -']
+    num = lambda v: float(v) if s(v) not in ('', 'None') else 0
+    out['syn'] = []
+    for d in tab('조합 시너지'):
+        w = f"조합 시너지 {s(d.get('캐릭터 A'))}+{s(d.get('캐릭터 B'))}"
+        if skip(d) or not s(d.get('시너지 이름')):
+            continue
+        a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w); e = s(d.get('효과')); c = s(d.get('대가')) or '없음'
+        if not (a and b) or e not in EFF or c not in COST:
+            unknown.append(f'{w}: 캐릭터 · 효과 · 대가 확인'); continue
+        out['syn'].append({'a': a, 'b': b, 'name': s(d['시너지 이름']), 'en': s(d.get('영문 이름')), 'eff': e, 'ev': num(d.get('효과 크기')),
+                           'cost': c, 'cv': num(d.get('대가 크기')), 'n': s(d.get('발동 서술')), 'qa': s(d.get('A 대사')), 'qb': s(d.get('B 대사'))})
+    REFF = ['효과 ×2', '엔 +', '보물 +1', '전원 HP +', '전원 SP +', '분위기 +', '위험도 -1']
+    out['rsyn'] = []
+    for d in tab('유물 시너지'):
+        rid = s(d.get('유물 ID')); w = f'유물 시너지 {rid}'
+        if skip(d) or not s(d.get('같이 있어야 하는 것(조건)')):
+            continue
+        e = s(d.get('추가 효과'))
+        if not re.fullmatch(r'R-(0[1-9]|1[0-3])', rid) or e not in REFF:
+            unknown.append(f'{w}: 유물 ID · 추가 효과 확인'); continue
+        out['rsyn'].append({'id': rid, 'c': conds(d.get('같이 있어야 하는 것(조건)'), w), 'eff': e, 'v': num(d.get('크기')), 'n': s(d.get('발동 서술'))})
     # 역 묘사: 시트가 원본. 채워진 역은 코드 문장 대신 이걸 쓴다
     out['zones'] = {}
     ZK = {'도착 묘사': 'arr', '탐색 동작': 'scout', '도착 효과 문장': 'arrive'}
