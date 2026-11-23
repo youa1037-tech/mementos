@@ -7,6 +7,7 @@ index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
 헤드리스 크롬에서 전략 3가지로 자동 플레이하고 지표를 출력합니다.
 - greedy-first : 매 턴 가장 깊은 구역, 선택지는 항상 첫 번째 (아무 생각 없는 플레이)
 - greedy-best  : 매 턴 가장 깊은 구역, 선택지는 미리 정한 선호 순서
+- shallow      : 얕은 역(통로·승강장)만 돈다. HP 40 이하·전투불능·거두는 자면 귀환
 - cautious     : 위험도 7 이상이면 승강장으로 물러나 위험도를 낮추고, 누군가 HP 40 이하·전투불능이면 귀환
 """
 import json, os, statistics as st, sys, tempfile, collections
@@ -29,17 +30,17 @@ for(let k=0;k<a.n;k++){
  while(r.phase!=='done'&&guard++<3000){
   if(r.phase==='choose'){
    const al=r.party.filter(m=>m.hp>0);
-   if(a.strat==='cautious'&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
+   if((a.strat==='cautious'||a.strat==='shallow')&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
    if(r.reaper&&a.strat!=='reckless'){g.endRun('retreat');break}/* 거두는 자가 나타나면 튄다 */
    const cur=r.map.st[r.at],opts=[cur.id,...cur.links].filter(g.canEnter),kOf=id=>r.map.st.find(s=>s.id===id).k;
-   const order=a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
+   const order=a.strat==='shallow'?['pass','gate','lost','plat']:a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
    let to=cur.id;for(const k of order){const c=opts.filter(o=>kOf(o)===k);if(c.length){to=c[Math.floor(Math.random()*c.length)];break}}
    g.move(to);continue}
   if(r.phase==='event'){ch++;const c=r.ev.choices;ev.push(r.ev.title);let i=c.findIndex(x=>!x.dis);
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
    g.choose(i);continue}
   g.step()}
- const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id,reaper:!!r.reaper,warn:!!r.rw1,relics:(r.relics||[]).length,rels:Object.keys(r.rel||{}).length,cut:x.cut&&x.cut.k})}
+ const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id,reaper:!!r.reaper,warn:!!r.rw1,relics:(r.relics||[]).length,rels:Object.keys(r.rel||{}).length,cut:x.cut&&x.cut.k,team:x.team||0,bonus:x.bonus||0,mood:r.mood})}
 return out}
 """
 
@@ -58,7 +59,7 @@ def main():
         pg.route('**/fonts.*/**', lambda r: r.abort())
         pg.goto('file://' + tmp.name)
         for label, state in [('기본', BASE), ('풀업', FULL)]:
-            for strat in ['greedy-first', 'greedy-best', 'reckless', 'cautious']:
+            for strat in ['greedy-first', 'greedy-best', 'reckless', 'cautious', 'shallow']:
                 res = pg.evaluate(JS, {"n": N, "state": state, "strat": strat})
                 inc = [x['inc'] for x in res]; evc = collections.Counter(e for x in res for e in x['ev'])
                 rows.append(dict(state=label, strat=strat, n=N, inc_mean=round(st.mean(inc)), inc_median=st.median(inc),
@@ -74,11 +75,13 @@ def main():
                                  reaper=round(sum(x['reaper'] for x in res) / N * 100, 1),
                                  warn=round(sum(x['warn'] for x in res) / N * 100, 1),
                                  relics=round(st.mean(x['relics'] for x in res), 2),
-                                 rels=round(st.mean(x['rels'] for x in res), 1)))
+                                 rels=round(st.mean(x['rels'] for x in res), 1),
+                                 team=round(st.mean(x['team'] for x in res)), riskpay=round(st.mean(x['bonus'] for x in res)),
+                                 mood=round(st.mean(x['mood'] for x in res))))
                 cuts = collections.Counter(x['cut'] for x in res); rows[-1]['cuts'] = ', '.join(f'{k} {v}' for k, v in cuts.most_common(4))
         b.close()
     os.unlink(tmp.name)
-    hdr = ['state', 'strat', 'n', 'inc_mean', 'wipe', 'retreat', 'star5', 'warn', 'reaper', 'relics', 'rels', 'chain_end', 'pairs', 'hidden', 'cuts']
+    hdr = ['state', 'strat', 'n', 'inc_mean', 'wipe', 'retreat', 'star5', 'warn', 'reaper', 'riskpay', 'team', 'mood', 'rels', 'chain_end', 'pairs', 'hidden', 'cuts']
     print('| ' + ' | '.join(hdr) + ' |'); print('|' + '---|' * len(hdr))
     for r in rows: print('| ' + ' | '.join(str(r[h]) for h in hdr) + ' |')
 
