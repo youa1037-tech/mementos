@@ -14,15 +14,13 @@
 /* 로딩 화면: 원래 생기는 빈틈(큰 파일 해석 · 구글 폰트 교체)만 가린다. 일부러 기다리게 하지 않음 */
 #loader{position:fixed;inset:0;z-index:999;display:grid;place-items:center;align-content:center;gap:14px;background:#0f0b0c radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent 60%) no-repeat;color:#f6f1ea;font-family:Galmuri11,monospace;transition:opacity .4s,visibility .4s}
 #loader.out{opacity:0;visibility:hidden;pointer-events:none}
-#loader .ld-mask{width:84px;height:38px;margin-bottom:-6px;animation:ldblink 1.6s steps(2) infinite}
 #loader .ld-tun{width:240px;height:84px;perspective:140px;overflow:hidden;-webkit-mask:linear-gradient(transparent,#000 70%);mask:linear-gradient(transparent,#000 70%)}
 #loader .ld-rail{width:100%;height:220%;transform-origin:50% 100%;transform:rotateX(62deg) translateY(-50%);background:linear-gradient(90deg,transparent 30%,#e5191c 30% 33%,transparent 33% 67%,#e5191c 67% 70%,transparent 70%),repeating-linear-gradient(#0f0b0c 0 14px,#4a3237 14px 20px);background-size:100% 100%,52% 100%;background-position:0 0,50% 0;background-repeat:no-repeat,no-repeat;animation:ldrun .5s linear infinite}
 #loader p{margin:0}#loader .ld-t{font-size:16px;letter-spacing:.12em;margin-top:4px}
 #loader .ld-t b{color:#e5191c;font-weight:700}
 #loader .ld-s{font-size:12px;color:#8d807a;letter-spacing:.2em}
 @keyframes ldrun{to{background-position:0 0,50% 20px}}
-@keyframes ldblink{50%{opacity:.35}}
-@media(prefers-reduced-motion:reduce){#loader{transition:none}#loader .ld-rail,#loader .ld-mask{animation:none}}
+@media(prefers-reduced-motion:reduce){#loader{transition:none}#loader .ld-rail{animation:none}}
 /* VOICE: 장난스럽고 날렵한 괴도단 관찰 놀이터
    IDEA: 메멘토스 역의 붉은 안내판과 괴도단 예고장
    PICTURE: 붉은 선로가 소실점으로 빨려 드는 터널 포스터, 탐사 중엔 노선도와 말풍선
@@ -775,7 +773,6 @@ i.pc{display:inline-block;width:14px;height:14px;aspect-ratio:auto;vertical-alig
 </head>
 <body>
 <div id="loader" role="status" aria-live="polite" aria-label="메멘토스 진입 중">
-<svg class="ld-mask" viewBox="0 0 72 32" aria-hidden="true"><path d="M2 6Q36 -2 70 6L66 24Q50 32 36 22Q22 32 6 24Z" fill="#f6f1ea"/><ellipse cx="22" cy="14" rx="8" ry="5" fill="#0f0b0c"/><ellipse cx="50" cy="14" rx="8" ry="5" fill="#0f0b0c"/></svg>
 <div class="ld-tun" aria-hidden="true"><div class="ld-rail"></div></div>
 <p class="ld-t">메멘토스 <b>진입 중</b>…</p>
 <p class="ld-s">NOW ENTERING MEMENTOS</p>
