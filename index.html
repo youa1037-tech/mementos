@@ -732,6 +732,17 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 /* 조합 시너지 */
 .syns{margin:10px 0 4px;display:grid;gap:6px}.syns p{margin:0;padding:7px 10px;border-left:4px solid var(--gold,#f5b942);background:rgba(245,185,66,.08);font-size:14px;line-height:1.45}
 .syns b{font:400 13px var(--en);letter-spacing:.08em;color:var(--gold,#f5b942);margin-right:4px}.syns span{font:400 12px var(--en);color:var(--mut);margin-left:4px}.syns small{color:var(--mut);font-size:13px}
+/* 도감: 관계 보드 · 앨범 */
+.pgrid{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:3px;max-width:420px}
+.pgrid i{display:grid;place-items:center;font:400 13px/1 var(--en);font-style:normal;aspect-ratio:1}.pgrid i.x{visibility:hidden}
+.pc{aspect-ratio:1;border:2px solid transparent;padding:0;font:400 13px/1 var(--en);color:#141012;cursor:pointer;display:grid;place-items:center}
+i.pc{display:inline-block;width:14px;height:14px;aspect-ratio:auto;vertical-align:-2px;margin:0 3px 0 8px}
+.pc.t-1{background:#231e21}.pc.t0{background:#4a4045}.pc.t1{background:#7d6630}.pc.t2{background:#b88d32}.pc.t3{background:#f5b942}
+.pc.sy{border-color:#ffe08a;box-shadow:0 0 0 1px #141012 inset}.pc.on{outline:2px solid var(--ink);outline-offset:1px}
+.pleg{font-size:13px;line-height:1.9}
+.pdet{margin-top:12px;padding:12px;background:var(--p,#1b1618);border-left:4px solid var(--gold,#f5b942)}.pdet p{margin:4px 0;font-size:14px;line-height:1.5}
+.pdet .pn b{font:400 20px var(--en)}.pdet .pn small{color:var(--mut);margin-left:6px}.pdet .pl{display:inline-block;min-width:76px;font:400 13px var(--en);letter-spacing:.06em;color:var(--mut)}
+.ashots{display:grid;gap:10px}.shot.sm{margin:0;transform:rotate(-.6deg)}.shot.sm figcaption{font-size:15px}.shot.sm small{font-size:13px}
 </style>
 </head>
 <body>
@@ -1722,7 +1733,7 @@ function endRun(reason){
  if(r.reaper&&reason!=='forced'){moment('거두는 자 탈출',72,{});r.escLines=reaperLines('escape')}
  if((r.relicYen||0)>=800&&(r.relics||[]).length)moment('유물 대박',50,{이름:relicOf(r.relics[0]).name,엔:'¥'+fmt(r.relicYen)});
  const pz=persistEnd(r,reason);
- const cut=pickCut(r,inc);
+ const cut=pickCut(r,inc);if(cut&&!r.tut){const A=S.codex.album||(S.codex.album=[]);A.unshift({t:cut.t,d:new Date().toLocaleDateString('ko-KR'),ids:r.party.map(m=>m.id),g:'SABCD'[reason==='forced'?4:st>=5&&!(r.falls||[]).length?0:st>=4?1:st===3?2:st===2?3:4],lv:r.lv||0});if(A.length>40)A.length=40;save()}/* 도감 앨범 */
  ui.res={lv:r.lv||0,depthMax:S.depthMax||0,tutRun:!!r.tut,grade,gi,rec:{...(S.rec||{})},recNew:nw,deep:r.maxD||0,falls:r.falls||[],newb:r.newb||[],ids:r.party.map(m=>m.id),inc,bonus,team,mood:r.mood,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,cut,relics:(r.relics||[]).map(id=>relicOf(id).name),
   mvp:{id:mvp.id,why:MVPWHY[mvp.c.type]},mis:mis.mis>0?{id:mis.id,why:misWhy(mis)}:null,
   kind:rescue?'rescue':reason,reason:rescue?'첫 정찰 · 모르가나 긴급 구출':{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:`전원 전투불능 · 긴급 회수 (수익 ${Math.round(wipeKeep(r)*100)}%)`}[reason],
@@ -1973,8 +1984,31 @@ function vShop(){
  <button class="reset" data-act="reset">${ui.reset?'TAP AGAIN TO RESET ALL DATA':'RESET DATA'}</button>
  <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
 }
+/* 도감: 45쌍 관계 보드 — 칸 색 = 영구 관계 단계, 금테 = 시너지 발견, 숫자 = 본 장면 수. 칸을 누르면 두 사람의 기록 */
+const SH2={joker:'JO',mona:'MO',ryuji:'SK',ann:'PA',yusuke:'FO',makoto:'QU',futaba:'NA',haru:'NO',akechi:'CR',kasumi:'VI'};
+function pairInfo(a,b){const k=rkey(a,b),bo=(S.bonds||{})[k],cx=S.codex,sc=cx.scenes||[],cm=(SCRIPT.combos||[]).filter(x=>rkey(x.a,x.b)===k);
+ const seen=cm.reduce((t,x)=>t+x.ch.filter((_,i)=>sc.includes(x.id+':'+(i+1))).length,0),tot=cm.reduce((t,x)=>t+x.ch.length,0);
+ return {k,bo,t:bo?tierOf(bo.aff):-1,syn:(SCRIPT.syn||[]).find(x=>rkey(x.a,x.b)===k),synSeen:(cx.syn||[]).includes(k),cm,seen,tot}}
+function vPairBoard(){const ids=CHARS.map(c=>c.id),cur=ui.pair;let cells='';
+ cells+=`<i></i>${ids.map(id=>`<i class="h" style="color:${CH[id].col}">${SH2[id]}</i>`).join('')}`;
+ ids.forEach((a,r)=>{cells+=`<i class="h" style="color:${CH[a].col}">${SH2[a]}</i>`;ids.forEach((b,c)=>{if(c<=r){cells+='<i class="x"></i>';return}
+  const p=pairInfo(a,b);cells+=`<button class="pc t${p.t} ${p.synSeen?'sy':''} ${cur===p.k?'on':''}" data-act="pair:${p.k}" aria-label="${CH[a].name} × ${CH[b].name}${p.t>=0?` · Lv.${p.t}`:' · 아직 같이 간 적 없음'}${p.seen?` · 장면 ${p.seen}`:''}">${p.seen||''}</button>`})});
+ const mt=CHARS.length*(CHARS.length-1)/2,met=Object.keys(S.bonds||{}).length,syn=(S.codex.syn||[]).length;
+ return `<section class="pboard"><h3>${rn('PAIRS')}<span class="sub">같이 가 본 짝 ${met} / ${mt} · 시너지 ${syn} / ${(SCRIPT.syn||[]).length}</span></h3>
+ <div class="pgrid">${cells}</div><p class="hint pleg"><i class="pc t-1"></i>아직 <i class="pc t0"></i>같이 감 <i class="pc t1"></i>Lv.1 <i class="pc t2"></i>Lv.2 <i class="pc t3"></i>Lv.3 <i class="pc sy"></i>시너지 발견 · 숫자는 본 장면 수</p>${cur?vPairDetail(cur):'<p class="hint">칸을 누르면 두 사람의 기록이 나옵니다.</p>'}</section>`}
+function vPairDetail(k){const [a,b]=k.split('+'),p=pairInfo(a,b),A=CH[a],B=CH[b],sc=S.codex.scenes||[];
+ const bond=p.bo?`친밀도 ${p.bo.aff} · Lv.${p.t} ${bondName(p.t,p.bo.last)}${p.bo.last?` · 지난번 ${p.bo.last}`:''}`:'아직 같이 간 적이 없습니다.';
+ const syn=p.syn?(p.synSeen?`<b>${esc(p.syn.name)}</b> · ${esc(synTxt(p.syn))}`:'??? · 둘을 같은 파티에 넣으면 공개됩니다'):'없음';
+ const scenes=p.cm.map(x=>{const got=x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1)));return `<li class="${got.every(Boolean)?'got':''}"><b>${got.some(Boolean)?esc(x.title):'???'}</b><span>${x.ch.map((c,i)=>`${'①②'[i]} ${got[i]?esc(c.label):'???'}`).join(' · ')}</span></li>`}).join('');
+ const ce=COMBOS.filter(e=>!e.sheet&&rkey(e.combo[0],e.combo[1])===k).map(e=>{const got=S.codex.events.includes(e.id);return `<li class="${got?'got':''}"><b>${got?esc(e.name):'???'}</b><span>특별 사건</span></li>`}).join('');
+ return `<div class="pdet"><p class="pn"><b style="color:${A.col}">${A.code}</b> × <b style="color:${B.col}">${B.code}</b> <small>${A.name} · ${B.name}</small></p>
+ <p><span class="pl">BOND</span>${bond}</p><p><span class="pl">SYNERGY</span>${syn}</p>
+ ${scenes||ce?`<p><span class="pl">SCENES</span>본 장면 ${p.seen} / ${p.tot}</p><ul class="cxl">${scenes}${ce}</ul>`:''}</div>`}
+/* 도감: 오늘의 1컷 앨범 (최근 40장) */
+function vAlbum(){const A=S.codex.album||[];
+ return `<section class="album"><h3>${rn('ALBUM')}<span class="sub">오늘의 1컷 ${A.length}장${(S.codex.wipes||0)?` · 전멸 ${S.codex.wipes}번`:''}</span></h3>${A.length?`<div class="ashots">${A.slice(0,ui.albumAll?40:6).map(x=>`<figure class="shot sm"><small>${esc(x.d)} · ${x.ids.map(id=>CH[id].code).join(' · ')}${x.lv?` · DEPTH ${x.lv}`:''} · RANK ${x.g}</small><figcaption>${esc(x.t)}</figcaption></figure>`).join('')}</div>${A.length>6&&!ui.albumAll?'<button class="btn ghost sm" data-act="album">MORE</button>':''}`:'<p class="hint">탐사를 마치면 그 판의 결정적 1컷이 여기에 모입니다.</p>'}</section>`}
 function vCodex(){
- const cx=S.codex,nc=cx.combos.length,pc=COMBOS.map(e=>{const got=cx.events.includes(e.id);
+ const cx=S.codex,nc=cx.combos.length,pc=COMBOS.filter(e=>!e.sheet).map(e=>{const got=cx.events.includes(e.id);
   return `<li class="${got?'got':''}"><b>${got?esc(e.name):'???'}</b><span>${e.combo.map((id,i)=>got||i===0?`<i style="color:${CH[id].col}">${CH[id].code}</i>`:'<i>?</i>').join(' + ')}</span></li>`}).join('');
  const HID=[['sign','존재하지 않는 역 · 표지판','플랫폼에서 이상한 표지판을 기록'],['ghost','존재하지 않는 역 · 진입','버스 Lv.4나 [추리 단서]가 있어야 들어갈 수 있다']];
  const hid=HID.map(([id,n,h])=>{const got=cx.hidden.includes(id);return `<li class="${got?'got':''}"><b>${got?n:'???'}</b><span>${got?'발견함':h}</span></li>`}).join('');
@@ -1982,20 +2016,21 @@ function vCodex(){
  const chips=cx.combos.map(k=>`<span class="chip">${k.split('+').map(id=>`<i style="color:${CH[id].col}">${CH[id].code}</i>`).join(' ')}</span>`).join('');
  const ends=SCRIPT.chains.filter(c=>(cx.chains||{})[c.id]==='end').length;
  return `<main class="wrap codex">${hdr('CODEX',`<span class="pill">${nc} / 120</span>`)}
- <div class="cxstat"><div><b>${cx.reports}</b><span>REPORTS</span></div><div><b>${'★'.repeat(cx.best)||'-'}</b><span>BEST</span></div><div><b>${cx.events.length} / ${COMBOS.length}</b><span>COMBO EVENTS</span></div><div><b>${cx.hidden.length} / 2</b><span>HIDDEN</span></div></div>
+ <div class="cxstat"><div><b>${cx.reports}</b><span>REPORTS</span></div><div><b>${'★'.repeat(cx.best)||'-'}</b><span>BEST</span></div><div><b>${(cx.scenes||[]).length} / ${(SCRIPT.combos||[]).reduce((t,x)=>t+x.ch.length,0)}</b><span>SCENES</span></div><div><b>${cx.hidden.length} / 2</b><span>HIDDEN</span></div></div>
  <div class="lv cxbar"><i class="on" style="flex:${Math.max(nc,.001)}"></i><i style="flex:${120-nc}"></i></div>
  ${(()=>{const pt=codexPts(),nx=PERKS.find(p=>p.pt>pt);return `<section class="perks"><h3>${rn('PERKS')}<span class="sub">도감 점수 ${pt}점${nx?` · 다음 특전까지 ${nx.pt-pt}점`:' · 모든 특전 해금'}</span></h3>
  <p class="hint">조합 1 · 조합 사건 2 · 사슬 단계마다 1~3 · 오늘의 메멘토스 1 · 역 1 · 숨겨진 역 3 · 유물 1 · 섀도 1점</p>
  <ul class="cxl">${PERKS.map(p=>{const got=pt>=p.pt;return `<li class="${got?'got':''}"><b>${p.en}</b><span>${got?`${p.name} · ${p.eff}`:`${p.pt}점에 열립니다 · ${p.name}`}</span></li>`}).join('')}</ul></section>`})()}
- <section><h3>${rn('COMBO EVENTS')}<span class="sub">특정 두 사람이 같이 가면 일어나는 사건입니다. 한 명은 공개되어 있습니다.</span></h3><ul class="cxl">${pc}</ul></section>
+ ${vPairBoard()}
+ ${vAlbum()}
+ <section><h3>${rn('COMBO EVENTS')}<span class="sub">특정 두 사람이 같이 가면 일어나는 특별 사건입니다. 한 명은 공개되어 있습니다.</span></h3><ul class="cxl">${pc}</ul></section>
  <section><h3>${rn('STORIES')}<span class="sub">사슬 이야기 · 결말 ${ends} / ${SCRIPT.chains.length}</span></h3><ul class="cxl">${SCRIPT.chains.map(c=>{const st=(cx.chains||{})[c.id];return `<li class="${st==='end'?'got':''}"><b>${st?esc(c.name):'???'}</b><span>${st==='end'?'결말까지 봤습니다':st==='grow'?'전개까지 · 결말은 아직':st==='find'?'발견만 · 이야기가 이어집니다':'아직 못 본 이야기'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('DAYS')}<span class="sub">오늘의 메멘토스 ${(cx.days||[]).length} / ${SCRIPT.days.length}</span></h3><ul class="cxl">${SCRIPT.days.map(d=>{const got=(cx.days||[]).includes(d.id);return `<li class="${got?'got':''}"><b>${got?esc(d.en):'???'}</b><span>${got?`${esc(d.name)} · ${esc(d.rule)}`:'아직 겪지 못한 날'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('STATIONS')}<span class="sub">가 본 역 ${(cx.stations||[]).length} / ${Object.keys(ZONES).length}</span></h3><ul class="cxl">${Object.entries(ZONES).map(([id,z])=>{const got=(cx.stations||[]).includes(id);return `<li class="${got?'got':''}"><b>${got?z.en:'???'}</b><span>${got?`${z.name} · ${z.sub}`:'아직 못 가 본 역'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('SHADOWS')}<span class="sub">만난 섀도 ${(cx.shadows||[]).length} / ${Object.keys(SHADOWS).length}</span></h3><ul class="cxl">${Object.entries(SHADOWS).map(([id,k])=>{const got=(cx.shadows||[]).includes(id);return `<li class="${got?'got':''}"><b>${got?k.en:'???'}</b><span>${got?`${k.name} · ${k.trait} 약점 [${k.weak}]`:'아직 못 만난 섀도'}</span></li>`}).join('')}</ul></section>
  <section><h3>${rn('WISHES')}<span class="sub">개인 엔딩 카드 ${(cx.cards||[]).length} / ${CHARS.length}</span></h3><ul class="cxl">${CHARS.map(c=>{const w=wishOf(c.id),D=WISHES[c.id];if(!D)return '';const done=w.step>=3;
   return `<li class="${done?'got':''}">${art('sprites',c.id,32,done?'':'dim')}<b style="color:${c.col}">${c.code}</b><span>${!known(c.id)?'??? · 한 번 함께 다녀오면 공개':done?`「${esc(D.card)}」`:`${w.step+1}/3 · ${esc(D.steps[w.step][0])} (${w.prog}/${D.steps[w.step][1]})`}</span></li>`}).join('')}</ul></section>
- <section><h3>${rn('BONDS')}</h3>${(()=>{const B=Object.entries(S.bonds||{}).filter(([,v])=>v.aff>0).sort((a,b)=>b[1].aff-a[1].aff);
-  return B.length?`<ul class="cxl">${B.slice(0,12).map(([k,v])=>{const t=tierOf(v.aff);return `<li class="${t>=2?'got':''}"><b>${k.split('+').map(id=>CH[id].code).join(' × ')}</b><span>친밀도 ${v.aff} · Lv.${t} ${bondName(t,v.last)}${v.last?` · 지난번 ${v.last}`:''}</span></li>`}).join('')}</ul>`:'<p class="hint">함께 출격하며 생긴 관계가 판이 끝나도 쌓입니다. 20·50·80에서 단계가 오릅니다.</p>'})()}</section>
+
  <section><h3>${rn('BREAKS')}<span class="sub">함께 쉰 짝 ${(cx.breaks||[]).length} / ${Object.keys(CH).length*(Object.keys(CH).length-1)/2} · 얕은 역의 쉬는 시간</span></h3>${(cx.breaks||[]).length?`<div class="chips">${(cx.breaks||[]).map(k=>`<span class="chip"><i>${k.split('+').map(id=>CH[id].code).join(' × ')}</i></span>`).join('')}</div>`:'<p class="hint">얕은 역(진입·통로 계열)에서 쉬는 시간이 생기면 두 사람을 골라 쉬게 할 수 있습니다.</p>'}</section>
  <section><h3>${rn('HIDDEN')}<span class="sub">숨겨진 역</span></h3><ul class="cxl">${hid}</ul></section>
  <section><h3>${rn('HIDEOUT')}<span class="sub">르블랑 소품과 후일담</span></h3><ul class="cxl">${props}</ul></section>
@@ -2217,6 +2252,8 @@ $('#app').addEventListener('click',e=>{
  if(a==='start'&&ui.sel.length===3){const rv=ui.resv&&perk('resv')&&S.yen>=RESV_COST?ui.resv:null;if(rv){S.yen-=RESV_COST;save()}ui.resv=null;newRun([...ui.sel]);if(rv){run.resv=rv;log({sys:1,relic:1,text:`◆ 예약해 둔 ${relicOf(rv).name}의 기척이 느껴진다.`,res:`-¥${fmt(RESV_COST)}`})}ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();return}
  if(a==='move'){move(v);return}
  if(a==='choice'){choose(+v);return}
+ if(a==='pair'){ui.pair=ui.pair===v?null:v;render();return}
+ if(a==='album'){ui.albumAll=true;render();return}
  if(a==='lv'){const n=+v;if(n>=0&&n<=(S.depthMax||0)){S.lvSel=n;save()}render();return}
  if(a==='pol'){if(POLICY[v]){S.policy=v;save()}render();return}
  if(a==='pause'){run.paused=!run.paused;render();schedule();return}
