@@ -595,6 +595,10 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .wrap>.sky,.tut>.tsky{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:max(4vw,14px,calc(50vw - 540px));padding-right:max(4vw,14px,calc(50vw - 540px))}
 .tut>.tsky{padding-left:max(4vw,14px,calc(50vw - 360px));padding-right:max(4vw,14px,calc(50vw - 360px))}
 .tsky .tbar,.tsky h2{max-width:720px;margin-left:auto;margin-right:auto}
+.map.tall{height:250px}.mapbox.big .map.tall{height:380px}
+.map.tall .node{padding:4px 8px}.map.tall .node b{font-size:14px}.map.tall .node small{font-size:11px}
+@media(min-width:900px){.map.tall{height:300px}.mapbox.big .map.tall{height:420px}}
+.map path{fill:none;stroke:var(--line2);stroke-width:5;stroke-dasharray:10 7;stroke-linecap:round}.map path.hot{stroke:var(--red)}
 </style>
 </head>
 <body>
@@ -656,17 +660,55 @@ const DAYRULE={
  'M-12':{luck:.15,tre:.04}};
 const DAY=k=>run&&run.day&&(DAYRULE[run.day.id]||{})[k];
 
+/* 역 종류. k=깊이 단계(시트의 구역 조건·위험도·플랫폼 잠금은 이것을 본다). 첫 판은 고전 4역, 이후엔 판마다 새 노선도 */
 const ZONES={
- gate:{name:'진입 승강장',en:'ENTRY PLATFORM',esh:'ENTRY',sh:'승강장',sub:'안전 지역',x:22,y:22,links:['pass','lost'],loot:[120,260],tre:.03,risk:0,acts:2,
+ gate:{k:'gate',name:'진입 승강장',en:'ENTRY PLATFORM',esh:'ENTRY',sub:'SAFE ZONE',loot:[120,260],tre:.03,risk:0,acts:2,
   arr:['붉은 하늘 아래 승강장이 조용하다.','개찰구 너머로 선로가 끝없이 이어진다.'],scout:['승강장 벤치 밑을 뒤졌다.','개찰구 주변을 살폈다.']},
- pass:{name:'폐쇄된 통로',en:'SEALED PASSAGE',esh:'PASSAGE',sh:'통로',sub:'표준 위험',x:78,y:24,links:['gate','lost','plat'],loot:[120,300],tre:.07,risk:1,acts:3,
+ transfer:{k:'gate',name:'환승 개찰구',en:'TRANSFER GATE',esh:'ENTRY',sub:'SAFE · SP REFILL',loot:[100,220],tre:.03,risk:0,acts:2,
+  arr:['멈춘 개찰구 너머로 여러 노선의 안내판이 겹쳐 보인다.','환승 안내 방송이 끊긴 채 같은 말만 되풀이한다.'],scout:['개찰구 아래를 훑었다.','환승 안내판 뒤를 살폈다.'],
+  arrive:()=>{alive().forEach(m=>m.sp=clamp(m.sp+8,0,m.msp));return {sys:1,text:'환승 통로 벤치에서 잠깐 숨을 돌렸다.',res:'전원 SP +8'}}},
+ pass:{k:'pass',name:'폐쇄된 통로',en:'SEALED PASSAGE',esh:'PASSAGE',sub:'STANDARD RISK',loot:[120,300],tre:.07,risk:1,acts:3,
   arr:['어두운 통로에 낮은 웅성거림이 울린다.','깜빡이는 형광등이 길을 반쯤만 비춘다.'],scout:['어두운 통로 끝을 살폈다.','녹슨 배전함을 열어 봤다.']},
- lost:{name:'유실물 보관실',en:'LOST & FOUND',esh:'LOST',sh:'보관실',sub:'고보상 · 함정',x:24,y:78,links:['gate','pass','plat'],loot:[150,380],tre:.15,risk:2,acts:3,
+ escal:{k:'pass',name:'멈춘 에스컬레이터',en:'DEAD ESCALATOR',esh:'PASSAGE',sub:'HP -3 · MORE LOOT',loot:[160,360],tre:.09,risk:1,acts:3,
+  arr:['멈춘 에스컬레이터가 끝도 없이 위로 이어진다.','계단 틈새로 붉은 빛이 새어 나온다.'],scout:['에스컬레이터 난간 밑을 뒤졌다.','계단 사이 틈을 살폈다.'],
+  arrive:()=>{alive().forEach(m=>hp(m,-3));return {sys:1,text:'멈춘 에스컬레이터를 끝까지 걸어 올랐다.',res:'전원 HP -3'}}},
+ flood:{k:'pass',name:'물이 찬 선로',en:'FLOODED TRACK',esh:'PASSAGE',sub:'FEWER ACTIONS · CLUES',loot:[110,260],tre:.06,risk:1,acts:2,clue:.14,
+  arr:['발목까지 찬 검은 물 위로 선로가 비친다.','물방울 떨어지는 소리만 통로에 울린다.'],scout:['물 위에 떠 있는 것을 건졌다.','젖은 벽면의 낙서를 살폈다.']},
+ lost:{k:'lost',name:'유실물 보관실',en:'LOST & FOUND',esh:'LOST',sub:'HIGH LOOT · TRAPS',loot:[150,380],tre:.15,risk:2,acts:3,
   arr:['주인 잃은 물건들이 천장까지 쌓여 있다.','선반 사이로 오래된 자판기 불빛이 새어 나온다.'],scout:['잡동사니 더미를 뒤졌다.','분실물 선반을 훑었다.']},
- plat:{name:'버려진 플랫폼',en:'ABANDONED PLATFORM',esh:'DEPTHS',sh:'플랫폼',sub:'심층 · 히든',x:76,y:78,links:['pass','lost'],loot:[260,560],tre:.22,risk:3,acts:3,
-  arr:['끊긴 선로 끝에서 차가운 바람이 분다.','시간표에는 존재하지 않는 시각이 적혀 있다.'],scout:['끊긴 선로 옆을 조사했다.','빛바랜 시간표를 들여다봤다.']}};
-const ZSUB={gate:'SAFE ZONE',pass:'STANDARD RISK',lost:'HIGH LOOT · TRAPS',plat:'DEEP · HIDDEN'};
-const LINKS=[['gate','pass'],['gate','lost'],['pass','lost'],['pass','plat'],['lost','plat']];
+ kiosk:{k:'lost',name:'버려진 매점',en:'ABANDONED KIOSK',esh:'LOST',sub:'LOOT · VENDING · FEWER TRAPS',loot:[140,340],tre:.2,risk:2,acts:3,vendW:3,trapW:.5,
+  arr:['셔터가 반쯤 내려간 매점에 포장 그대로인 간식이 쌓여 있다.','자판기 세 대가 동시에 깜빡인다.'],scout:['매점 진열대를 뒤졌다.','계산대 서랍을 열어 봤다.']},
+ depot:{k:'lost',name:'차량 기지',en:'TRAIN DEPOT',esh:'LOST',sub:'SHADOWS · BIG PAYOUT',loot:[180,420],tre:.1,risk:2,acts:3,shadowW:1.8,fightMul:1.3,
+  arr:['멈춘 열차들이 줄지어 잠들어 있다.','차고 셔터 너머에서 무언가 꿈틀거린다.'],scout:['열차 좌석 밑을 살폈다.','정비 공구함을 열어 봤다.']},
+ plat:{k:'plat',name:'버려진 플랫폼',en:'ABANDONED PLATFORM',esh:'DEPTHS',sub:'DEEP · HIDDEN',loot:[260,560],tre:.22,risk:3,acts:3,
+  arr:['끊긴 선로 끝에서 차가운 바람이 분다.','시간표에는 존재하지 않는 시각이 적혀 있다.'],scout:['끊긴 선로 옆을 조사했다.','빛바랜 시간표를 들여다봤다.']},
+ tunnel:{k:'plat',name:'끝없는 터널',en:'ENDLESS TUNNEL',esh:'DEPTHS',sub:'DEEP · AMBUSH · RICH',loot:[300,620],tre:.2,risk:3,acts:3,amb:1.5,
+  arr:['아무리 걸어도 같은 비상등이 다시 나타난다.','터널 끝의 빛이 다가오지도 멀어지지도 않는다.'],scout:['선로 옆 배수로를 뒤졌다.','비상 대피소 문을 열어 봤다.']},
+ signal:{k:'plat',name:'신호 관제실',en:'SIGNAL ROOM',esh:'DEPTHS',sub:'DEEP · CLUE ON ARRIVAL',loot:[240,500],tre:.18,risk:3,acts:3,
+  arr:['수백 개의 신호등이 동시에 빨간불을 켠다.','관제 화면에 존재하지 않는 노선이 그려져 있다.'],scout:['관제 콘솔을 두드려 봤다.','신호 기록지를 넘겨 봤다.'],
+  arrive:()=>{if(hasTag(CLUE))return null;addTag(CLUE);return {sys:1,text:'관제 화면에 지도에 없는 선로가 떠올랐다.',res:'태그: 단서'}}}};
+const KINDS=['gate','pass','lost','plat'];
+/* 노선도: st=[{id,t(역 종류),k(깊이),x,y,links}], links=[[a,b]]. 첫 판은 고전 4역(튜토리얼이 move:pass 같은 이름을 씀) */
+function genMap(classic){
+ const mk=(id,t,x,y)=>({id,t,k:ZONES[t].k,x,y,links:[]}),L=[],link=(a,b)=>{if(a===b||L.some(([p,q])=>(p===a.id&&q===b.id)||(p===b.id&&q===a.id)))return;L.push([a.id,b.id]);a.links.push(b.id);b.links.push(a.id)};
+ if(classic){const s=[mk('gate','gate',22,22),mk('pass','pass',78,24),mk('lost','lost',24,78),mk('plat','plat',76,78)];
+  [[0,1],[0,2],[1,2],[1,3],[2,3]].forEach(([a,b])=>link(s[a],s[b]));return {st:s,links:L}}
+ const pool=k=>shuffle(Object.keys(ZONES).filter(t=>ZONES[t].k===k));
+ const cnt=[chance(.35)?2:1,2,2,chance(.5)?2:1],Y=[11,37,63,89],rows=[];let n=0;
+ KINDS.forEach((k,r)=>{let ts=pool(k);if(r===0)ts=['gate',...ts.filter(t=>t!=='gate')];/* 출발은 늘 진입 승강장 */
+  const c=cnt[r],xs=c===1?[50]:[25,75];rows.push(xs.map((x,i)=>mk('s'+(n++),ts[i%ts.length],x+R(-4,4),Y[r]+R(-3,3))))});
+ for(let r=0;r<3;r++){const a=rows[r],b=rows[r+1];
+  b.forEach((s,i)=>link(a[Math.min(i,a.length-1)],s));/* 아래 단계의 역마다 들어오는 길 하나는 보장 */
+  a.forEach(s=>{if(chance(.45))link(s,pick(b))})}
+ const unlink=(a,b)=>{const i=L.findIndex(([p,q])=>(p===a.id&&q===b.id)||(p===b.id&&q===a.id));if(i<0)return;L.splice(i,1);a.links=a.links.filter(x=>x!==b.id);b.links=b.links.filter(x=>x!==a.id)};
+ for(let r=0;r<3;r++){const a=rows[r],b=rows[r+1],has2=(x,y)=>x.links.includes(y.id);/* X자로 엇갈리는 대각선 둘이면 하나 빼기 */
+  if(a.length===2&&b.length===2&&has2(a[0],b[1])&&has2(a[1],b[0])){const [x,y]=chance(.5)?[a[0],b[1]]:[a[1],b[0]];unlink(x,y)}}
+ rows.forEach(r=>{if(r.length===2&&(r===rows[0]||chance(.45)))link(r[0],r[1])});/* 같은 단계 옆 연결 */
+ if(chance(.4)){const r=R(0,1);link(pick(rows[r]),pick(rows[r+2]))}/* 한 단계 건너뛰는 급행 */
+ return {st:rows.flat(),links:L}}
+const stOf=id=>run.map.st.find(s=>s.id===id);
+const curSt=()=>run.map.st[run.at];
+const Zc=()=>ZONES[curSt().t];
 
 const PROPS=[
  {id:'game',en:'RETRO CONSOLE',name:'레트로 게임기',cost:3000,eff:'탐사 시작 분위기 +8',unlock:'류지·후타바 게임 대결 후일담',
@@ -738,7 +780,7 @@ const yenMul=()=>DAY('yen')||1;
 const SHEET_YEN=.7;/* 시트 콘텐츠의 엔 보상 일괄 배율 (docs/balance.md) */
 function applyFx(m,list){m=m||pick(alive());const r=[];if(!m)return '';for(const f of list||[]){
  if(f.k==='yen'){let y=R(Math.min(f.a,f.b),Math.max(f.a,f.b));if(y>0)y=Math.round(y*yenMul()*SHEET_YEN);else y=Math.max(-run.yen,y);run.yen+=y;r.push(`${y<0?'-':'+'}¥${fmt(Math.abs(y))}`)}
- else if(f.k==='tre'){const z=ZONES[run.zone];for(let i=0;i<f.v;i++)addTre(200+z.risk*80,400+z.risk*120);r.push(`보물 +${f.v}`)}/* 시트 보물은 개수는 그대로, 한 개 값은 탐색 보물보다 낮게 */
+ else if(f.k==='tre'){const z=Zc();for(let i=0;i<f.v;i++)addTre(200+z.risk*80,400+z.risk*120);r.push(`보물 +${f.v}`)}/* 시트 보물은 개수는 그대로, 한 개 값은 탐색 보물보다 낮게 */
  else if(f.k==='mood'){addMood(f.v);r.push(`분위기 ${f.v>0?'+':''}${f.v}`)}
  else if(f.k==='hp'){const v=f.v<0?-Math.round(-f.v*dmgMul()):f.v;(f.all?alive():[m]).forEach(x=>hp(x,v));r.push(`${f.all?'전원 ':''}HP ${v>0?'+':''}${v}`)}
  else if(f.k==='sp'){(f.all?alive():[m]).forEach(x=>x.sp=clamp(x.sp+f.v,0,x.msp));r.push(`${f.all?'전원 ':''}SP ${f.v>0?'+':''}${f.v}`)}
@@ -753,7 +795,7 @@ const delTag=l=>{run.tags=run.tags.filter(t=>t.l!==l)};
 const moodL=m=>m>=65?{k:'good',l:'화기애애',en:'GOOD'}:m>=35?{k:'meh',l:'미묘',en:'UNEASY'}:{k:'bad',l:'긴장',en:'TENSE'};
 const addMood=n=>{run.mood=clamp(run.mood+n,0,100)};
 const addTre=(a,b)=>{run.tre++;run.tval+=R(a,b)};
-const canEnter=z=>z!=='plat'||S.bus>=2||hasTag(CLUE);
+const canEnter=id=>{const k=KINDS.includes(id)?id:(stOf(id)||{}).k;return k!=='plat'||S.bus>=2||hasTag(CLUE)};
 /* 위험 정책 risk-v2: 깊은 구역에서 보낸 턴만큼 위험도가 쌓이고, 승강장에서 쉬면 내려간다 */
 const HEAT_MAX=12,HEAT_GAIN=[-3,1,2,3];
 const heatL=h=>h>=8?{k:'bad',en:'DANGER',l:'매우 위험'}:h>=4?{k:'meh',en:'ALERT',l:'경계'}:{k:'good',en:'CALM',l:'잠잠'};
@@ -775,10 +817,10 @@ function autoAction(){
  return [actExplore,actSocial,actSupport,actSolo][wpick(w)](m);
 }
 function actExplore(m){
- const z=ZONES[run.zone];
+ const z=Zc();
  const tc=z.tre+(has('cushion')?.06:0)+(mem('mona')?.04:0)+(m.c.type==='support'?.03:0)+(DAY('tre')||0);
  if(chance(tc)){addTre(300+z.risk*150,600+z.risk*200);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 잡동사니 사이에서 보물을 찾아냈다.`,q:say(m.c,'treasure'),res:'보물 +1'}}
- if((run.zone==='pass'||run.zone==='lost')&&!hasTag(CLUE)&&chance(.07+(has('easel')?.08:0)+(DAY('clue')||0))){addTag(CLUE);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 벽면에서 지도에 없는 선로 표시를 발견했다.`,q:say(m.c,'find'),res:'태그: 단서'}}
+ if((run.zone==='pass'||run.zone==='lost')&&!hasTag(CLUE)&&chance(.07+(has('easel')?.08:0)+(DAY('clue')||0)+(z.clue||0))){addTag(CLUE);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 벽면에서 지도에 없는 선로 표시를 발견했다.`,q:say(m.c,'find'),res:'태그: 단서'}}
  const y=Math.round(R(z.loot[0],z.loot[1])*yenMul());run.yen+=y;m.mvp+=1;
  return {who:m.id,n:`${ig(m.c.name)} ${pick(z.scout)}`,q:say(m.c,'find'),res:`+¥${fmt(y)}`};
 }
@@ -817,13 +859,13 @@ function actSolo(m){
 
 /* ============ 전투·회피 (이벤트 해결형) ============ */
 function winP(){let p=0;for(const m of alive()){p+=12+m.hp*.22;if(m.c.type==='rush')p+=6;if(m.id==='haru')p+=6;if(m.id==='makoto')p+=4}
- p+=run.mood>=65?8:run.mood<35?-8:0;p+=(DAY('win')||0)*80;const e=40+run.turn*3+run.heat*3+ZONES[run.zone].risk*10;
+ p+=run.mood>=65?8:run.mood<35?-8:0;p+=(DAY('win')||0)*80;const e=40+run.turn*3+run.heat*3+Zc().risk*10;
  return clamp(.3+(p-e)/80+run.loss*.08,.12,.95)}
 const TAGOWN={'약점 간파':'joker','섀도 제압 준비':'haru','도발':'ann'};
 function fight(p,sp){
  const out=[],al=alive();
  if(sp){const m=mem(TAGOWN[sp])||pick(al);m.mvp+=2;out.push({who:m.id,n:`${ig(m.c.name)} 준비해 둔 수를 꺼냈다. [${sp}]`,q:say(m.c,'enemy')})}
- if(chance(p)){const z=ZONES[run.zone],y=Math.round(R(200,400)*(1+z.risk*.5)*(DAY('fightYen')||1)*yenMul());run.yen+=y;const m=pick(al),d=pick(al),dmg=R(3,10);m.mvp+=2;hp(d,-dmg);
+ if(chance(p)){const z=Zc(),y=Math.round(R(200,400)*(1+z.risk*.5)*(DAY('fightYen')||1)*(z.fightMul||1)*yenMul());run.yen+=y;const m=pick(al),d=pick(al),dmg=R(3,10);m.mvp+=2;hp(d,-dmg);
   out.push({who:m.id,n:`섀도를 쓰러뜨렸다! (${d.c.name} HP -${dmg})`,q:say(m.c,'win'),res:`+¥${fmt(y)}`});
   if(chance(.15+(has('cushion')?.05:0))){addTre(500,900);out.push({sys:1,text:'섀도가 반짝이는 무언가를 떨어뜨렸다.',res:'보물 +1'})}
  }else{run.loss++;const half=hasTag('신중 모드');if(half)delTag('신중 모드');
@@ -966,7 +1008,7 @@ function maybeEvent(){
  const cand=EVENTS.filter(e=>!e.own&&zoneOk(e)&&(!e.min||t>=e.min)&&(run.used[e.id]||0)<(e.id==='shadow'?(DAY('shadowMax')||e.max):(e.max||1))&&(!e.combo||e.combo.every(id=>mem(id)))&&(!e.req||e.req()));
  if(!cand.length)return null;
  if(!chance(cand.some(e=>e.combo||e.req)?Math.min(1,p+.15):p))return null;
- const w=e=>e.w*(e.combo?1.6:1)*(e.id==='shadow'?(DAY('shadowW')||1):1)*(e.id==='trap'?(DAY('trapW')||1):1);
+ const Z=Zc(),w=e=>e.w*(e.combo?1.6:1)*(e.id==='shadow'?(DAY('shadowW')||1)*(Z.shadowW||1):1)*(e.id==='trap'?(DAY('trapW')||1)*(Z.trapW||1):1)*(e.id==='vend'?(Z.vendW||1):1);
  return openEvent(cand[wpick(cand.map(w))]);
 }
 /* 관계 사건(의견 충돌)은 구역 사건과 경쟁하지 않고 따로 굴린다: 분위기가 나쁘면 일어날 수 있는 일 */
@@ -1007,16 +1049,19 @@ function newRun(ids){
   turn:1,zone:'gate',mood:clamp(60+(has('game')?8:0),0,100),yen:0,tre:0,tval:0,tags:[],used:{},q:[],phase:'running',log:[],beat:0,clock:180+R(0,40),
   speed:1,paused:false,manual:false,forced:false,hidden:false,ev:null,last:null,loss:0,heat:0,stamp:null,chains:[],pairs:[],day:null,maxT:7};
  run.tut=!S.tut;run.day=run.tut?null:SCRIPT.days.find(d=>d.id===S.today)||null;run.maxT=run.tut?5:DAY('maxT')||7;/* 첫 판은 5턴 정찰, 오늘의 메멘토스 없음 */
+ run.map=genMap(run.tut);run.at=0;
  if(run.day&&!(S.codex.days||(S.codex.days=[])).includes(run.day.id)){S.codex.days.push(run.day.id);save()}
  const key=[...ids].sort().join('+');run.newCombo=!S.codex.combos.includes(key);
  if(run.newCombo){S.codex.combos.push(key);save()}
  log({sys:1,text:`${ids.map(i=>CH[i].name).join(' · ')} 파티가 메멘토스에 진입했다.${has('game')?' (레트로 게임기 효과: 분위기 +8)':''}`});
  if(run.day){log({sys:1,ev:1,text:`오늘의 메멘토스 — ${run.day.name}`});log({sys:1,text:`${run.day.intro} (${run.day.rule})`});const w=run.day.who&&mem(run.day.who);if(w)log({who:w.id,n:'',q:run.day.q})}
- enterZone('gate');
+ enterZone(run.map.st[0].id);
 }
-function enterZone(z){const Z=ZONES[z];
- run.q.push({sys:1,turn:1,arrive:z,text:`T${run.turn} · ${Z.name} — ${pick(Z.arr)}`});
- if(Z.risk&&chance(Math.min(.85,run.heat*.12)))run.q.push({fn:ambush});
+function enterZone(id){const s=stOf(id),Z=ZONES[s.t];run.at=run.map.st.indexOf(s);run.zone=s.k;
+ const cs=S.codex.stations||(S.codex.stations=[]);if(!cs.includes(s.t)){cs.push(s.t);save()}
+ run.q.push({sys:1,turn:1,arrive:id,text:`T${run.turn} · ${Z.name} — ${pick(Z.arr)}`});
+ if(Z.arrive)run.q.push({fn:Z.arrive});
+ if(Z.risk&&chance(Math.min(.85,run.heat*.12*(Z.amb||1))))run.q.push({fn:ambush});
  if(tutRun()&&run.turn===3)run.q.push({fn:tutTag});
  for(let i=0;i<Z.acts;i++){run.q.push({fn:autoAction});if(i===0)run.q.push({fn:chainTick})}
  run.q.push({fn:relCheck},{fn:maybeEvent});
@@ -1028,7 +1073,7 @@ function ambush(){
  for(const m of shuffle(al).slice(0,run.heat>=6?2:1)){const d=Math.round(R(10,15)*dmgMul());hp(m,-d);out.push({who:m.id,n:`(${m.c.name} HP -${d})`,q:say(m.c,'hurt')})}
  return out}
 function endTurnFn(){
- const z=ZONES[run.zone],h0=run.heat;run.heat=clamp(run.heat+HEAT_GAIN[z.risk],0,HEAT_MAX);addMood(-7);
+ const z=Zc(),h0=run.heat;run.heat=clamp(run.heat+HEAT_GAIN[z.risk],0,HEAT_MAX);addMood(-7);
  if(DAY('turnHp'))alive().forEach(x=>hp(x,-DAY('turnHp')));
  const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})`};run.turn++;
  if(run.turn>run.maxT)run.q.push({sys:1,text:`${run.maxT}턴 탐사 완료. 모나 버스가 귀환 준비를 마쳤다.`},{fn:()=>{endRun('complete');return null}});
@@ -1040,7 +1085,7 @@ function log(b){
  b.t=`${String(Math.floor(run.clock/60)%60).padStart(2,'0')}:${String(run.clock%60).padStart(2,'0')}`;
  run.log.push(b);if(run.log.length>160)run.log.shift();
  if(b.ev&&/^사슬 — /.test(b.text||''))run.chainSeen=true;
- if(b.arrive)run.banner={t:`TURN ${run.turn}`,s:`${ZONES[b.arrive].en} · ${ZONES[b.arrive].name}`};
+ if(b.arrive){const z=ZONES[stOf(b.arrive).t];run.banner={t:`TURN ${run.turn}`,s:`${z.en} · ${z.name}`}}
  if(b.who&&b.q){const m=run.party.find(x=>x.id===b.who);if(m){m.bub=b.q;m.bat=run.beat;m.face=/[?？]/.test(b.q)?'?':/…/.test(b.q)?'…':/!/.test(b.q)?'!':'♪'}}
 }
 function checkDown(){
@@ -1065,7 +1110,7 @@ const READ={base:700,perChar:55,min:1400,max:4500,fast:.5};
 function lineDelay(){const b=run.log[run.log.length-1],n=b?((b.text||b.n||'')+(b.q||'')+(b.res||'')).length:0;
  const d=Math.min(READ.max,Math.max(READ.min,READ.base+n*READ.perChar));return run.speed===2?Math.round(d*READ.fast):d}
 function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual||tq)return;T=setTimeout(()=>{step();schedule()},lineDelay())}
-function move(z){if(run.phase!=='choose'||!canEnter(z))return;if(DAY('moveHp')&&z!==run.zone){alive().forEach(x=>hp(x,-DAY('moveHp')));log({sys:1,text:'멈춘 에스컬레이터를 걸어 올랐다.',res:`전원 HP -${DAY('moveHp')}`})}run.zone=z;run.phase='running';enterZone(z);step();schedule()}
+function move(z){if(run.phase!=='choose'||!stOf(z)||!canEnter(z))return;if(DAY('moveHp')&&z!==curSt().id){alive().forEach(x=>hp(x,-DAY('moveHp')));log({sys:1,text:'멈춘 에스컬레이터를 걸어 올랐다.',res:`전원 HP -${DAY('moveHp')}`})}run.phase='running';enterZone(z);step();schedule()}
 function choose(i){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';
  log({sys:1,text:`▶ 선택: ${c.label}`});const out=c.go();run.stamp=resultStamp(c.label,out);run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
 /* 선택 결과를 로그를 안 봐도 읽히게 요약한다 (hud-feedback: 결과는 기호+문장, 색만으로 구분하지 않음) */
@@ -1201,13 +1246,15 @@ function vParty(){
  </div></main>`;
 }
 function vMap(){
- const r=run,opts=r.phase==='choose'?[r.zone,...ZONES[r.zone].links]:[];
- const lines=LINKS.map(([a,b])=>`<line x1="${ZONES[a].x}" y1="${ZONES[a].y}" x2="${ZONES[b].x}" y2="${ZONES[b].y}" vector-effect="non-scaling-stroke" class="${a===r.zone||b===r.zone?'hot':''}"/>`).join('');
- const nodes=Object.entries(ZONES).map(([id,z])=>{const cur=id===r.zone,op=opts.includes(id),ok=canEnter(id);
-  const st=`left:${z.x}%;top:${z.y}%`,g=HEAT_GAIN[z.risk],sub=cur?(r.phase==='choose'?'STAY':'YOU ARE HERE'):!ok?'LOCKED · BUS LV.2 / CLUE':'',rk=op&&ok?`<small class="rk">RISK ${g>0?'+'+g:g}</small>`:'';
-  return op&&ok?`<button class="node opt ${cur?'cur':''}" style="${st}" data-act="move:${id}"><b>${z.en}</b>${sub?`<small>${sub}</small>`:''}${rk}</button>`:`<div class="node ${cur?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b>${sub?`<small>${sub}</small>`:''}</div>`}).join('');
- const strip=`<ol class="strip" aria-label="현재 위치">${['gate','pass','lost','plat'].map(id=>`<li class="${id===r.zone?'cur':''} ${canEnter(id)?'':'lock'}">${ZONES[id].esh}</li>`).join('')}</ol>`;
- return `${strip}<div class="map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${r.phase==='choose'?`<p class="mhint">PICK THE NEXT ZONE · DEEPER ZONES BUILD RISK</p><div class="cash"><p>RETURN NOW TO BANK <b>¥${fmt(r.yen+r.tval)}</b> INCL. LOOT · A WIPE KEEPS ONLY 40%</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
+ const r=run,M=r.map,cur=curSt(),ch=r.phase==='choose',opts=ch?[cur.id,...cur.links]:[];
+ const lines=M.links.map(([a,b])=>{const A=stOf(a),B=stOf(b),c=a===cur.id||b===cur.id?'hot':'',ex=Math.abs(KINDS.indexOf(A.k)-KINDS.indexOf(B.k))===2;
+  return ex?`<path d="M${A.x} ${A.y}Q${(A.x+B.x)/2<50?-18:118} ${(A.y+B.y)/2} ${B.x} ${B.y}" vector-effect="non-scaling-stroke" class="ex ${c}"/>`/* 급행: 바깥으로 휘는 점선 */
+  :`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" vector-effect="non-scaling-stroke" class="${c}"/>`}).join('');
+ const nodes=M.st.map(s=>{const z=ZONES[s.t],isc=s.id===cur.id,op=opts.includes(s.id),ok=canEnter(s.id);
+  const st=`left:${s.x}%;top:${s.y}%`,g=HEAT_GAIN[z.risk],sub=isc?(ch?'STAY':'YOU ARE HERE'):!ok?'LOCKED · BUS LV.2 / CLUE':op?z.sub:'',rk=op&&ok?`<small class="rk">RISK ${g>0?'+'+g:g}</small>`:'';
+  return op&&ok?`<button class="node opt ${isc?'cur':''}" style="${st}" data-act="move:${s.id}"><b>${z.en}</b>${sub?`<small>${sub}</small>`:''}${rk}</button>`:`<div class="node ${isc?'cur':''} ${ok?'':'lock'}" style="${st}"><b>${z.en}</b>${sub?`<small>${sub}</small>`:''}</div>`}).join('');
+ const strip=`<ol class="strip" aria-label="현재 깊이">${KINDS.map(k=>`<li class="${k===r.zone?'cur':''} ${canEnter(k)?'':'lock'}">${ZONES[k].esh}</li>`).join('')}</ol>`;
+ return `${strip}<div class="map ${M.st.length>4?'tall':''}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>${ch?`<p class="mhint">PICK THE NEXT STATION · DEEPER STATIONS BUILD RISK</p><div class="cash"><p>RETURN NOW TO BANK <b>¥${fmt(r.yen+r.tval)}</b> INCL. LOOT · A WIPE KEEPS ONLY 40%</p><button class="btn sm ghost" data-act="cashout">RETURN NOW</button></div>`:''}`;
 }
 function vLog(){
  return run.log.map(b=>{const c=b.who?CH[b.who]:null,cls=[b.sys?'sys':'',b.ev?'ev':'',b.turn?'turn':'',b.warn?'warn':''].join(' ');
@@ -1219,7 +1266,7 @@ function vEvent(){const d=run.ev,c=d.who?CH[d.who]:null,en=run.evIn?'':'enter';r
  ${d.choices.map((x,i)=>`<button class="ch" style="--i:${i};--d:${[160,260,327,393][i]}ms" data-act="choice:${i}" ${x.dis?'disabled':''}><span class="k">${'ABCD'[i]}</span><span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small></span></button>`).join('')}</div></div>`;
 }
 function vExplore(){
- const r=run,Z=ZONES[r.zone],ml=moodL(r.mood),hl=heatL(r.heat),run_=r.phase==='running';
+ const r=run,Z=Zc(),ml=moodL(r.mood),hl=heatL(r.heat),run_=r.phase==='running';
  const tiles=r.party.map(m=>{const mt=r.tags.filter(t=>t.w===m.id),hl=m.hp<=35?'low':'';
   const dh=m.hp-(m.rh??m.hp),fr=m.bat===r.beat;m.rh=m.hp;
   return `<div class="tile ${m.hp<=0?'down':''} ${dh<0?'hit':dh>0?'heal':''}" style="--c:${m.c.col}"><div class="bub ${fr?'fresh':''}"><span>${m.bub?esc(m.bub):'…'}</span></div>
@@ -1227,7 +1274,7 @@ function vExplore(){
   <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
- return `<main class="ex"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${ZSUB[r.zone]}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></header>
+ return `<main class="ex"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span></div></header>
  ${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
  <section class="party">${tiles}</section>
  <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox"><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
@@ -1282,6 +1329,7 @@ function vCodex(){
  <section><h3>${rn('COMBO EVENTS')}<span class="sub">TWO SPECIFIC MEMBERS TOGETHER · ONE IS REVEALED</span></h3><ul class="cxl">${pc}</ul></section>
  <section><h3>${rn('STORIES')}<span class="sub">ENDINGS ${ends} / ${SCRIPT.chains.length}</span></h3><ul class="cxl">${SCRIPT.chains.map(c=>{const st=(cx.chains||{})[c.id];return `<li class="${st==='end'?'got':''}"><b>${st?esc(c.name):'???'}</b><span><i>${st==='end'?'ENDING SEEN':st==='grow'?'TO BE CONTINUED':st==='find'?'JUST FOUND':'NOT SEEN YET'}</i></span></li>`}).join('')}</ul></section>
  <section><h3>${rn('DAYS')}<span class="sub">SEEN ${(cx.days||[]).length} / ${SCRIPT.days.length}</span></h3><ul class="cxl">${SCRIPT.days.map(d=>{const got=(cx.days||[]).includes(d.id);return `<li class="${got?'got':''}"><b>${got?esc(d.en):'???'}</b><span>${got?esc(d.rule):'<i>NOT YET</i>'}</span></li>`}).join('')}</ul></section>
+ <section><h3>${rn('STATIONS')}<span class="sub">VISITED ${(cx.stations||[]).length} / ${Object.keys(ZONES).length}</span></h3><ul class="cxl">${Object.entries(ZONES).map(([id,z])=>{const got=(cx.stations||[]).includes(id);return `<li class="${got?'got':''}"><b>${got?z.en:'???'}</b><span><i>${got?z.sub:z.esh}</i></span></li>`}).join('')}</ul></section>
  <section><h3>${rn('HIDDEN')}<span class="sub">SECRET STATIONS</span></h3><ul class="cxl">${hid}</ul></section>
  <section><h3>${rn('HIDEOUT')}<span class="sub">PROPS & AFTER-STORIES</span></h3><ul class="cxl">${props}</ul></section>
  <section><h3>${rn('PARTIES')}<span class="sub">${nc} DEPLOYED</span></h3>${nc?`<div class="chips">${chips}</div>`:'<p class="hint">NO RECORDS YET</p>'}</section>
