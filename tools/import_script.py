@@ -23,7 +23,7 @@ CH = {'조커': 'joker', '모르가나': 'mona', '류지': 'ryuji', '안': 'ann'
 ZONE = {'승강장': 'gate', '통로': 'pass', '보관실': 'lost', '플랫폼': 'plat'}
 SIT = {'발견': 'find', '잡담': 'chat', '대답': 'reply', '회복·지원': 'support', '감싸기': 'protect', '피격': 'hurt',
        '승리': 'win', '함정 감지': 'trap', '보물': 'treasure', '섀도 조우': 'enemy', '말다툼': 'argue', '기책': 'gambit',
-       '귀환 인사': 'back'}
+       '귀환 인사': 'back', '자동 판단': 'decide'}
 RESULT = {'완주': 'complete', '귀환': 'retreat', '전멸': 'forced', '히든': 'hidden'}
 PROP = {'레트로 게임기': 'game', '커피·홍차 세트': 'tea', '화구·이젤 세트': 'easel', '고양이 방석': 'cushion', '다트 보드': 'dart'}
 STAGE = {'발견': 'find', '전개': 'grow', '결말': 'end', '후일담': 'after', '놓쳤을 때': 'miss'}
@@ -312,6 +312,29 @@ def new_tabs(wb, out):
                 unknown.append(f'{w}: 새 유물 아이디어 — 효과 구현이 필요해요: {s(d["효과(말로)"])}')
             continue
         out['relics'].append({'id': rid, 'name': s(d['이름']), 'en': s(d['영문 이름']), 'desc': s(d['설명 한 줄'])})
+    # 사건 소개 추가: 같은 사건에 다른 소개 문장을 더 붙인다 (반복 줄이기). 코드 사건·시트 사건 모두, 섀도는 shadow:종류
+    out['evIntro'] = {}
+    for d in tab('사건 소개 추가'):
+        w = f"사건 소개 추가 {d['_row']}행"; eid = s(d['사건 ID']); t = s(d['추가 소개 문장'])
+        if not t:
+            continue
+        if not eid:
+            unknown.append(f'{w}: 사건 ID가 빈 칸'); continue
+        if ONLY_DONE and s(d.get('상태')) not in ('완료', '게임 반영'):
+            continue
+        out['evIntro'].setdefault(eid, []).append(t)
+    # 역 묘사: 시트가 원본. 채워진 역은 코드 문장 대신 이걸 쓴다
+    out['zones'] = {}
+    ZK = {'도착 묘사': 'arr', '탐색 동작': 'scout', '도착 효과 문장': 'arrive'}
+    for d in tab('역 묘사'):
+        w = f"역 묘사 {d['_row']}행"; zid = s(d['역 ID']); k = ZK.get(s(d['종류'])); t = s(d['문장'])
+        if not t:
+            continue
+        if not (zid and k):
+            unknown.append(f'{w}: 역 ID나 종류 확인'); continue
+        if ONLY_DONE and s(d.get('상태')) not in ('완료', '게임 반영'):
+            continue
+        out['zones'].setdefault(zid, {}).setdefault(k, []).append(t)
 
 
 def prob(v):
