@@ -14,6 +14,7 @@ index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
 import json, os, statistics as st, sys, tempfile, collections
 from playwright.sync_api import sync_playwright
 
+DLV = int(os.environ.get('DEPTH', '0'))  # 도전 단계 (기본 0)
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'index.html')
 N = int(sys.argv[2]) if len(sys.argv) > 2 else 300
 MARK = "render();\n}\n</script>"
@@ -25,7 +26,7 @@ JS = r"""
 const IDS=['joker','mona','ryuji','ann','yusuke','makoto','futaba','haru','akechi','kasumi'];
 const PREF=[/약점을/,/특수/,/기책/,/들어간다/,/버스로/,/조사를/,/열어 본다/,/100엔/,/마셔/,/모나에게/,/같이 넘는다/,/중재/,/스킬|SP|와이어|로그만|추리/];
 for(let k=0;k<a.n;k++){
- g.S=Object.assign(g.S,JSON.parse(JSON.stringify(a.state)));g.S.tips=['start','choose','tag','event'];g.S.tut=true;
+ g.S=Object.assign(g.S,JSON.parse(JSON.stringify(a.state)));g.S.tips=['start','choose','tag','event'];g.S.tut=true;g.S.depthMax=DLV;g.S.lvSel=DLV;/* 도전 단계 고정 (완주해도 안 오르게) */
  const ids=[...IDS].sort(()=>Math.random()-.5).slice(0,3);g.S.today=g.SCRIPT.days.length?g.SCRIPT.days[Math.floor(Math.random()*g.SCRIPT.days.length)].id:null;g.S.lastChains=[];
  g.newRun(ids);const r=g.run;r.manual=true;let guard=0,ch=0;const ev=[];
  while(r.phase!=='done'&&guard++<3000){
@@ -50,6 +51,7 @@ for(let k=0;k<a.n;k++){
  const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id,reaper:!!r.reaper,warn:!!r.rw1,relics:(r.relics||[]).length,rels:Object.keys(r.rel||{}).length,cut:x.cut&&x.cut.k,team:x.team||0,bonus:x.bonus||0,mood:r.mood})}
 return out}
 """
+JS = JS.replace('DLV', str(DLV))
 
 BASE = {"yen": 0, "props": [], "bus": 1, "pick": 0, "smoke": 1, "curry": 1,
         "codex": {"combos": [], "events": [], "hidden": [], "reports": 0, "best": 0}}
