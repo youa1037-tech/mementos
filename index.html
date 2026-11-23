@@ -721,7 +721,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .polx{margin:4px 0 10px;font-size:13px;color:var(--mut);line-height:1.5}.polx b{color:var(--ink);font-weight:700}
 .cmdwin{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;width:min(560px,calc(100% - 16px));background:#141012;border:2px solid var(--c);box-shadow:0 10px 30px rgba(0,0,0,.6);padding:10px 12px 12px}
 .cmdwin .cw1{margin:0;font-size:14px;display:flex;gap:8px;align-items:baseline}.cmdwin .cw1 b{font-family:var(--en);color:var(--c);letter-spacing:.06em;font-weight:400}.cmdwin .cw1 span{margin-left:auto;color:var(--mut);font-size:13px}
-.cmdwin .cw2{margin:6px 0 0;font-size:12px;color:var(--mut)}
+.cmdwin .cw2{margin:6px 0 0;font-size:12px;color:var(--mut)}.cmdwin .cw3{margin:6px 0 0;font-size:14px;line-height:1.45}
 .cmdwin .cbar{display:block;height:4px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden}.cmdwin .cbar b{display:block;height:100%;background:var(--c);transform-origin:left;transform:scaleX(var(--s));animation:eabar var(--ms) linear forwards}
 .cmdwin .cbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
 .cmdwin .cbtns button{min-height:52px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left;padding:6px 8px;background:var(--p2);border:1px solid var(--line2)}
@@ -1199,7 +1199,7 @@ function resolveQuirk(mode){const c=run&&run.cmd;if(!c)return;if((mode==='stop'|
 function cmdFreeze(){const c=run&&run.cmd;if(c&&c.at&&(run.paused||run.manual||tq||S.cmdStop||ui.screen!=='explore')){c.left=Math.max(800,c.at-Date.now());c.at=0}}
 function vCmd(){const c=run.cmd;if(!c)return '';const m=mem(c.id),Q=QUIRK[c.id];if(!m||!Q)return '';const tg=cmdTag(),tot=cmdMs(),wait=S.cmdStop||run.manual||run.paused,n=run.nudge;
  const rem=c.at?Math.max(0,c.at-Date.now()):(c.left||tot);
- return `<div class="cmdwin" role="dialog" aria-label="조커의 지휘 · ${esc(m.c.name)} ${esc(Q.n)}" style="--c:${m.c.col}"><p class="cw1"><b>COMMAND</b> ${esc(m.c.name)} · ${esc(Q.n)} <span>지휘 ${n}/${run.nudge0||3}</span></p>
+ return `<div class="cmdwin" role="dialog" aria-label="조커의 지휘 · ${esc(m.c.name)} ${esc(Q.n)}" style="--c:${m.c.col}"><p class="cw1"><b>COMMAND</b> ${esc(m.c.name)} · ${esc(Q.n)} <span>지휘 ${n}/${run.nudge0||3}</span></p><p class="cw3">${esc(Q.warn(m))}</p>
  ${wait?'<p class="cw2">고를 때까지 멈춰 있습니다</p>':`<i class="cbar"><b style="--ms:${rem}ms;--s:${(rem/tot).toFixed(3)}"></b></i>`}
  <div class="cbtns"><button data-act="cmd:stop" ${n>0?'':'disabled'}><span class="k">1</span><b>말린다</b><small>사고 없음 · 지휘 -1</small></button><button data-act="cmd:boost" ${n>0?'':'disabled'}><span class="k">2</span><b>부추긴다</b><small>${esc(Q.boost)}</small></button><button data-act="cmd:tag" ${tg?'':'disabled'}><span class="k">3</span><b>태그 사용</b><small>${tg?`[${esc(tg)}] 소비 · 나쁜 결과 없음`:'쓸 상태 태그 없음'}</small></button><button data-act="cmd:leave"><span class="k">␣</span><b>그냥 둔다</b><small>${esc(Q.leave)}</small></button></div></div>`}
 
