@@ -1,0 +1,49 @@
+"""P0 회귀 검사: 리뷰에서 나온 신뢰 버그 6개가 다시 생기지 않았는지 확인 (개발용)
+
+사용법: python3 tools/p0_check.py [index.html 경로]
+크롬 경로를 지정하려면 CHROME=/usr/bin/google-chrome
+"""
+import tempfile,json,sys,os
+from playwright.sync_api import sync_playwright
+src=open(sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(__file__),'..','index.html'),encoding='utf-8').read()
+MARK="render();\n}\n</script>"
+assert src.count(MARK)==1
+HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout};\n"+MARK
+tmp=tempfile.NamedTemporaryFile('w',suffix='.html',delete=False,encoding='utf-8',dir='/tmp');tmp.write(src.replace(MARK,HOOK));tmp.close()
+ok=True
+def check(name,cond,info=''):
+  global ok;ok&=bool(cond);print(('PASS' if cond else 'FAIL'),name,info)
+TOCHOOSE="""()=>{const g=window.__g;g.S.tut=true;g.S.tips=['start','choose','tag','event'];g.newRun(['joker','haru','ryuji']);const r=g.run;r.manual=true;let k=0;
+ while(r.phase!=='choose'&&k++<500){if(r.phase==='event'){g.choose(r.ev.choices.findIndex(x=>!x.dis));continue}g.step()}return r.phase}"""
+with sync_playwright() as p:
+  b=p.chromium.launch(**({'executable_path':os.environ['CHROME']} if os.environ.get('CHROME') else {}));pg=b.new_page()
+  errs=[];pg.on('pageerror',lambda e:errs.append(str(e)))
+  pg.route('**/fonts.*/**',lambda r:r.abort())
+  pg.goto('file://'+tmp.name);pg.evaluate('localStorage.clear()');pg.reload()
+  # 1a 역 선택 화면에서 카레 → 이어하기: HP 100 · 카레 0
+  check('choose phase reached',pg.evaluate(TOCHOOSE)=='choose')
+  pg.evaluate("()=>{const g=window.__g,h=g.run.party.find(m=>m.id==='haru');g.run.party.forEach(m=>m.hp=100);h.hp=90;g.S.curry=1;g.saveRun();g.useCurry()}")
+  pg.reload();r=pg.evaluate("()=>{const g=window.__g;g.resumeRun();return {hp:g.run.party.find(m=>m.id==='haru').hp,curry:g.S.curry}}")
+  check('curry at choose then continue',r=={'hp':100,'curry':0},r)
+  pg.reload();r=pg.evaluate("()=>{const g=window.__g;g.resumeRun();return {hp:g.run.party.find(m=>m.id==='haru').hp,curry:g.S.curry}}")
+  check('second continue no double use',r=={'hp':100,'curry':0},r)
+  # 1b 턴 중간에 카레 → 이어하기: 체크포인트로 함께 되감김 (HP 90 · 카레 1)
+  pg.evaluate("()=>{const g=window.__g,h=g.run.party.find(m=>m.id==='haru');h.hp=90;g.S.curry=1;g.saveRun();const cur=g.run.map.st[g.run.at];g.move(cur.id);g.useCurry()}")
+  mid=pg.evaluate("()=>({ph:window.__g.run.phase,c:window.__g.S.curry})")
+  pg.reload();r=pg.evaluate("()=>{const g=window.__g;g.resumeRun();return {hp:g.run.party.find(m=>m.id==='haru').hp,curry:g.S.curry}}")
+  check('curry mid-turn rewinds with run',r=={'hp':90,'curry':1},{'mid':mid,'after':r})
+  # 3 귀환 예상액 = 정산
+  r=pg.evaluate("""()=>{const g=window.__g,r=g.run;r.yen=1704;r.tval=0;r.heat=4;r.phase='choose';g.render();const t=document.querySelector('.cash p').innerText;g.endRun('retreat');return {t,inc:g.ui.res.inc}}""")
+  check('cashout estimate matches report',('1,772' in r['t']) and r['inc']==1772,r)
+  # 4 막차 승차권
+  r=pg.evaluate("""()=>{const g=window.__g;let five=0,seven=0;for(let i=0;i<400;i++){g.newRun(['joker','mona','ann']);g.run.manual=true;g.run.maxT=i%2?5:7;g.run.relics=[];const o=g.relicOffer();o[1].fn();const x=g.run.ev.choices.map(c=>c.label).join();if(x.includes('막차'))i%2?five++:seven++}return {five,seven}}""")
+  check('R-13 never offered in 5-turn run',r['five']==0 and r['seven']>0,r)
+  # 5 결정적 1컷
+  r=pg.evaluate("""()=>{const g=window.__g,bad=[];for(let i=0;i<300;i++){g.newRun(['joker','mona','ann']);const r=g.run;r.moments=i%3?[]:[{k:'케미 반전',score:50,v:{}}];const c=g.pickCut(r,5000);if(/\\{|(^|[\\s:])\\(|\\(\\)/.test(c.t))bad.push(c.t)}return bad.slice(0,3)}""")
+  check('cut lines have no empty names',not r,r)
+  # 6 사건 대표 대사
+  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','ann','ryuji']);const e=g.EVENTS.find(x=>x.id==='E-012');const out=[];for(let i=0;i<20;i++){const d=e.make();out.push([d.who,d.q])}return out}""")
+  check('stand-in speaker omits generic find quote',all(w is None and q is None for w,q in r),r[:2])
+  check('no page errors',not errs,errs[:3])
+  b.close()
+print('ALL OK' if ok else 'SOME FAILED');sys.exit(0 if ok else 1)
