@@ -4,18 +4,18 @@
 
 | 항목 | 개수 |
 |---|---|
-| lines | 418 |
+| lines | 580 |
 | solo | 80 |
 | pairs | 134 |
 | events | 26 |
 | chains | 6 |
 | days | 12 |
-| afters | 53 |
+| afters | 67 |
 | tut | 15 |
 | chem | 2 |
 | idle | 112 |
 | reaper | 30 |
-| cuts | 33 |
+| cuts | 60 |
 | relics | 13 |
 | evIntro | 44 |
 | combos | 45 |
