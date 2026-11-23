@@ -716,6 +716,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 @keyframes tapb{50%{transform:skew(-6deg) translateY(-3px)}}
 .logbox.holding{cursor:pointer}
 .logbox.holding #log li:last-child p{outline:2px solid rgba(246,241,234,.18);outline-offset:4px}
+.report dd.fall span{display:block;line-height:1.5}.report dd.fall b{margin-right:4px}
 </style>
 </head>
 <body>
@@ -1408,7 +1409,7 @@ function sfxLine(b){if(!run||ui.screen!=='explore'||FF)return;const r=b.res||'';
 
 /* ============ 진행 중인 판 저장: 턴이 끝나 역을 고를 때마다. 메인에서 CONTINUE ============ */
 const RKEY='todays-mementos-run';
-const RUN_KEYS=['cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','newb','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
+const RUN_KEYS=['cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','newb','falls','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
 /* 카레(S.curry)는 바로 저장되지만 판은 체크포인트에서만 저장된다. 체크포인트 이후 카레 변동(S.runCurry)을 따로 적어 두고, 이어하기 때 판과 함께 되감는다 */
 function curryAdd(n){S.curry=clamp(S.curry+n,0,99);if(run&&!run.settled)S.runCurry=(S.runCurry||0)+n;save()}
 function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)return;
@@ -1555,7 +1556,9 @@ function log(b){
  if(b.who&&b.q){const m=run.party.find(x=>x.id===b.who);if(m){m.bub=b.q;m.bat=run.beat;m.face=/[?？]/.test(b.q)?'?':/…/.test(b.q)?'…':/!/.test(b.q)?'!':'♪'}}
 }
 function checkDown(){
- for(const m of run.party)if(m.hp<=0&&!m.down){m.down=true;m.face='×';log({sys:1,warn:1,text:`${un(m.c.name)} 전투불능 상태가 되었다.`})}
+ for(const m of run.party)if(m.hp<=0&&!m.down){m.down=true;m.face='×';
+  {const L=run.log,b=[...L].reverse().find(x=>/HP\s*-/.test(x.res||'')&&(x.who===m.id||/전원/.test(x.res||'')))||L[L.length-1];(run.falls||(run.falls=[])).push({id:m.id,t:Math.min(run.turn,run.maxT),z:Zc().name,why:String((b&&(b.n||b.text))||'').replace(/^T\d+ · /,'').slice(0,40)})}
+  log({sys:1,warn:1,text:`${un(m.c.name)} 전투불능 상태가 되었다.`})}
  if(!alive().length&&!run.forced){run.forced=true;run.ev=null;run.phase='running';
   run.q=[...(run.reaper?reaperLines('caught'):[]),{sys:1,warn:1,text:'파티 전원이 쓰러졌다! 모나 버스가 긴급 회수에 나섰다.'},{fn:()=>{endRun('forced');return null}}]}
 }
@@ -1625,7 +1628,7 @@ function useCurry(){if(!run||S.curry<1||run.phase==='done')return;curryAdd(-1);
  for(const m of run.party){if(m.hp<=0){m.hp=30;m.down=false}else hp(m,30);m.sp=clamp(m.sp+10,0,m.msp)}
  log({sys:1,text:'르블랑 카레를 나눠 먹었다. 든든하다!',res:'전원 HP +30 · SP +10'});saveRun();render()}
 
-const STAR=[3500,7000,12000,18000],RISK_PAY=.01,TEAM_PAY=.15,WIPE_KEEP=.4;
+const STAR=[3500,7000,12000,18000],RISK_PAY=.01,TEAM_PAY=.15,WIPE_KEEP=.7;/* 실패도 장면: 기본 난이도는 손해를 작게 (docs/direction.md) */
 /* 정산 계산 (귀환 예상액과 보고서가 같은 식을 쓴다) */
 /* 팀워크 수당: 분위기 40 넘은 만큼(100에서 +15%) + 좋은 관계(의기투합·뜻밖의 신뢰) 한 쌍당 +5% (최대 3쌍). 위험 수당과 다른 길 */
 function teamRate(r){const al=r.party.filter(m=>m.hp>0).map(m=>m.id);
@@ -1644,13 +1647,13 @@ function endRun(reason){
  const mvp=[...r.party].sort((a,b)=>b.mvp-a.mvp)[0],mis=[...r.party].sort((a,b)=>b.mis-a.mis)[0];
  const misWhy=m=>hasTag('100엔 손실',m.id)?'자판기 100엔 분실':hasTag('배탈',m.id)?'수상한 음료 시음':hasTag('함정 발동',m.id)?'보물상자 함정 발동':'크고 작은 헛발질';
  const line=r.hidden?'존재하지 않는 역은, 분명히 존재했다.':hasTag('함정 발동')?'보물상자는 함부로 열지 말 것.':hasTag('100엔 손실')?'메멘토스 자판기는 믿지 말 것.':hasTag('배탈')?'정체불명의 음료는 마시지 말 것.':reason==='forced'?'무리한 탐사는 금물. 다음엔 카레를 챙기자.':r.mood>=70?'오늘의 괴도단, 분위기 최고.':'무사 귀환. 내일도 메멘토스!';
- recentEnd();S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);S.lastChains=r.chains.map(x=>x.id);S.lastDay=S.today;S.today=null;save();
+ recentEnd();if(reason==='forced'){S.codex.wipes=(S.codex.wipes||0)+1}S.yen+=inc;S.codex.reports++;S.codex.best=Math.max(S.codex.best,st);S.lastChains=r.chains.map(x=>x.id);S.lastDay=S.today;S.today=null;save();
  if(reason==='forced'||rescue)moment('긴급 구출·전멸',rescue?88:90,{});if(r.hidden)moment('히든',85,{});
  if(r.reaper&&reason!=='forced'){moment('거두는 자 탈출',72,{});r.escLines=reaperLines('escape')}
  if((r.relicYen||0)>=800&&(r.relics||[]).length)moment('유물 대박',50,{이름:relicOf(r.relics[0]).name,엔:'¥'+fmt(r.relicYen)});
  const pz=persistEnd(r,reason);
  const cut=pickCut(r,inc);
- ui.res={newb:r.newb||[],ids:r.party.map(m=>m.id),inc,bonus,team,mood:r.mood,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,cut,relics:(r.relics||[]).map(id=>relicOf(id).name),
+ ui.res={falls:r.falls||[],newb:r.newb||[],ids:r.party.map(m=>m.id),inc,bonus,team,mood:r.mood,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,cut,relics:(r.relics||[]).map(id=>relicOf(id).name),
   mvp:{id:mvp.id,why:MVPWHY[mvp.c.type]},mis:mis.mis>0?{id:mis.id,why:misWhy(mis)}:null,
   kind:rescue?'rescue':reason,reason:rescue?'첫 정찰 · 모르가나 긴급 구출':{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:`전원 전투불능 · 긴급 회수 (수익 ${WIPE_KEEP*100}%)`}[reason],
   after:afterStory(r,reason),clue:nextClue(r),pz,newPerks:r.tut?[]:(()=>{const pt=codexPts(),got=PERKS.filter(p=>pt>=p.pt).map(p=>p.id),nw=got.filter(id=>!(S.perks||[]).includes(id));S.perks=got;save();return nw})()};
@@ -1665,6 +1668,8 @@ function afterStory(r,reason){
  const elig=SCRIPT.afters.filter(a=>(!a.lines[0].need||inP(a.lines[0].need))&&(ok(a.c,ctx)||(r.hidden&&ok(a.c,{result:'hidden'}))));
  const pick1=k=>{let c=elig.filter(a=>kind(a)===k);if(k==='result'&&r.hidden&&c.some(a=>a.c.some(x=>x.v==='hidden')))c=c.filter(a=>a.c.some(x=>x.v==='hidden'));return c.length?pick(c):null};
  const res=pick1('result');if(res)L.push(...scene(res));
+ else if(reason==='forced'){const f=(r.falls||[])[0];L.push({n:'모나 버스가 쓰러진 괴도단을 싣고 덜컹거리며 르블랑 앞에 멈췄다.'});
+  if(f)L.push({n:`${un(CH[f.id].name)} 붕대를 감은 채 소파 끝에 앉아 천장만 바라봤다.`},{who:f.id,q:say(CH[f.id],'hurt')});}/* 실패도 장면: 시트에 결과:전멸 후일담이 더 생기면 그걸 먼저 씀 */
  const covered=new Set();for(const a of elig.filter(a=>kind(a)==='tag')){const key=JSON.stringify(a.c);if(covered.has(key))continue;covered.add(key);L.push(...scene(a))}
  const sheetTag=t=>SCRIPT.afters.some(a=>a.c.some(c=>c.k==='tag'&&c.v===t));
  if(!sheetTag('100엔 손실')&&hasTag('100엔 손실','ryuji'))L.push({who:'ryuji',q:'내 100엔… 다음엔 꼭 되찾는다고.'});
@@ -1679,7 +1684,7 @@ function afterStory(r,reason){
  const md=pick1('mood');if(md)L.push(...scene(md));
  const pr=pick1('prop');if(pr)L.push(...scene(pr));
  if(!res&&r.hidden)L.push({n:'다들 존재하지 않는 역 이야기를 하느라 밤이 깊어지는 줄도 몰랐다.'});
- for(const m of r.party)L.push({who:m.id,q:say(m.c,'back')});
+ for(const m of r.party)if(!(reason==='forced'&&(r.falls||[])[0]&&r.falls[0].id===m.id&&!res))L.push({who:m.id,q:say(m.c,reason==='forced'?'hurt':'back')});/* 전멸 뒤엔 귀환 인사 대신 '피격' 대사 */
  return L.filter(l=>(l.q||l.n));
 }
 
@@ -1864,7 +1869,7 @@ function vResult(){const x=ui.res,an=!x.shown,cd=id=>CH[id].code;x.shown=true;
  ${x.cut?`<figure class="shot"><small>TODAY'S SHOT</small><figcaption>${esc(x.cut.t)}</figcaption></figure>`:''}
  <dl><dt>MEMBERS</dt><dd class="en">${x.ids.map(cd).join(' · ')}</dd><dt>RESULT</dt><dd><span class="stars">${[0,1,2,3,4].map(i=>`<i style="--i:${i}">${i<x.st?'★':'☆'}</i>`).join('')}</span><br><small>${x.reason}</small></dd>
  <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> <span class="en">· LOOT ${x.tre}</span>${x.bonus?`<br><small>위험 수당 +¥${fmt(x.bonus)} (위험도 ${x.heat})</small>`:''}${x.team?`<br><small>팀워크 수당 +¥${fmt(x.team)} (분위기 ${x.mood})</small>`:''}</dd><dt>MVP</dt><dd><span class="en">${cd(x.mvp.id)}</span> ${x.mvp.why}</dd>
- ${(x.relics||[]).length?`<dt>RELICS</dt><dd>${x.relics.map(esc).join(' · ')}</dd>`:''}<dt>TROUBLE</dt><dd>${x.mis?`<span class="en">${cd(x.mis.id)}</span> ${x.mis.why}`:'없음 (평화로운 하루)'}</dd></dl>
+ ${(x.relics||[]).length?`<dt>RELICS</dt><dd>${x.relics.map(esc).join(' · ')}</dd>`:''}<dt>TROUBLE</dt><dd>${x.mis?`<span class="en">${cd(x.mis.id)}</span> ${x.mis.why}`:'없음 (평화로운 하루)'}</dd>${(x.falls||[]).length?`<dt>THE FALL</dt><dd class="fall">${x.falls.map(f=>`<span><b class="en" style="color:${CH[f.id].col}">${cd(f.id)}</b> T${f.t} · ${esc(f.z)}${f.why?` — ${esc(f.why)}`:''}</span>`).join('')}</dd>`:''}</dl>
  <blockquote>“${esc(x.line)}”</blockquote><footer>TODAY'S MEMENTOS! · 보유 엔 ¥${fmt(S.yen)}</footer></article>
  <div class="copyrow"><button class="btn ghost sm" data-act="copy">${ui.copy==='ok'?'COPIED!':'COPY REPORT'}</button></div>
  ${ui.copy==='fail'?`<textarea readonly aria-label="보고서 텍스트">${esc(reportText())}</textarea>`:''}
