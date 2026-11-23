@@ -46,6 +46,32 @@ BALANCE = {
     ('C-006', 'end'): {'fx': '보물+2 · 엔+800 · SP+15'},
 }
 
+# 대실패 해프닝(단독행동) 피해 조정: 위험도 배율이 붙으면 깊은 구역에서 전멸 원인이 됨 (docs/balance.md sitcom-v3)
+SOLO_BALANCE = {
+    '조커': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기+4',
+    '모르가나': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기+3',
+    '류지': 'HP-4(전원) · 사고+3 · 태그:대실패(본인) · 분위기-4',
+    '안': 'HP-4(전원) · 사고+3 · 태그:대실패(본인) · 태그:도발',
+    '유스케': 'HP-6 · SP-6 · 사고+3 · 태그:대실패(본인) · 분위기+3',
+    '아케치': 'HP-6 · 사고+3 · 태그:대실패(본인) · 분위기-3',
+    '카스미': 'HP-5 · 사고+3 · 태그:대실패(본인) · 분위기+5',
+}
+
+# 튜토리얼 '하이라이트 대상' 이름 → 화면 요소 (CSS 선택자)
+HL = {
+    '3인 파티 슬롯': '.slots', '잠금 멤버 카드': '.cards', 'START': '[data-act="start"]',
+    '말풍선': '.party', '행동 로그': '.logbox', 'HP 막대': '.party', '분위기': '#moodtag',
+    '배속': '[data-act="speed"]', '일시정지': '[data-act="pause"]', '구역 이동 지도': '.map',
+    '통로': '[data-act="move:pass"]', '보관실': '[data-act="move:lost"]', '구역': '.node.opt',
+    '사건 팝업창': '.evt', '사건 선택지': '.evt .ch', '충돌 선택지': '.evt .ch',
+    '활성 상태 태그': '.ptags, .tile .mt', 'RISK 표시': '#risktag', 'RISK': '#risktag', 'RETURN NOW': '[data-act="cashout"]',
+    '보고서 카드': '.report', '후일담': '.after', '수익 정산': '.report dl', '르블랑': '[data-act="go:shop"]',
+    '르블랑 가기': '[data-act="go:shop"]', '오늘의 메멘토스 배너': '.today', '캐릭터 선택 그리드': '.cards',
+    '사슬 배지': '.logbox', '도감': '[data-act="go:codex"]', '모나 버스 튜닝': '[data-act="bus"]',
+}
+GO = {'탭': 'tap', '선택': 'choice', '버튼 누름': 'act', '구역 클릭': 'act', '선택지 클릭': 'act',
+      '선택 후 행동': 'choice', '선택 후 버튼': 'choice', '탭 (T-8 직행)': 'tap'}
+
 unknown = []
 
 
@@ -85,7 +111,8 @@ def conds(text, where):
         if tok == '단서':
             out.append({'k': 'tag', 'v': CLUE}); continue
         if tok.startswith('태그:'):
-            out.append({'k': 'tag', 'v': tok[3:].strip()}); continue
+            m = re.fullmatch(r'(.+?)\(본인\)', tok[3:].strip())
+            out.append({'k': 'tag', 'v': m[1].strip(), 'w': 'self'} if m else {'k': 'tag', 'v': tok[3:].strip()}); continue
         if tok.startswith('파티:'):
             ids = [name_id(x, where) for x in tok[3:].split('+')]
             out.append({'k': 'party', 'v': [i for i in ids if i]}); continue
@@ -139,6 +166,72 @@ def effects(text, where):
     return out
 
 
+def own_tags(out):
+    """'본인' 태그(효과에서 늘 '(본인)'으로만 붙는 태그, 예: 대실패)는 누가 가졌는지까지 본다.
+    - 기본대사 '태그:X'      → 말하는 사람이 아닌 다른 누군가가 X를 가졌을 때 (동료 반응)
+    - 기본대사 '태그:X(본인)' → 말하는 사람이 X를 가졌을 때
+    - 쌍대사 '태그:X'        → 캐릭터 A가 X를 가졌을 때
+    - 후일담 '태그:X' + 첫 줄 필요 캐릭터 → 그 캐릭터가 X를 가졌을 때
+    """
+    fx = [f for x in out['solo'] for f in x['fx']] + [f for x in out['pairs'] for f in x['fx']]
+    fx += [f for e in out['events'] for c in e['choices'] for f in c['ok']['fx'] + (c.get('ng') or {}).get('fx', [])]
+    fx += [f for c in out['chains'] for st in c['steps'].values() for f in st['fx']]
+    given = {}
+    for f in fx:
+        if f['k'] == 'tag':
+            given.setdefault(f['v'], set()).add(bool(f.get('own')))
+    own = {v for v, s_ in given.items() if s_ == {True}}
+    def mark(cs, w):
+        for c in cs:
+            if c['k'] == 'tag' and c['v'] in own and 'w' not in c:
+                c['w'] = w
+    for l in out['lines']:
+        mark(l['c'], 'other')
+    for p in out['pairs']:
+        mark(p['c'], 'a')
+    for a in out['afters']:
+        if a['lines'] and a['lines'][0]['need']:
+            mark(a['c'], a['lines'][0]['need'])
+    return own
+
+
+def tutorial(wb):
+    """튜토리얼 탭 → {단계 ID: [대사 줄]}. 탭이 없으면 index.html에 있던 것을 그대로 둔다."""
+    if '튜토리얼' not in wb.sheetnames:
+        try:
+            html = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
+            old = json.loads(html[html.index('/*SCRIPT-BEGIN*/') + 29:html.index(';/*SCRIPT-END*/')])
+            unknown.append('튜토리얼 탭이 없어 지난번 튜토리얼 대사를 그대로 씀')
+            return old.get('tut', {})
+        except Exception:
+            unknown.append('튜토리얼 탭이 없음'); return {}
+    out = {}
+    for d in rows(wb['튜토리얼']):
+        sid = s(d['단계 ID']); w = f"튜토리얼 {sid}-{s(d['순서'])}"
+        if not sid or not s(d['대사']):
+            unknown.append(f'{w}: 단계 ID나 대사가 빈 칸'); continue
+        who = name_id(s(d['화자']).split(',')[0], w)
+        hl = []
+        for nm in [x.strip() for x in SEP.split(s(d['하이라이트 대상'])) if x.strip()]:
+            k = re.sub(r'\s*버튼$', '', nm)
+            sel = HL.get(nm) or HL.get(k)
+            if sel:
+                hl.append(sel)
+            else:
+                unknown.append(f'{w}: 하이라이트 대상 "{nm}"')
+        go = GO.get(s(d['넘어가는 조건']))
+        if not go:
+            unknown.append(f"{w}: 넘어가는 조건 \"{s(d['넘어가는 조건'])}\" → 탭으로 처리"); go = 'tap'
+        ch = [x.strip() for x in SEP.split(s(d.get('조커 대답 선택지'))) if x.strip()][:2]
+        if go == 'choice' and len(ch) < 2:
+            unknown.append(f'{w}: 선택인데 조커 대답이 두 개가 아님 → 탭으로 처리'); go = 'tap'
+        if go == 'act' and not hl:
+            unknown.append(f'{w}: 눌러야 넘어가는데 하이라이트 대상이 없음 → 탭으로 처리'); go = 'tap'
+        o = s(d['순서']); o = o[:-2] if o.endswith('.0') else o
+        out.setdefault(sid, []).append({'o': o, 'who': who, 't': s(d['대사']), 'hl': hl, 'ch': ch if go == 'choice' else [], 'go': go})
+    return out
+
+
 def prob(v):
     v = s(v)
     if not v:
@@ -184,7 +277,10 @@ def main():
         w = f"단독행동 {d['_row']}행"
         who = name_id(d['캐릭터'], w)
         if who:
-            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(d['효과'], w)})
+            fx = d['효과']
+            if '대실패(본인)' in s(fx) and s(d['캐릭터']) in SOLO_BALANCE:
+                fx = SOLO_BALANCE[s(d['캐릭터'])]
+            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(fx, w)})
     for d in rows(wb['쌍대사']):
         w = f"쌍대사 {s(d['ID'])}"
         a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w)
@@ -252,6 +348,8 @@ def main():
         cur['lines'].append({'need': name_id(d['필요 캐릭터'], w), 'who': name_id(d['화자(없으면 서술)'], w), 't': s(d['내용'])})
     for a in out['afters']:
         a.pop('raw')
+    own_tags(out)
+    out['tut'] = tutorial(wb)
 
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
     p = os.path.join(ROOT, 'index.html'); html = open(p, encoding='utf-8').read()
@@ -266,6 +364,8 @@ def main():
            '', '## 시트 숫자 위에 덮어쓴 밸런스 조정', '',
            '안전한 선택지가 위험한 선택지보다 늘 이득이던 곳과, 보상이 너무 큰 곳을 고쳤어요. 시트도 같이 고쳐 두면 다음 반영 때 이 표가 필요 없어져요.', '',
            '| 대상 | 바뀐 값 |', '|---|---|'] + [f'| {k[0]} {k[1]} | ' + ' / '.join(f'{kk}: {vv}' for kk, vv in v.items()) + ' |' for k, v in BALANCE.items()] + [
+           f'| 단독행동 {k} 대실패 | 효과: {v} |' for k, v in SOLO_BALANCE.items()] + [
+           '', '대실패처럼 늘 (본인)으로 붙는 태그는 누가 가졌는지까지 봅니다. 기본대사의 그냥 `태그:대실패`는 말하는 사람이 아닌 동료가 실패했을 때, `태그:대실패(본인)`은 본인이 실패했을 때 나옵니다. 쌍대사는 캐릭터 A가 실패했을 때, 후일담은 첫 줄의 필요 캐릭터가 실패했을 때 나옵니다.'] + [
            '', '## 읽지 못했거나 건너뛴 표기', ''] + ([f'- {u}' for u in unknown] or ['없음'])
     open(os.path.join(ROOT, 'docs', 'script-import.md'), 'w', encoding='utf-8').write('\n'.join(rep) + '\n')
     print(counts); print('unknown', len(unknown)); [print(' ', u) for u in unknown]
