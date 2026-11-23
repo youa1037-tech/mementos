@@ -12,6 +12,11 @@
 | days | 12 |
 | afters | 35 |
 | tut | 15 |
+| chem | 2 |
+| idle | 32 |
+| reaper | 30 |
+| cuts | 33 |
+| relics | 13 |
 
 ## 시트 숫자 위에 덮어쓴 밸런스 조정
 

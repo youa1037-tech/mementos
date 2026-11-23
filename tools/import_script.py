@@ -232,6 +232,65 @@ def tutorial(wb):
     return out
 
 
+TRIG = {'A가 B를 감쌈': '감싸기', 'A의 대실패': '대실패', '의견 충돌': '충돌', '함께 승리': '승리', 'A가 B를 회복': '회복', '쌍대사': '쌍대사'}
+RELS = ['의기투합', '티격태격', '냉전', '뜻밖의 신뢰']
+RSTAGE = {'경고 1 (위험도 10)': 'warn1', '경고 2 (위험도 11)': 'warn2', '출현 (위험도 12)': 'appear', '도망침': 'escape', '붙잡힘': 'caught'}
+CUTS = ['대실패', '감싸기', '긴급 구출·전멸', '조합 이벤트', '사슬 결말', '거두는 자 탈출', '케미 반전', '유물 대박', '히든', '평범한 날']
+
+
+def any_id(v, w):
+    return '*' if s(v) == '아무나' else name_id(v, w)
+
+
+def new_tabs(wb, out):
+    """케미 대사·케미 변화·혼잣말·거두는 자·결정적 1컷·인지 유물. 탭이 없으면 빈 목록(게임은 기본 문구를 씀)."""
+    tab = lambda n: rows(wb[n]) if n in wb.sheetnames else []
+    lines, shifts = [], []
+    for d in tab('케미 대사'):
+        w = f"케미 대사 {d['_row']}행"; a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w); r = s(d['관계'])
+        if r not in RELS:
+            unknown.append(f'{w}: 관계 "{r}"'); continue
+        if not (a and b and s(d['A 대사']) and s(d['B 대사'])):
+            unknown.append(f'{w}: 캐릭터나 대사가 빈 칸'); continue
+        end = s(d.get('마무리 대사(선택)')); endo = None
+        if end:
+            m = re.match(r'(\S+?)\s*:\s*(.+)', end)
+            endo = {'who': name_id(m[1], w), 'q': m[2].strip()} if m else {'who': a, 'q': end}
+        lines.append({'a': a, 'b': b, 'rel': r, 'qa': s(d['A 대사']), 'qb': s(d['B 대사']), 'end': endo})
+    for d in tab('케미 변화'):
+        w = f"케미 변화 {d['_row']}행"; a = any_id(d['캐릭터 A'], w); b = any_id(d['캐릭터 B'], w)
+        tr = TRIG.get(s(d['계기'])); r = s(d['바뀐 관계'])
+        if not (a and b and tr and r in RELS):
+            unknown.append(f'{w}: 캐릭터·계기·바뀐 관계 확인'); continue
+        shifts.append({'a': a, 'b': b, 'trig': tr, 'rel': r, 'n': s(d['서술']), 'qa': s(d['A 대사']), 'qb': s(d['B 대사'])})
+    out['chem'] = {'lines': lines, 'shifts': shifts}
+    out['idle'] = []
+    for d in tab('혼잣말'):
+        w = f"혼잣말 {d['_row']}행"; who = name_id(d['캐릭터'], w)
+        if who and s(d['혼잣말']):
+            out['idle'].append({'who': who, 'n': s(d.get('딴짓 서술(선택)')), 'q': s(d['혼잣말']), 'c': conds(d.get('조건(선택)'), w)})
+    out['reaper'] = []
+    for d in tab('거두는 자'):
+        w = f"거두는 자 {d['_row']}행"; st = RSTAGE.get(s(d['단계']))
+        if not st or not s(d['내용']):
+            unknown.append(f'{w}: 단계나 내용 확인'); continue
+        out['reaper'].append({'st': st, 'who': name_id(d.get('화자(없으면 서술)'), w), 't': s(d['내용'])})
+    out['cuts'] = []
+    for d in tab('결정적 1컷'):
+        w = f"결정적 1컷 {d['_row']}행"; k = s(d['장면'])
+        if k not in CUTS or not s(d['헤드라인']):
+            unknown.append(f'{w}: 장면이나 헤드라인 확인'); continue
+        out['cuts'].append({'k': k, 't': s(d['헤드라인'])})
+    out['relics'] = []
+    for d in tab('인지 유물'):
+        w = f"인지 유물 {s(d['ID'])}"; rid = s(d['ID'])
+        if not re.fullmatch(r'R-(0[1-9]|1[0-3])', rid):
+            if s(d['이름']) or not s(d['효과(말로)']).startswith('('):
+                unknown.append(f'{w}: 새 유물 아이디어 — 효과 구현이 필요해요: {s(d["효과(말로)"])}')
+            continue
+        out['relics'].append({'id': rid, 'name': s(d['이름']), 'en': s(d['영문 이름']), 'desc': s(d['설명 한 줄'])})
+
+
 def prob(v):
     v = s(v)
     if not v:
@@ -350,6 +409,7 @@ def main():
         a.pop('raw')
     own_tags(out)
     out['tut'] = tutorial(wb)
+    new_tabs(wb, out)
 
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
     p = os.path.join(ROOT, 'index.html'); html = open(p, encoding='utf-8').read()

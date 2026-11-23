@@ -30,6 +30,7 @@ for(let k=0;k<a.n;k++){
   if(r.phase==='choose'){
    const al=r.party.filter(m=>m.hp>0);
    if(a.strat==='cautious'&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
+   if(r.reaper&&a.strat!=='reckless'){g.endRun('retreat');break}/* 거두는 자가 나타나면 튄다 */
    const cur=r.map.st[r.at],opts=[cur.id,...cur.links].filter(g.canEnter),kOf=id=>r.map.st.find(s=>s.id===id).k;
    const order=a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
    let to=cur.id;for(const k of order){const c=opts.filter(o=>kOf(o)===k);if(c.length){to=c[Math.floor(Math.random()*c.length)];break}}
@@ -38,7 +39,7 @@ for(let k=0;k<a.n;k++){
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
    g.choose(i);continue}
   g.step()}
- const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id})}
+ const x=g.ui.res;out.push({inc:x.inc,st:x.st,reason:x.reason,ch,ev,wipe:x.kind==='forced',ret:x.kind==='retreat',hidden:r.hidden,chainEnd:r.chains.some(x=>x.done),chainStart:r.chains.length,tags:r.tags.length,pairs:r.pairs.length,day:r.day&&r.day.id,reaper:!!r.reaper,warn:!!r.rw1,relics:(r.relics||[]).length,rels:Object.keys(r.rel||{}).length,cut:x.cut&&x.cut.k})}
 return out}
 """
 
@@ -57,7 +58,7 @@ def main():
         pg.route('**/fonts.*/**', lambda r: r.abort())
         pg.goto('file://' + tmp.name)
         for label, state in [('기본', BASE), ('풀업', FULL)]:
-            for strat in ['greedy-first', 'greedy-best', 'cautious']:
+            for strat in ['greedy-first', 'greedy-best', 'reckless', 'cautious']:
                 res = pg.evaluate(JS, {"n": N, "state": state, "strat": strat})
                 inc = [x['inc'] for x in res]; evc = collections.Counter(e for x in res for e in x['ev'])
                 rows.append(dict(state=label, strat=strat, n=N, inc_mean=round(st.mean(inc)), inc_median=st.median(inc),
@@ -69,10 +70,15 @@ def main():
                                  hidden=round(sum(x['hidden'] for x in res) / N * 100, 1),
                                  chain_end=round(sum(x['chainEnd'] for x in res) / N * 100, 1),
                                  tags=round(st.mean(x['tags'] for x in res), 1),
-                                 pairs=round(st.mean(x['pairs'] for x in res), 1)))
+                                 pairs=round(st.mean(x['pairs'] for x in res), 1),
+                                 reaper=round(sum(x['reaper'] for x in res) / N * 100, 1),
+                                 warn=round(sum(x['warn'] for x in res) / N * 100, 1),
+                                 relics=round(st.mean(x['relics'] for x in res), 2),
+                                 rels=round(st.mean(x['rels'] for x in res), 1)))
+                cuts = collections.Counter(x['cut'] for x in res); rows[-1]['cuts'] = ', '.join(f'{k} {v}' for k, v in cuts.most_common(4))
         b.close()
     os.unlink(tmp.name)
-    hdr = ['state', 'strat', 'n', 'inc_mean', 'wipe', 'retreat', 'star5', 'choices', 'quarrel', 'chain_end', 'tags', 'pairs', 'hidden']
+    hdr = ['state', 'strat', 'n', 'inc_mean', 'wipe', 'retreat', 'star5', 'warn', 'reaper', 'relics', 'rels', 'chain_end', 'pairs', 'hidden', 'cuts']
     print('| ' + ' | '.join(hdr) + ' |'); print('|' + '---|' * len(hdr))
     for r in rows: print('| ' + ' | '.join(str(r[h]) for h in hdr) + ' |')
 
