@@ -913,7 +913,11 @@ function step(){
  else if(run.phase==='running'&&run.tags.length)tip('tag');
  render();
 }
-function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual)return;T=setTimeout(()=>{step();schedule()},run.speed===2?600:1200)}
+/* 읽는 속도에 맞춘 간격: 방금 나온 줄의 글자 수만큼 더 머문다 (1배속 1.4~4.5초, 2배속은 그 절반 정도) */
+const READ={base:700,perChar:55,min:1400,max:4500,fast:.5};
+function lineDelay(){const b=run.log[run.log.length-1],n=b?((b.text||b.n||'')+(b.q||'')+(b.res||'')).length:0;
+ const d=Math.min(READ.max,Math.max(READ.min,READ.base+n*READ.perChar));return run.speed===2?Math.round(d*READ.fast):d}
+function schedule(){clearTimeout(T);if(!run||run.phase!=='running'||run.paused||run.manual)return;T=setTimeout(()=>{step();schedule()},lineDelay())}
 function move(z){if(run.phase!=='choose'||!canEnter(z))return;if(DAY('moveHp')&&z!==run.zone){alive().forEach(x=>hp(x,-DAY('moveHp')));log({sys:1,text:'멈춘 에스컬레이터를 걸어 올랐다.',res:`전원 HP -${DAY('moveHp')}`})}run.zone=z;run.phase='running';enterZone(z);step();schedule()}
 function choose(i){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';
  log({sys:1,text:`▶ 선택: ${c.label}`});const out=c.go();run.stamp=resultStamp(c.label,out);run.q.unshift(...out);step();schedule();setTimeout(()=>{if(ui.screen==='explore'&&run&&run.phase!=='done')render()},2700)}
