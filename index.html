@@ -748,6 +748,11 @@ i.pc{display:inline-block;width:14px;height:14px;aspect-ratio:auto;vertical-alig
 .synn{display:block;font-size:13px;color:var(--mut)}
 .tl{display:inline-block;margin-right:8px;padding:1px 7px;font:700 13px 'IBM Plex Sans KR',sans-serif;color:#141012;background:var(--ink);vertical-align:1px}
 .noorbit #log li.sys p{word-spacing:normal}/* Orbit 글꼴이 안 불러와지면 좁힌 띄어쓰기가 글자를 붙여 버림 */
+
+/* 정산 내역 · 새로 열림 (리뷰 3차 P0) */
+.ledger{margin-top:6px;font-size:14px}.ledger summary{cursor:pointer;color:var(--mut);font-size:13px}.ledger ul{list-style:none;margin:6px 0 0;padding:0}
+.ledger li{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed var(--line)}.ledger li.sub{padding-left:14px;color:var(--mut)}.ledger li.tot{border-bottom:0;font-weight:700}.ledger li b{font-variant-numeric:tabular-nums}
+.unl{margin:14px 0;padding:12px 14px;border:1px solid var(--gold);background:rgba(255,214,90,.06)}.unl small{display:block;font-family:var(--en);letter-spacing:.08em;color:var(--gold);margin-bottom:6px}.unl p{margin:4px 0;font-size:14px;line-height:1.5}.unl b{color:var(--gold);margin-right:6px}
 </style>
 </head>
 <body>
@@ -980,13 +985,23 @@ const synOf=ids=>(SCRIPT.syn||[]).filter(x=>ids.includes(x.a)&&ids.includes(x.b)
 const rsynOk=id=>hasR(id)?(SCRIPT.rsyn||[]).find(x=>x.id===id&&ok(x.c,{})):null;
 function rsynNote(id,res){const x=rsynOk(id);if(!x)return null;const sn=run.rsynS||(run.rsynS=[]);if(sn.includes(id))return null;sn.push(id);return {sys:1,relic:1,text:`◆ ${x.n||relicOf(id).name+' 시너지'}`,res}}
 const REAP0=()=>lvOk(2)?8:10;/* 거두는 자가 나올 수 있는 위험도 */
-const yenMul=()=>(DAY('yen')||1)*(1+.1*LV());
+const yenMul=()=>1+((DAY('yen')||1)-1)+.1*LV();/* 오늘의 메멘토스와 도전 단계도 서로 더한다 (리뷰 3차 P0) */
 const SHEET_YEN=.7;/* 시트 콘텐츠의 엔 보상 일괄 배율 (docs/balance.md) */
 /* 선택의 값 (docs/balance.md choice-v1): 무리수가 실패하면 번 엔을 흘리고, 자원을 쓰는 정석은 엔을 더 받는다 */
 const SPILL_BASE=.12,SPILL_RISK=.02,STEADY=1.6,WEAK_YEN=1.6;
 /* 기세(FLOW): 머리를 쓴 선택이 통하면 ▲, 무리수가 실패하면 ▼. 한 칸당 탐색 엔·탐색 보물 값 ±15% (-3~+3) */
 const MOM_MAX=3,MOM_STEP=.15;
-function momShift(n){if(!run||!n)return '';const b=run.mom||0;run.mom=clamp(b+n,-MOM_MAX,MOM_MAX);return run.mom===b?'':` · 기세 ${n>0?'▲':'▼'}`}
+/* 시스템 단계적 공개 (리뷰 3차 P0): 효과는 처음부터 적용하고, 화면 표시만 끝낸 판 수(S.codex.reports)에 따라 하나씩 연다.
+   판마다 새로 보이는 용어는 둘 이하. 도전 단계는 따로 첫 B등급 완주에서 열린다 */
+const UNLOCK=[
+ {id:'day',n:1,t:'오늘의 메멘토스',d:'날마다 메멘토스의 규칙이 하나씩 바뀝니다.'},
+ {id:'syn',n:1,t:'조합 시너지',d:'세 사람 조합에 따라 판 전체 규칙이 바뀝니다. 편성 화면에서 미리 볼 수 있어요.'},
+ {id:'mind',n:2,t:'컨디션 · 관계 · 기억',d:'쉬고 나온 멤버는 상쾌, 연속 출격은 지침. 함께 겪은 일은 판이 끝나도 관계와 기억으로 남습니다.'},
+ {id:'flow',n:2,t:'기세 (FLOW)',d:'머리를 쓴 선택이 통하면 기세가 올라 탐색 수확이 늘고, 무리수가 실패하면 꺾입니다.'},
+ {id:'orders',n:3,t:'작전 방침',d:'사건에서 오래 기다리면 그 자리의 동료가 방침대로 고르게 할 수 있습니다.'},
+ {id:'wish',n:4,t:'괴도단의 소원',d:'캐릭터마다 세 단계 소원이 있고, 다 이루면 개인 엔딩 카드가 나옵니다.'}];
+const unl=id=>{const u=UNLOCK.find(x=>x.id===id);return !u||(S.codex.reports||0)>=u.n};
+function momShift(n){if(!run||!n)return '';const b=run.mom||0;run.mom=clamp(b+n,-MOM_MAX,MOM_MAX);return run.mom===b||!unl('flow')?'':` · 기세 ${n>0?'▲':'▼'}`}
 const spillAmt=()=>run&&!tutRun()?Math.round(run.yen*(SPILL_BASE+run.heat*SPILL_RISK)):0;/* 첫 판(맛보기)은 흘리지 않음 */
 function applyFx(m,list,ym=1){m=m||pick(alive());const r=[];if(!m)return '';for(const f of list||[]){
  if(f.k==='yen'){let y=R(Math.min(f.a,f.b),Math.max(f.a,f.b));if(y>0)y=Math.round(y*yenMul()*SHEET_YEN*ym);else y=Math.max(-run.yen,y);run.yen+=y;r.push(`${y<0?'-':'+'}¥${fmt(Math.abs(y))}`)}
@@ -1035,15 +1050,26 @@ function auto0(){
  if(Zc().risk<=1)w[1]*=SHALLOW_SOCIAL;/* 얕은 역은 수다·케미가 잘 터진다 */
  return [actExplore,actSocial,actSupport,actSolo][wpick(w)](m);
 }
+/* 탐색 엔 보너스: 모두 더한다 (리뷰 3차 P0 — 곱하면 어떤 보너스로 벌었는지 알 수 없고 위쪽이 부풀었다). 유물 배율만 따로 곱한다 */
+const SRC_KR={flow:'기세',fresh:'상쾌',mem:'생환 기억',syn:'조합 시너지',depth:'도전 단계',day:'오늘의 메멘토스'},SRC_UNL={flow:'flow',fresh:'mind',mem:'mind',syn:'syn',day:'day'};
+function exploreAdd(m){return {flow:(run.mom||0)*MOM_STEP,fresh:runCond(m.id)==='fresh'?.15:0,mem:hasMem(m.id,'MEM_REAPER')&&run.heat>=5?.1:0,syn:synV('탐색 엔 +%')/100,depth:.1*LV(),day:(DAY('yen')||1)-1}}
+/* 정산 내역: 항목 합 = 최종 수익. 아직 화면에 열리지 않은 시스템의 몫은 '탐색 기본'에 합친다 */
+function ledgerOf(r,reason,bonus,team){const L=r.lg||{exp:0,src:{}},rel=Math.round(r.relicYen||0),expY=Math.round(L.exp);
+ const src=Object.entries(L.src).map(([k,v])=>[k,Math.round(v)]).filter(([k,v])=>v&&(!SRC_UNL[k]||unl(SRC_UNL[k])));const ss=src.reduce((a,[,v])=>a+v,0);
+ const rows=[['탐색',expY-ss,0],...src.map(([k,v])=>[SRC_KR[k],v,1]),['사건·전투',r.yen-expY-rel,0],['유물',rel,0],['보물',r.tval,0]];
+ if(reason==='forced'){const all=r.yen+r.tval;rows.push([`전멸 회수 ${Math.round(wipeKeep(r)*100)}%`,Math.floor(all*wipeKeep(r))-all,0])}
+ if(bonus)rows.push([`위험 수당 (위험도 ${r.heat})`,bonus,0]);if(team)rows.push([`팀워크 수당 (분위기 ${r.mood})`,team,0]);
+ return rows.filter(([,v])=>v)}
 function actExplore(m){
  const z=Zc();
  const tc=(1+synV('보물 발견 +%')/100)*(z.tre+(has('cushion')?.06:0)+(mem('mona')?.04:0)+(m.c.type==='support'?.03:0)+(DAY('tre')||0));
- const mm=(1+(run.mom||0)*MOM_STEP)*(runCond(m.id)==='fresh'?1.15:1)*(hasMem(m.id,'MEM_REAPER')&&run.heat>=5?1.1:1);/* 기세는 탐색 엔·탐색 보물 값에 */
+ const XB=exploreAdd(m),mm=1+XB.flow+XB.fresh+XB.mem;/* 보물 값: 기세·상쾌·생환 기억만 (더하기) */
  if(chance(tc)){addTre(Math.round((300+z.risk*150)*mm),Math.round((600+z.risk*200)*mm));m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 잡동사니 사이에서 보물을 찾아냈다.`,q:say(m.c,'treasure'),res:'보물 +1'}}
  if((run.zone==='pass'||run.zone==='lost')&&!hasTag(CLUE)&&chance(.07+(has('easel')?.08:0)+(DAY('clue')||0)+(z.clue||0))){addTag(CLUE);m.mvp+=2;return {who:m.id,n:`${ig(m.c.name)} 벽면에서 지도에 없는 선로 표시를 발견했다.`,q:say(m.c,'find'),res:'태그: 단서'}}
  let rm=1;if(hasR('R-03')&&run.heat>=5){rm*=rsynOk('R-03')?1.8:1.4;const nt=rsynNote('R-03','심층 수당 ×1.4 → ×1.8');if(nt)run.q.unshift(nt)}if(hasR('R-09')&&run.mood>=65)rm*=1.25;if(hasR('R-13')&&run.turn>=6){rm*=rsynOk('R-13')?2:1.5;const nt=rsynNote('R-13','막차 ×1.5 → ×2');if(nt)run.q.unshift(nt)}
  if(hasR('R-09')&&!run.r09&&rsynOk('R-09')){run.r09=1;const z2=Zc();addTre(300+z2.risk*100,500+z2.risk*150);const nt=rsynNote('R-09','보물 +1');if(nt)run.q.unshift(nt)}
- const b0=R(z.loot[0],z.loot[1])*yenMul()*mm*(1+synV('탐색 엔 +%')/100),y=Math.round(b0*rm);run.yen+=y;m.mvp+=1;if(rm>1)run.relicYen=(run.relicYen||0)+y-Math.round(b0);/* 기세는 b0에 */
+ const raw=R(z.loot[0],z.loot[1]),b0=raw*Math.max(.1,1+Object.values(XB).reduce((a,v)=>a+v,0)),y=Math.round(b0*rm);run.yen+=y;m.mvp+=1;if(rm>1)run.relicYen=(run.relicYen||0)+y-Math.round(b0);
+ const lg=run.lg||(run.lg={exp:0,src:{}});lg.exp+=Math.round(b0);for(const k in XB)if(XB[k])lg.src[k]=(lg.src[k]||0)+raw*XB[k];/* 정산 내역용 */
  return {who:m.id,exp:y,n:`${ig(m.c.name)} ${pick(z.scout)}`,q:say(m.c,'find'),res:`+¥${fmt(y)}${rm>1?' ◆':''}`};/* exp: 평범한 탐색, 로그에서 묶인다 */
 }
 /* 관찰 손맛: 말풍선을 누르면 조커가 한마디 거든다 (판당 3번). 지친 동료는 다독이고, 가끔은 쌍대사를 부추긴다 */
@@ -1483,7 +1509,7 @@ function sfxLine(b){if(!run||ui.screen!=='explore'||FF)return;const r=b.res||'';
 
 /* ============ 진행 중인 판 저장: 턴이 끝나 역을 고를 때마다. 메인에서 CONTINUE ============ */
 const RKEY='todays-mementos-run';
-const RUN_KEYS=['cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','lv','syn','rsynS','r07','r09','newb','falls','maxD','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
+const RUN_KEYS=['lg','cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','lv','syn','rsynS','r07','r09','newb','falls','maxD','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge'];
 /* 카레(S.curry)는 바로 저장되지만 판은 체크포인트에서만 저장된다. 체크포인트 이후 카레 변동(S.runCurry)을 따로 적어 두고, 이어하기 때 판과 함께 되감는다 */
 function curryAdd(n){S.curry=clamp(S.curry+n,0,99);if(run&&!run.settled)S.runCurry=(S.runCurry||0)+n;save()}
 function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)return;
@@ -1560,13 +1586,13 @@ function persistStart(){
  for(const [a,b] of pairsOf(ids)){const o=bondOf(a,b);if(o.last)run.rel[rkey(a,b)]=o.last}
  let md=partyTier()>=3?8:0;md+=Math.min(10,run.party.filter(m=>memsOf(m.id).some(x=>x.id==='MEM_SAVED'&&ids.includes(x.t))).length*5);if(md)addMood(md);
  for(const m of run.party){const c=run.cond[m.id];
-  if(!known(m.id))continue;
+  if(!known(m.id)||!unl('mind'))continue;
   if(c==='fresh')log({who:m.id,n:`${ig(m.c.name)} 푹 쉬고 나와 몸이 가볍다.`,q:say(m.c,'chat'),res:'상쾌 · 탐색 엔 +15%'});
   else if(c==='tired')log({who:m.id,n:`${ig(m.c.name)} ${(S.cond[m.id]||{}).streak||3}연속 출격이라 눈꺼풀이 무겁다.`,q:say(m.c,'chat'),res:'지침'})}
  const CARRY={'의기투합':'지난번 호흡이 아직 살아 있다.','티격태격':'오늘도 티격태격할 기세다.','뜻밖의 신뢰':'사이엔 지난번의 믿음이 남아 있다.','냉전':'지난번 냉전이 아직 안 풀렸다.'};
- const pr=pairsOf(ids).map(([a,b])=>({a,b,o:bondOf(a,b)})).filter(x=>x.o.last||tierOf(x.o.aff)>=1).sort((p,q)=>(q.o.last==='냉전')-(p.o.last==='냉전')||q.o.aff-p.o.aff).slice(0,2);/* 이어진 관계는 두 쌍까지만: 냉전 먼저 */
+ const pr=pairsOf(ids).map(([a,b])=>({a,b,o:bondOf(a,b)})).filter(x=>x.o.last||tierOf(x.o.aff)>=1).sort((p,q)=>(q.o.last==='냉전')-(p.o.last==='냉전')||q.o.aff-p.o.aff).slice(0,unl('mind')?2:0);/* 이어진 관계는 두 쌍까지만: 냉전 먼저 */
  for(const {a,b,o} of pr){const t=tierOf(o.aff);log({sys:1,chem:1,text:`${wa(CH[a].name)} ${CH[b].name}, ${o.last?CARRY[o.last]:'같이 다닌 시간이 쌓였다.'}`,res:`${CH[a].code} × ${CH[b].code} · ${o.last||'평범'} · Lv.${t} ${bondName(t,o.last)}${t>=3?' · 분위기 +8':''}`})}
- let mc=0;for(const m of run.party){const ms=memsOf(m.id),x=ms.find(y=>y.id==='MEM_CHOICE')||ms.find(y=>!y.t||ids.includes(y.t));if(x&&mc++<2){log({sys:1,text:`${m.c.name}의 기억 — ${memTxt(x)}`,res:`${x.ttl}판 남음`});
+ let mc=0;for(const m of run.party){const ms=memsOf(m.id),x=ms.find(y=>y.id==='MEM_CHOICE')||ms.find(y=>!y.t||ids.includes(y.t));if(x&&unl('mind')&&mc++<2){log({sys:1,text:`${m.c.name}의 기억 — ${memTxt(x)}`,res:`${x.ttl}판 남음`});
   const k=x.id==='MEM_CHOICE'?(x.ok?'win':'hurt'):x.id==='MEM_BOLD_FAIL'||x.id==='MEM_CRITFAIL'?'hurt':'chat',q=say(m.c,k);if(q&&q!=='…')log({who:m.id,n:'',q})}}
 }
 /* 판 끝: 관계 누적 → 기억 ttl → 컨디션 → 소원. 첫 판(정찰)도 센다 */
@@ -1744,7 +1770,7 @@ function endRun(reason){
  if((r.relicYen||0)>=800&&(r.relics||[]).length)moment('유물 대박',50,{이름:relicOf(r.relics[0]).name,엔:'¥'+fmt(r.relicYen)});
  const pz=persistEnd(r,reason);
  const cut=pickCut(r,inc);if(cut&&!r.tut){const A=S.codex.album||(S.codex.album=[]);A.unshift({t:cut.t,d:new Date().toLocaleDateString('ko-KR'),ids:r.party.map(m=>m.id),g:'SABCD'[reason==='forced'?4:st>=5&&!(r.falls||[]).length?0:st>=4?1:st===3?2:st===2?3:4],lv:r.lv||0});if(A.length>40)A.length=40;save()}/* 도감 앨범 */
- ui.res={lv:r.lv||0,depthMax:S.depthMax||0,tutRun:!!r.tut,grade,gi,rec:{...(S.rec||{})},recNew:nw,deep:r.maxD||0,falls:r.falls||[],newb:r.newb||[],ids:r.party.map(m=>m.id),inc,bonus,team,mood:r.mood,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,cut,relics:(r.relics||[]).map(id=>relicOf(id).name),
+ ui.res={ledger:ledgerOf(r,reason,bonus,team),lv:r.lv||0,depthMax:S.depthMax||0,tutRun:!!r.tut,grade,gi,rec:{...(S.rec||{})},recNew:nw,deep:r.maxD||0,falls:r.falls||[],newb:r.newb||[],ids:r.party.map(m=>m.id),inc,bonus,team,mood:r.mood,heat:r.heat,tre:r.tre,st,line,newCombo:r.newCombo,cut,relics:(r.relics||[]).map(id=>relicOf(id).name),
   mvp:{id:mvp.id,why:MVPWHY[mvp.c.type]},mis:mis.mis>0?{id:mis.id,why:misWhy(mis)}:null,
   kind:rescue?'rescue':reason,reason:rescue?'첫 정찰 · 모르가나 긴급 구출':{complete:`${r.maxT}턴 탐사 완료`,retreat:`자발적 귀환 (T${Math.min(r.turn,r.maxT)})`,forced:`전원 전투불능 · 긴급 회수 (수익 ${Math.round(wipeKeep(r)*100)}%)`}[reason],
   after:afterStory(r,reason),clue:nextClue(r),pz,newPerks:r.tut?[]:(()=>{const pt=codexPts(),got=PERKS.filter(p=>pt>=p.pt).map(p=>p.id),nw=got.filter(id=>!(S.perks||[]).includes(id));S.perks=got;save();return nw})()};
@@ -1833,9 +1859,9 @@ function vMain(){
 /* 공통 머리띠: 붉은 하늘(망점) + 사선으로 잘린 아래 + 흰 선. 메인 화면과 같은 언어 */
 const hdr=(title,right='',back='go:main')=>`<header class="sky"><div class="sky-in">${back?`<button class="back" data-act="${back}"><span class="st"></span>BACK</button>`:''}<h2>${rn(title)}</h2>${right}</div></header>`;
 const WL=['SCOUT','SOCIAL','SUPPORT','SOLO'];
-function vFocus(f){if(!known(f.id))return `<p class="fx"><i>첫 출전</i>소원과 편성 효과는 한 번 함께 다녀오면 공개됩니다.</p>`;const c=condOf(f.id),x=(S.cond||{})[f.id],m=memsOf(f.id)[0],w=wishOf(f.id),D=WISHES[f.id];
+function vFocus(f){if(!unl('mind'))return '';if(!known(f.id))return `<p class="fx"><i>첫 출전</i>소원과 편성 효과는 한 번 함께 다녀오면 공개됩니다.</p>`;const c=condOf(f.id),x=(S.cond||{})[f.id],m=memsOf(f.id)[0],w=wishOf(f.id),D=WISHES[f.id];
  const best=CHARS.filter(o=>o.id!==f.id).map(o=>({o,b:bondOf(f.id,o.id)})).filter(y=>y.b.aff>0).sort((p,q)=>q.b.aff-p.b.aff)[0];
- const a=[`<i>${COND_KR[c]}</i>${c==='fresh'?'탐색 엔 +15%':c==='tired'?`${x.streak}연속 출격`:x&&x.rest?`${x.rest}판 쉼`:''}`,D?`<i>소원</i>${w.step>=3?`「${esc(D.card)}」`:`${w.step+1}/3 ${esc(D.steps[w.step][0])} (${w.prog}/${D.steps[w.step][1]})`}`:''].filter(Boolean);
+ const a=[`<i>${COND_KR[c]}</i>${c==='fresh'?'탐색 엔 +15%':c==='tired'?`${x.streak}연속 출격`:x&&x.rest?`${x.rest}판 쉼`:''}`,D&&unl('wish')?`<i>소원</i>${w.step>=3?`「${esc(D.card)}」`:`${w.step+1}/3 ${esc(D.steps[w.step][0])} (${w.prog}/${D.steps[w.step][1]})`}`:''].filter(Boolean);
  const b=[m?`<i>기억</i>${esc(memTxt(m))} (${m.ttl}판)`:'',best?`<i>짝</i>${best.o.code} Lv.${tierOf(best.b.aff)} ${bondName(tierOf(best.b.aff),best.b.last)}`:''].filter(Boolean);
  return `<p class="fx">${a.join(' · ')}${b.length?`<br>${b.join(' · ')}`:''}</p>`}
 /* 파티 편성 = 명단(5×2) + 출발 준비(BOARDING) 패널. 초상은 캐릭터 그림 대신 아이디로 만든 대칭 픽셀 문장(紋章) */
@@ -1850,7 +1876,7 @@ const WL_KR=['탐색','교류','지원','단독'];
 function vParty(){
  const tp=!S.tut;if(tp&&!(ui.sel.length===3&&TUT_FIX.every(x=>ui.sel.includes(x))))ui.sel=[...TUT_PARTY];/* 첫 판: 모르가나·후타바는 안내 역할 고정, 한 자리는 자유 */
  if(!tp&&!S.today&&SCRIPT.days.length){const c=SCRIPT.days.filter(d=>d.id!==S.lastDay);S.today=pick(c.length?c:SCRIPT.days).id;save()}
- const dy=tp?null:SCRIPT.days.find(d=>d.id===S.today);
+ const dy=tp||!unl('day')?null:SCRIPT.days.find(d=>d.id===S.today);
  const sel=ui.sel,key=[...sel].sort().join('+'),full=sel.length===3,f=CH[ui.focus]||CH[sel[sel.length-1]]||CHARS[0];
  const tc={};sel.forEach(id=>{const t=TYPES[CH[id].type].en;tc[t]=(tc[t]||0)+1});
  const wOf=c=>TYPES[c.type].w.map((v,j)=>Math.max(1,v+c.adj[j]));
@@ -1860,7 +1886,7 @@ function vParty(){
  ${dy?`<section class="today"><small>TODAY'S MEMENTOS</small><b>${esc(dy.en)}<i>${esc(dy.name)}</i></b><p class="rule">${esc(dy.rule)}</p>${dy.q?`<p class="dq">${dy.who?`<em style="color:${CH[dy.who].col}">${CH[dy.who].code}</em>`:''}“${esc(dy.q)}”</p>`:''}${perk('reroll')&&SCRIPT.days.length>1?`<button class="btn ghost sm rr" data-act="reroll" ${S.yen<REROLL_COST?'disabled':''}>REROLL ¥${fmt(REROLL_COST)}</button>`:''}</section>`:''}
  ${!tp&&perk('resv')&&(S.codex.relics||[]).length?`<section class="resv"><small>RELIC RESERVE</small><div class="rchips">${(S.codex.relics||[]).map(id=>`<button class="rchip ${ui.resv===id?'on':''}" data-act="resv:${id}" aria-pressed="${ui.resv===id}" ${S.yen<RESV_COST?'disabled':''}>◆ ${esc(relicOf(id).name)}</button>`).join('')}</div><p>${ui.resv?`${esc(relicOf(ui.resv).name)} 예약 · 출발할 때 ¥${fmt(RESV_COST)}를 냅니다. 첫 유물 후보에 반드시 나옵니다.`:`본 적 있는 유물 하나를 예약할 수 있습니다 (¥${fmt(RESV_COST)}).`}</p></section>`:''}
  <div class="bwrap"><section class="bpanel roster-p"><header class="bhd"><h2>명단</h2><span>ROSTER</span></header>
- <div class="cards roster">${CHARS.map(c=>{const i=sel.indexOf(c.id),cd=tp||!known(c.id)?'normal':condOf(c.id);
+ <div class="cards roster">${CHARS.map(c=>{const i=sel.indexOf(c.id),cd=tp||!known(c.id)||!unl('mind')?'normal':condOf(c.id);
   return `<button class="rt ${i>=0?'on':''} ${ui.focus===c.id?'fo':''} ${lock(c.id)?'fixd':''}" style="--c:${c.col}" data-act="sel:${c.id}" aria-pressed="${i>=0}" aria-label="${c.name} ${c.code}${i>=0?` · ${i+1}번 자리`:''}${cd!=='normal'?` · ${COND_KR[cd]}`:''}" ${lock(c.id)?'aria-disabled="true"':''}>
    <span class="pt">${art('sprites',c.id,56,'stand')||art('masks',c.id,52)||emb(c.id,c.col)}${i>=0?`<span class="no">${i+1}</span>`:''}${cd!=='normal'?`<span class="cdot ${cd}" title="${COND_KR[cd]}"></span>`:''}</span><span class="nm">${c.code}</span></button>`}).join('')}</div></section>
  <section class="bpanel board" style="--c:${f.col}">
@@ -1870,10 +1896,10 @@ function vParty(){
   ${tp?'':vFocus(f)}
   <div class="bhd sub"><h2>탑승 멤버</h2><button class="lnk" data-act="random" ${tp?'disabled':''}>무작위 편성 <i>↻</i></button></div>
   <div class="slots">${[0,1,2].map(i=>{const c=CH[sel[i]];return c?`<button class="slot f" style="--c:${c.col}" data-act="sel:${c.id}" ${lock(c.id)?'aria-disabled="true"':''} aria-label="${c.name} 빼기">${art('masks',c.id,28)||emb(c.id,c.col)}<b>${c.name}</b><small>${c.code}</small></button>`:'<span class="slot">빈자리</span>'}).join('')}</div>
-  ${!tp&&sel.length>=2?(()=>{const sy=synOf(sel);/* 첫 판은 시너지가 걸리지 않으니 안 보임 */const dup=sy.some((x,i)=>sy.some((y,j)=>j>i&&y.eff===x.eff));return sy.length?`<div class="syns">${dup?'<small class="synn">같은 효과는 겹치면 나머지가 절반만 더해집니다 (최대 +50%).</small>':''}${sy.map(x=>`<p><b>SYNERGY</b> ${esc(x.name)} <span>${CH[x.a].code} × ${CH[x.b].code}</span><br><small>${esc(synTxt(x))}</small></p>`).join('')}</div>`:''})():''}
+  ${!tp&&unl('syn')&&sel.length>=2?(()=>{const sy=synOf(sel);/* 첫 판은 시너지가 걸리지 않으니 안 보임 */const dup=sy.some((x,i)=>sy.some((y,j)=>j>i&&y.eff===x.eff));return sy.length?`<div class="syns">${dup?'<small class="synn">같은 효과는 겹치면 나머지가 절반만 더해집니다 (최대 +50%).</small>':''}${sy.map(x=>`<p><b>SYNERGY</b> ${esc(x.name)} <span>${CH[x.a].code} × ${CH[x.b].code}</span><br><small>${esc(synTxt(x))}</small></p>`).join('')}</div>`:''})():''}
   <p class="hint">${full?`${S.codex.combos.includes(key)?'':'<span class="new">NEW COMBO!</span> '}${Object.entries(tc).map(([k,v])=>`${k} ×${v}`).join(' · ')}`:tp?'안내 담당 둘은 고정이야. 남은 한 자리를 골라.':'명단에서 함께 갈 세 명을 골라.'}</p>
   ${!tp&&(S.depthMax||0)>0?(()=>{const L=Math.min(S.lvSel||0,S.depthMax);return `<div class="pol dsel"><span class="pl">DEPTH</span>${[0,1,2,3,4,5].map(i=>`<button class="pchip ${L===i?'on':''}" data-act="lv:${i}" ${i>S.depthMax?'disabled':''} aria-pressed="${L===i}">${i>S.depthMax?'🔒':i}</button>`).join('')}</div><p class="polx">${L?`<b>LV.${L} · 엔 +${L*10}%</b><br>${DEPTHS.slice(1,L+1).map((d,j)=>`${j+1}. ${esc(d.kr)} — ${esc(d.rule)}`).join('<br>')}`:'<b>LV.0</b> · 기본 난이도. 전멸해도 수익 70%를 회수합니다.'}<br><small>가장 높은 단계를 B등급 이상으로 완주하면 다음 단계가 열립니다.</small></p>`})():''}
-  ${tp?'':`<div class="pol"><span class="pl">ORDERS</span>${Object.entries(POLICY).map(([k,v])=>`<button class="pchip ${pol()===k?'on':''}" data-act="pol:${k}" aria-pressed="${pol()===k}" title="${v.kr}">${v.en}</button>`).join('')}</div><p class="polx"><b>${POLICY[pol()].kr}</b> · ${POLICY[pol()].d}</p>`}
+  ${tp||!unl('orders')?'':`<div class="pol"><span class="pl">ORDERS</span>${Object.entries(POLICY).map(([k,v])=>`<button class="pchip ${pol()===k?'on':''}" data-act="pol:${k}" aria-pressed="${pol()===k}" title="${v.kr}">${v.en}</button>`).join('')}</div><p class="polx"><b>${POLICY[pol()].kr}</b> · ${POLICY[pol()].d}</p>`}
   <p class="kit">CURRY ${S.curry} · SMOKE ${S.smoke} · LOCKPICK LV.${S.pick} · BUS LV.${S.bus}</p>
   <button class="go" data-act="start" ${full?'':'disabled'}><span>${full?'START':`멤버 ${3-sel.length}명 더 선택`}</span><i>→</i></button>
  </section></div></main>`;
@@ -1920,7 +1946,7 @@ function vExplore(){
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
  const ho=ui.hud||r.tut||!!tq;/* 첫 판과 튜토리얼 중에는 다 펼쳐 둔다 (강조 대상이 칩·태그일 수 있음) */
- return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''} ${ho?'hudo':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${r.lv?`<i class="dlv">D${r.lv}</i> `:''}${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><div class="xrow">${r.mom?`<span class="tag flow ${r.mom>0?'up':'dn'}" id="flowtag" title="기세 ${r.mom>0?'+':''}${r.mom} · 탐색 수확 ${r.mom>0?'+':''}${Math.round(r.mom*MOM_STEP*100)}%">FLOW ${r.mom>0?'▲':'▼'}${Math.abs(r.mom)}</span>`:''}<span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span><button class="hudt m-${ml.k}" data-act="hud" aria-expanded="${ho}" aria-label="분위기 ${ml.l} · 상태 더 보기">${ho?'▴':'MOOD ▾'}</button></div></div></header>
+ return `<main class="ex ${r.reaper?'reap':r.rw1?'chain':''} ${ho?'hudo':''}"><header class="xbar"><div class="tn">T${Math.min(r.turn,r.maxT)}<small>/${r.maxT}</small></div><div class="zn"><b>${Z.en}</b><small>${r.lv?`<i class="dlv">D${r.lv}</i> `:''}${Z.sub}</small></div><div class="xr"><div class="money"><span id="yen">¥${fmt(r.dy??r.yen)}</span><small>LOOT ${r.tre}</small></div><span class="tag mood m-${ml.k}" id="moodtag" title="분위기 ${ml.l}">MOOD: ${ml.en}</span><div class="xrow">${r.mom&&unl('flow')?`<span class="tag flow ${r.mom>0?'up':'dn'}" id="flowtag" title="기세 ${r.mom>0?'+':''}${r.mom} · 탐색 수확 ${r.mom>0?'+':''}${Math.round(r.mom*MOM_STEP*100)}%">FLOW ${r.mom>0?'▲':'▼'}${Math.abs(r.mom)}</span>`:''}<span class="tag mood m-${hl.k}" id="risktag" title="위험도 ${r.heat}/${HEAT_MAX} · ${hl.l}">RISK ${r.heat}/${HEAT_MAX}</span><button class="hudt m-${ml.k}" data-act="hud" aria-expanded="${ho}" aria-label="분위기 ${ml.l} · 상태 더 보기">${ho?'▴':'MOOD ▾'}</button></div></div></header>
  <div class="chipbar">${pt.length?`<div class="ptags">${pt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}
  ${(()=>{const rl=Object.entries(r.rel||{}).filter(([k])=>k.split('+').every(id=>r.party.some(m=>m.id===id))),rc=r.relics||[];
   return rl.length||rc.length?`<div class="rels">${rc.map(id=>`<span class="relic" title="${esc(relicOf(id).eff)}">◆ ${esc(relicOf(id).name)}</span>`).join('')}${rl.map(([k,v])=>`<span class="rel r${['의기투합','티격태격','냉전','뜻밖의 신뢰'].indexOf(v)}">${k.split('+').map(id=>CH[id].code).join(' × ')} · ${v}</span>`).join('')}</div>`:''})()}</div>
@@ -1948,7 +1974,7 @@ function nextClue(r){if(r.tut)return null;const out=[];
  if(left.length)return `아직 들르지 않은 역이 ${left.length}곳 있습니다. 갈림길에서 다른 쪽을 골라 보십시오.`;
  return null}
 /* 결과 화면 아래 '괴도단 일지': 이번 판이 남긴 것 (관계·기억·소원) */
-function vPersist(z,nb=[]){if(!z)return '';const cd=id=>`<b style="color:${CH[id].col}">${CH[id].code}</b>`,L=[];
+function vPersist(z,nb=[]){if(!z)return '';if(!unl('mind'))z={...z,bonds:[],mems:[]};if(!unl('wish'))z={...z,wish:[]};const cd=id=>`<b style="color:${CH[id].col}">${CH[id].code}</b>`,L=[];
  for(const b of z.bonds)L.push(`<li>${cd(b.a)} × ${cd(b.b)} <span>친밀도 ${b.d>=0?'+':''}${b.d} → ${b.aff}${b.t1>b.t0?` · <em>Lv.${b.t1} ${bondName(b.t1,b.last)}!</em>`:` · Lv.${b.t1}`}</span></li>`);
  for(const q of z.mems)L.push(`<li>${cd(q.who)} <span>새 기억 · ${esc(memTxt(q))} (${MEMS[q.id].ttl}판)</span></li>`);
  for(const w of z.wish){if(nb.includes(w.id))continue;const ws=wishOf(w.id),D=WISHES[w.id];
@@ -1961,7 +1987,7 @@ function vResult(){const x=ui.res,an=!x.shown,cd=id=>CH[id].code;x.shown=true;
  return `<main class="wrap res">${hdr(head,'',null)}<article class="report ${an?'anim':''}"><header><span>${rn('MISSION REPORT')}</span>${perk('archive')?'<em class="arch">ARCHIVIST</em>':''}<small>${new Date().toLocaleDateString('ko-KR')}</small></header>
  ${x.cut?`<figure class="shot"><small>TODAY'S SHOT</small><figcaption>${esc(x.cut.t)}</figcaption></figure>`:''}
  <dl><dt>MEMBERS</dt><dd class="en">${x.ids.map(cd).join(' · ')}</dd><dt>RESULT</dt><dd>${x.lv?`<span class="dlv">DEPTH ${x.lv}</span>`:''}<b class="grade g${x.gi}" aria-label="등급 ${x.grade}">${x.grade}</b><span class="stars">${[0,1,2,3,4].map(i=>`<i style="--i:${i}">${i<x.st?'★':'☆'}</i>`).join('')}</span><br><small>${x.reason}</small></dd>
- <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> <span class="en">· LOOT ${x.tre}</span>${x.bonus?`<br><small>위험 수당 +¥${fmt(x.bonus)} (위험도 ${x.heat})</small>`:''}${x.team?`<br><small>팀워크 수당 +¥${fmt(x.team)} (분위기 ${x.mood})</small>`:''}</dd><dt>MVP</dt><dd><span class="en">${cd(x.mvp.id)}</span> ${x.mvp.why}</dd>
+ <dt>PAYOUT</dt><dd><span id="inc" data-to="${an?x.inc:''}">¥${fmt(an?0:x.inc)}</span> <span class="en">· LOOT ${x.tre}</span>${!x.tutRun&&(x.ledger||[]).length?`<details class="ledger"><summary>정산 내역</summary><ul>${x.ledger.map(([l,v,sub])=>`<li class="${sub?'sub':''}"><span>${esc(l)}</span><b>${v<0?'-':'+'}¥${fmt(Math.abs(v))}</b></li>`).join('')}<li class="tot"><span>합계</span><b>¥${fmt(x.inc)}</b></li></ul></details>`:''}</dd><dt>MVP</dt><dd><span class="en">${cd(x.mvp.id)}</span> ${x.mvp.why}</dd>
  ${(x.relics||[]).length?`<dt>RELICS</dt><dd>${x.relics.map(esc).join(' · ')}</dd>`:''}<dt>TROUBLE</dt><dd>${x.mis?`<span class="en">${cd(x.mis.id)}</span> ${x.mis.why}`:'없음 (평화로운 하루)'}</dd>${(x.falls||[]).length?`<dt>THE FALL</dt><dd class="fall">${x.falls.map(f=>`<span><b class="en" style="color:${CH[f.id].col}">${cd(f.id)}</b> T${f.t} · ${esc(f.z)}${f.why?` — ${esc(f.why)}`:''}</span>`).join('')}</dd>`:''}</dl>
  ${x.rec&&x.ids&&!x.tutRun?`<div class="recs">${[['inc','BEST',`¥${fmt(x.rec.inc||0)}`],['deep','DEEPEST',['ENTRY','PASSAGE','LOST','DEPTHS'][x.rec.deep||0]],['grade','TOP',('SABCD')[x.rec.grade??4]],['streak','STREAK',`${x.rec.streak||0}<small>/${x.rec.bestStreak||0}</small>`]].map(([k,l,v])=>`<div class="${(x.recNew||[]).includes(k)?'nw':''}"><span>${l}</span><b>${v}</b>${(x.recNew||[]).includes(k)?'<i>NEW!</i>':''}</div>`).join('')}</div>`:''}
  ${(x.recNew||[]).includes('depthNeed')?`<div class="newd need"><b>DEPTH LOCKED</b><p>다음 단계는 B등급 이상으로 완주해야 열립니다.</p></div>`:''}
@@ -1973,6 +1999,7 @@ function vResult(){const x=ui.res,an=!x.shown,cd=id=>CH[id].code;x.shown=true;
  ${(x.newPerks||[]).map(id=>{const p=PERKS.find(q=>q.id===id);return `<div class="newp"><b>NEW PERK! ${p.en}</b><p>${p.name} · ${p.eff}</p></div>`}).join('')}
  <section class="after"><h3>${rn('BACK AT LEBLANC')}</h3>${x.ids.some(id=>artOf('sprites',id))?`<div class="lbspr">${x.ids.map(id=>art('sprites',id,72,'stand')).join('')}</div>`:''}<ol>${x.after.map(l=>l.who?`<li style="--c:${CH[l.who].col}"><b>${CH[l.who].code}</b>“${esc(l.q)}”</li>`:`<li class="n">${esc(l.n)}</li>`).join('')}</ol></section>
  ${vPersist(x.pz,x.newb)}
+ ${(()=>{const nu=x.tutRun?[]:UNLOCK.filter(u=>u.n===(S.codex.reports||0));return nu.length?`<section class="unl"><small>NEXT RUN · 새로 열림</small>${nu.map(u=>`<p><b>${esc(u.t)}</b> ${esc(u.d)}</p>`).join('')}</section>`:''})()}
  ${x.clue?`<aside class="clue"><small>NEXT CLUE</small><p>${esc(x.clue)}</p></aside>`:''}
  <div class="actbar"><button class="btn" data-act="go:shop">INVEST</button><button class="btn ghost" data-act="go:party">GO AGAIN</button></div></main>`;
 }

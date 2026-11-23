@@ -55,7 +55,7 @@ with sync_playwright() as p:
   check('gamble shows yen at risk',r['spill']==660 and '실패\u00a0시\u00a0-\u2060¥660' in r['a'],r)
   check('steady choice shows bonus',('정석\u00a0보너스' in r['b']) and ('정석' not in r['a']) and ('-¥' not in r['c']),r)
   # 9 기세: 한 칸당 탐색 수확 ±15%, HUD에 FLOW 표시
-  r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);g.run.mom=0;g.momShift(1);g.momShift(1);g.momShift(5);g.ui.screen='explore';g.render();return {mom:g.run.mom,hud:(document.querySelector('#flowtag')||{}).innerText||''}}""")
+  r=pg.evaluate("""()=>{const g=window.__g;g.S.codex.reports=5;g.newRun(['joker','mona','ann']);g.run.mom=0;g.momShift(1);g.momShift(1);g.momShift(5);g.ui.screen='explore';g.render();return {mom:g.run.mom,hud:(document.querySelector('#flowtag')||{}).innerText||''}}""")
   check('momentum clamps and shows in HUD',r['mom']==3 and 'FLOW ▲3' in r['hud'],r)
   # 10 쉬는 시간: 고른 두 사람의 관계·HP·기세·도감
   r=pg.evaluate("""()=>{const g=window.__g;g.newRun(['joker','mona','ann']);const r=g.run;r.mom=0;r.party.forEach(m=>m.hp=50);const e=g.EVENTS.find(x=>x.id==='break').make();
