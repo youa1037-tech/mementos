@@ -724,7 +724,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .hhd{display:flex;align-items:baseline;justify-content:space-between;padding:2px 6px}
 .hhd b{font-family:var(--en);font-weight:400;font-size:24px;letter-spacing:.04em}.hhd span{font-family:var(--en);font-size:15px;color:var(--mut);letter-spacing:.04em}
 .hhd .hyen{font-family:var(--disp);font-size:18px;color:var(--gold)}
-.hscene{position:relative;overflow-x:auto;overflow-y:hidden;background:#0d0b12;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.hscene{flex:none;position:relative;overflow-x:auto;overflow-y:hidden;background:#0d0b12;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 .hscene::-webkit-scrollbar{display:none}
 .hroom{position:relative;margin:0 auto}
 .hbg{position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-drag:none}.hbg.def{image-rendering:pixelated}
@@ -2112,7 +2112,8 @@ function hubCast(){const h=S.hub||{},ids=[...(h.ids||[])],rest=CHARS.map(c=>c.id
 function hubLine(id){const h=S.hub||{},mine=(h.after||[]).filter(l=>l.who===id),N=ui.hubN||(ui.hubN={}),n=N[id]||0;N[id]=n+1;return mine[n]?mine[n].q:say(CH[id],'chat')}
 function vHub(){const bg=hubBg(),h=S.hub||{},cast=hubCast(),sp=HUB_SPOTS[bg?bg.k:'def'];
  if(ui.hubK!==h.k){ui.hubK=h.k;ui.hubRead=[];ui.hubSay=null;ui.hubN={};ui.hubX=null}
- const av=Math.min(innerWidth||390,600)-24,H0=Math.round(clamp((innerHeight||800)*.48,300,420)),ar=bg?bg.w/bg.h:.93,pan=H0*ar>av+40,Wd=pan?Math.round(H0*ar):av,H=pan?H0:Math.round(av/ar);/* 넓은 그림만 옆으로 밀어서 둘러보기 */
+ if(!ui.hubSz||ui.hubSz.w!==(innerWidth||390))ui.hubSz={w:innerWidth||390,h:Math.round(clamp((innerHeight||800)*.48,300,420))};/* 주소창이 숨고 나타나며 높이가 바뀌어도 방 크기는 그대로 (폭이 바뀔 때만 다시) */
+ const av=Math.min(ui.hubSz.w,600)-24,H0=ui.hubSz.h,ar=bg?bg.w/bg.h:.93,pan=!!bg&&bg.k==='custom'&&H0*ar>av+40,Wd=pan?Math.round(H0*ar):av,H=pan?H0:Math.round(av/ar);/* 넓은 직접 넣은 그림만 옆으로 밀어서 둘러보기, 기본 그림은 폭에 맞춤 */
  const box=a=>`left:${a[0]}%;top:${a[1]}%;width:${a[2]}%;height:${a[3]}%`,dy=unl('day')&&SCRIPT.days.find(d=>d.id===S.today);
  const spots=Object.keys(HUB_LBL).filter(k=>sp[k]&&(k!=='window'||dy)).map(k=>`<button class="hspot ${k}" style="${box(sp[k])}" data-act="${HUB_ACT[k]}" aria-label="${HUB_LBL[k][1]}"><span class="hl">${HUB_LBL[k][0]}</span></button>`).join('');
  const props=Object.entries(sp.props).map(([id,[x,y]])=>{const p=PROPS.find(q=>q.id===id);if(!p)return '';
