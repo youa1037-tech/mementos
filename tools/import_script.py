@@ -377,6 +377,17 @@ def new_tabs(wb, out):
         if not re.fullmatch(r'R-(0[1-9]|1[0-3])', rid) or e not in REFF:
             unknown.append(f'{w}: 유물 ID · 추가 효과 확인'); continue
         out['rsyn'].append({'id': rid, 'c': conds(d.get('같이 있어야 하는 것(조건)'), w), 'eff': e, 'v': num(d.get('크기')), 'n': s(d.get('발동 서술'))})
+    # 시스템 문장: 코드에 있던 반복 잦은 서술 (섀도 기습 · 벤치 휴식 · 탐사 완료). 채워진 종류는 코드 문장 대신 이걸 쓴다
+    out['sys'] = {}
+    for d in tab('시스템 문장'):
+        k = s(d.get('종류')); t = s(d.get('문장'))
+        if not t or s(d.get('상태')) == '예시':
+            continue
+        if ONLY_DONE and s(d.get('상태')) not in ('완료', '게임 반영'):
+            continue
+        if k not in ('섀도 기습', '벤치 휴식', '탐사 완료'):
+            unknown.append(f"시스템 문장 {d['_row']}행: 종류 \"{k}\""); continue
+        out['sys'].setdefault(k, []).append(t)
     # 역 묘사: 시트가 원본. 채워진 역은 코드 문장 대신 이걸 쓴다
     out['zones'] = {}
     ZK = {'도착 묘사': 'arr', '탐색 동작': 'scout', '도착 효과 문장': 'arrive'}
