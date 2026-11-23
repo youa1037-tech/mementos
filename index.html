@@ -992,7 +992,9 @@ function fill(t,o={}){let v=String(t||'').replace(/\(와\)과/g,'(과)와').repl
  return v.replace(/([가-힣A-Za-z0-9]+)\((이)\)가|([가-힣A-Za-z0-9]+)\(을\)를|([가-힣A-Za-z0-9]+)\(은\)는|([가-힣A-Za-z0-9]+)\(과\)와/g,(m,a,_,b,c2,d)=>a?ig(a):b?ul(b):c2?un(c2):wa(d))}
 /* 같은 사람이 같은 종류의 말을 할 때, 최근에 한 대사는 잠시 쉬게 한다 (후보가 적으면 하나는 남긴다) */
 const SAID={};
-function say(c,k,t){const tc=t&&(t.c||t);let L=(c.L[k]||[]).filter(l=>ok(l.c,{target:tc&&tc.id,who:c.id}));if(!L.length)return '…';
+function say(c,k,t){const tc=t&&(t.c||t);let L=(c.L[k]||[]).filter(l=>ok(l.c,{target:tc&&tc.id,who:c.id}));
+ if(tc&&tc.id===c.id){const nt=L.filter(l=>!/\{대상\}/.test(l.t)&&!(l.c||[]).some(x=>x.k==='target'));if(nt.length)L=nt;else return k==='chat'?'…':say(c,'chat')}/* 자기 자신이 대상이면 남을 부르는 대사(받아 둬, {대상})는 빼기 */
+ if(!L.length)return '…';
  const rk=c.id+'/'+k,rc=SAID[rk]||(SAID[rk]=[]),cd=Math.min(4,L.length-1);if(cd>0){const av=rc.slice(-cd),f=L.filter(l=>!av.includes(l.t));if(f.length)L=f}
  const sp=L.filter(l=>l.c.length),l=sp.length&&chance(.6)?pick(sp):pick(L);rc.push(l.t);if(rc.length>8)rc.shift();return fill(l.t,{target:tc,who:c})}
 /* 도전 단계 (DEPTH LV): 완주하면 다음 단계가 열린다. 규칙은 쌓이고, 단계마다 엔 +10% (docs/direction.md) */
@@ -1234,7 +1236,7 @@ function actSupport(m){
  const t=[...alive()].sort((a,b)=>a.hp-b.hp)[0];
  if(t.hp>=80||m.sp<6)return actExplore(m);
  const h=R(7,11)+(m.c.type==='support'?4:0);m.sp-=6;hp(t,h);m.mvp+=1;if(t!==m)chemShift(m.id,t.id,'회복');
- return {who:m.id,n:t===m?`${ig(m.c.name)} 숨을 고르며 상처를 돌봤다.`:`${ig(m.c.name)} ${t.c.name}의 상처를 돌봤다.`,q:say(m.c,'support',t),res:`${t.c.name} HP +${h}`};
+ return {who:m.id,n:t===m?`${ig(m.c.name)} 숨을 고르며 상처를 돌봤다.`:`${ig(m.c.name)} ${t.c.name}의 상처를 돌봤다.`,q:t===m?'':say(m.c,'support',t),res:`${t.c.name} HP +${h}`};/* 혼자 추스를 땐 남에게 건네는 대사 없이 */
 }
 function actProtect(m,t){
  hp(t,6);if(m.c.type==='rush')hp(m,-4);m.mvp+=2;moment('감싸기',62,{이름:m.c.name,대상:t.c.name});memAdd(t.id,'MEM_SAVED',m.id);if(run.st)run.st.cover[m.id]=(run.st.cover[m.id]||0)+1;chemShift(m.id,t.id,'감싸기');
