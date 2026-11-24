@@ -348,6 +348,8 @@ const LINES=(()=>{const lines={},need=x=>[...new Set((x.c||[]).filter(c=>c.k==='
 const IMG=document.documentElement.dataset.img||'img/';
 const $=s=>document.querySelector(s),R=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pick=a=>a[Math.floor(Math.random()*a.length)],chance=p=>Math.random()<p,sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const jo=(w,a,b)=>{w=String(w);const c=w.charCodeAt(w.length-1);return w+(c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b)};/* 받침 따라 조사 */
+const JOP={은:['은','는'],는:['은','는'],이:['이','가'],가:['이','가'],을:['을','를'],를:['을','를'],과:['과','와'],와:['과','와']};
+const josa=t=>String(t??'').replace(/([가-힣A-Za-z0-9]+?)\((은|이|와|과|을)\)(는|가|과|와|를)/g,(_,w,a)=>jo(w,...JOP[a])).replace(/([가-힣A-Za-z0-9]+?)(을|이|은|과)\((를|가|는|와)\)/g,(_,w,a)=>jo(w,...JOP[a]));/* 시트의 '(이)가 · (은)는 · 을(를)' 꼴을 받침에 맞게 */
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* ============ 데이터 ============ */
 const ELS=['물리','화염','빙결','전격','질풍','염동','핵열','축복','주원'];
@@ -575,7 +577,7 @@ function line(who,k,tg){const L=((LINES.lines||{})[who]||{})[k]||[];const inP=id
  const t=Array.isArray(x)?x[0]:x;return t.replace(/\{대상\}/g,tg&&CH[tg]?CH[tg].name:'다들').replace(/\{[^}]+\}/g,'')}
 const G={};let ui={screen:'title',busy:false,fx:null,log:false};
 function log(t,who){G.log.push({t,who});if(G.log.length>120)G.log.shift()}
-function say(id,k,tg,ms=2200,force){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키면 시트 대사에서 고르고, 아니면 받은 문장 그대로 */if(!t)return;log(t,id);
+function say(id,k,tg,ms=2200,force){const t=josa(KEYS.has(k)?line(id,k,tg):k);/* 상황 키면 시트 대사에서 고르고, 아니면 받은 문장 그대로 */if(!t)return;log(t,id);
  const now=Date.now();if(!force&&now-(G.bubAt||0)<1500)return;/* 말풍선은 1.5초에 하나 (로그엔 다 남음). 쌍대사·사슬·거두는 자는 force */
  G.bubAt=now;G.bub[id]={t,until:now+ms};setTimeout(render,ms+30)}
 /* 화면 위 자막 띠: 멈추지 않고 몇 초 떴다 사라짐 (사슬 · 거두는 자 경고) */
@@ -961,7 +963,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
  if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.risk<=10)G.stats.quietGate=true;
-  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1;log(`의뢰 ${G.fl+1} 완료 — ${QUESTS[G.fl].n}! 괴도 채널 지지율 ${QUESTS[G.fl].sup}%`);flash('REQUEST CLEAR','g')}
+  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1;log(`의뢰 ${G.fl+1} 완료 — ${QUESTS[G.fl].n}! 괴도 채널 지지율 ${QUESTS[G.fl].sup}%`);setTimeout(()=>flash('REQUEST CLEAR','g'),60)}/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
   if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
  if(B.kind==='reaper'){G.reaperKill=1;SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
@@ -1110,6 +1112,10 @@ function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  if(P&&P.room)return enterRoom(P.room);
  if(P&&P.clear){G.cleared=true;ui.screen='floor';return render()}/* B3 이후: 무한 모드 갈림길로 */
  if(P&&P.floor){ui.screen='floor';return render()}
+ if(!P&&G.map.T[G.at]==='boss'&&G.map.done.has(G.at)){/* 관문을 이긴 직후 멈췄던 판 살리기: 관문 보상 → 층 끝 갈림길 */
+  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1}SV.deep=Math.max(SV.deep,G.fl+1);
+  if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;save();runSave(true,G.cleared?{clear:1}:{floor:1});log('— 관문을 넘은 자리에서 이어서 —');
+  return offer('관문이 떨어뜨린 것 (확정)',1,G.fl>=1?'evo':'boom')}
  render()}
 /* 기록 슬롯: 르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 3칸에 */
 const slots=()=>{try{return JSON.parse(localStorage.getItem('mm-slots')||'[]')}catch(e){return []}};
@@ -1149,7 +1155,7 @@ ui.lastIn=Date.now();for(const ev of ['pointerdown','keydown'])document.addEvent
 setInterval(()=>{const now=Date.now();if(ui.screen!=='map'||!G.party||ui.busy||tutCur||document.hidden)return;if(now-ui.lastIn<5000||now-(ui.idleAt||0)<9000)return;
  const al=alive(),L=(SCRIPT.idle||[]).filter(x=>al.some(m=>m.id===x.who));if(!L.length)return;const x=pick(L);ui.idleAt=now;if(x.n)log(x.n);say(x.who,fillT(x.q),null,2600,true)},1000);
 function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='manual')return A.innerHTML=vManual();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
- const body=ui.screen==='story'?vStory():ui.screen==='battle'?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
+ const body=ui.screen==='story'?vStory():ui.screen==='battle'&&G.battle?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
  A.innerHTML=vHud()+vStage()+`<div class="panel">${vParty()}${vSlots()}${body}${vLog()}</div>`;
  {const st=$('.stage');if(st){st.prepend(PX.cv);for(const L of FXC.L)if(L.cv&&L.list.length)st.appendChild(L.cv)}}
  const l=$('.log');if(l)l.scrollTop=l.scrollHeight;runSave()}
