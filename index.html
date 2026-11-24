@@ -527,7 +527,7 @@ function say(id,k,tg,ms=2200){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키�
 /* ============ 판 시작 · 층 ============ */
 function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH[a].hp);/* 선호 열 순서로 1~3열 */
  const f0=Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0);
- Object.assign(G,{party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
+ Object.assign(G,{deal:null,party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
  fl:0,risk:0,yen:400*(SV.up.fund||0),items:[],kills:0,cmd:3,qk:0,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,questHit:false,
  stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,reroll:SV.up.reroll,curry:1,setup:{...SV.set},
  day:DAYS.find(d=>d.id===SV.today)||null,chain:null,combos:[],sub:subNow().id});
@@ -579,11 +579,22 @@ function move(to){if(ui.busy||!G.map.adj(G.at).includes(to))return;ui.walk=Date.
  enterRoom(t)}
 function enterRoom(t){
  if(t==='battle')return startBattle('normal');
- if(t==='boss')return startBattle('boss');
+ if(t==='boss')return G.fl===1&&!G.deal?openDeal():startBoss();
  if(t==='chest')return openChest();
  if(t==='curio')return openCurio();
  if(t==='bench')return openBench();
  render()}
+/* B2 관문: 분실물 보관소의 주인과 흥정 — 보물을 내주고 지나가기 · 협상(지휘 1) · 싸우기 */
+const DEAL_TALK=['makoto','futaba','akechi'];
+function openDeal(){G.ev={kind:'deal',t:'GATE'};ui.screen='event';render()}
+function dealPick(v){if(!G.ev||G.ev.kind!=='deal')return;
+ if(v==='give'){const y=Math.round(G.yen*.4);G.yen-=y;G.deal='give';G.ev=null;SV.deep=Math.max(SV.deep,G.fl+1);G.stats.gates=(G.stats.gates||0)+1;save();
+  log(`분실물 보관소의 주인에게 ¥${y}어치 보물을 내주고 관문을 지나왔다 (의뢰는 그대로)`);say('mona','hurt');runSave(true,{floor:1});ui.screen='floor';return render()}
+ if(v==='talk'){if(G.cmd<=0)return;G.cmd--;const ok=chance(.5+(G.party.some(m=>DEAL_TALK.includes(m.id))?.25:0));G.deal=ok?'talk':'angry';G.ev=null;
+  log(ok?'협상 성공! 보관함 열쇠를 받아냈다 — 주인이 흔들린다 (체력 -25% · 압수 못 함)':'협상 결렬! 주인이 화가 났다 (공격력 +20%)');runSave(true,{room:'boss'});startBoss();return flash(ok?'DEAL!':'NO DEAL',ok?'g':'')}
+ G.deal='fight';G.ev=null;runSave(true,{room:'boss'});startBoss()}
+function startBoss(){startBattle('boss');const f=G.battle&&G.battle.foes[0];if(!f)return;
+ if(G.deal==='talk'){f.max=f.hp=Math.round(f.max*.75);f.noSeize=1}else if(G.deal==='angry')f.atk=Math.round(f.atk*1.2);render()}
 function march(){/* 방 사이 행군: 쌍대사 한 쌍 · 가끔 단독행동 한 줄 (없으면 잡담) */
  const al=alive();if(chance(.2)&&LINES.solo){const x=pick(LINES.solo.filter(y=>al.some(m=>m.id===y.who)&&(y.need||[]).every(i=>G.party.some(m=>m.id===i))));if(x){log(x.n);say(x.who,x.q);return}}
  if(chance(.55)&&LINES.pairs&&LINES.pairs.length){const p=pick(LINES.pairs.filter(x=>al.some(m=>m.id===x.a)&&al.some(m=>m.id===x.b)));if(p){say(p.a,p.qa,null,2400);setTimeout(()=>say(p.b,p.qb,null,2400),900);return}}
@@ -809,6 +820,7 @@ async function foeAct(f,k){const B=G.battle,al=alive(),i=B.foes.indexOf(f);act('
  if(a==='declare'&&f.declared)a='press';
  if(a==='call'&&(B.called||foeAlive().length>=3))a='rush';
  if(a==='steal'&&f.stolen)a='throw';
+ if(a==='seize'&&f.noSeize)a='mirror';
  switch(a){
   case 'claw':return strike(f,pickT([1]),1,'기습 할퀴기');
   case 'step':f.evUp=.5;fxFoe(f,'blink');log(`${jo(f.n,"이","가")} 옆걸음으로 거리를 벌렸다 (회피↑)`);return;
@@ -989,7 +1001,7 @@ requestAnimationFrame(pxDraw);
 function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='map')))return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
  party:G.party.map(x=>({id:x.id,hp:x.hp,max:x.max,sp:x.sp,msp:x.msp,row:x.row})),map:{cells:m.cells,edges:m.edges,start:m.start,boss:m.boss,T:m.T,vis:[...m.vis],done:[...m.done]},
  at:G.at,fl:G.fl,risk:G.risk,yen:G.yen,items:G.items,kills:G.kills,qk:G.qk,sub:G.sub,questHit:G.questHit,cmd:G.cmd,stats:G.stats,reroll:G.reroll,curry:G.curry,setup:G.setup,combos:G.combos,
- day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
+ day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:chOf(x.id)})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
@@ -1143,7 +1155,9 @@ function vBattle(){const B=G.battle,m=actor();if(!m)return '<p class="tip">적�
  return `<div class="tip"><b style="color:${m.c.col}">${m.c.name}</b>의 차례${B.extra?' · <b style="color:var(--gold)">1 MORE!</b>':''}</div>
  <div class="acts">${allDown?`<button class="ab gold wide" data-a="allout"><b>ALL-OUT ATTACK</b><small>총공격${cnt('dice')?' · 주사위 ×2':''}</small></button>`:''}${sk}${bat}${sw(-1)}${sw(1)}</div>
  <div class="row2"><button class="tog ${G.auto?'on':''}" data-a="auto">자동 전투 ${G.auto?'ON':'OFF'}</button>${B.kind==='reaper'?'<button class="ab red" data-a="ret"><b>RETURN NOW</b><small>엔 전부 들고 귀환</small></button>':''}</div>`}
-function vEvent(){const e=G.ev;if(e.kind==='combo'){const x=e.x,Q=(id,q)=>`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(fillT(q))}</q>`;
+function vEvent(){const e=G.ev;if(e.kind==='deal'){const tk=G.party.find(m=>DEAL_TALK.includes(m.id)),y=Math.round(G.yen*.4);
+  return `<div class="dlg"><span class="who">LOST &amp; FOUND</span><p><b>분실물 보관소의 주인</b> 「주운 물건은 전부 이 몸의 것. 내놓으면 길을 비켜 주지.」</p></div>
+ <div class="acts"><button class="ab" data-a="deal:give"><b>1. 보물을 내준다</b><small>¥${y} 잃고 싸우지 않고 통과 · 의뢰는 그대로</small></button><button class="ab" data-a="deal:talk" ${G.cmd?'':'disabled'}><b>2. 협상한다</b><small>지휘 -1 · ${tk?`${tk.c.name}가 거들어 `:''}성공 ${tk?75:50}%: 주인 체력 -25% · 압수 못 함 / 실패: 공격력 +20%</small></button><button class="ab wide" data-a="deal:fight"><b>3. 싸운다</b><small>그대로 개심 전투</small></button></div>`}if(e.kind==='combo'){const x=e.x,Q=(id,q)=>`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(fillT(q))}</q>`;
   return `<div class="dlg"><span class="who">COMBO · ${esc(x.en||'')}</span><p><b>${esc(x.title)}</b></p><p>${esc(fillT(x.intro))}</p>${Q(x.a,x.qa)}${x.qb?Q(x.b,x.qb):''}</div><div class="acts">${x.ch.map((c,i)=>`<button class="ab wide" data-a="cb:${i}"><b>${esc(c.label)}</b><small>${esc(c.sub||'')}${(SV.scenes||[]).includes(x.id+':'+(i+1))?' · 본 장면':''}</small></button>`).join('')}</div>`}
  if(e.kind==='plain')return `<div class="dlg"><span class="who">VAULT CAR</span><p>${esc(e.n)}</p></div><button class="go" data-a="ev:open">OPEN</button>`;
  const m=CH[e.who];return `<div class="cmd"><h3>COMMAND <span>지휘 ${G.cmd}/3</span></h3><p style="margin:8px 0 2px">${esc(e.n)}</p><p class="tip">${esc(e.odds)}</p>
@@ -1156,7 +1170,7 @@ function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
  <div class="dlg"><span class="who">FUSION</span><p>${G.benchUsed?'합성 완료':`위 템 칸에서 <b>2개</b>를 골라 넣으면 <b>진화 템</b> 3개 중 하나`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
-function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLOORS[n].n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
+function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLOORS[n].n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
  <div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">RETURN</button>${ok?'<button class="go" data-a="down">GO DEEPER ↓</button>':''}</div>`}
 function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  const lk=m.edges.filter(([a,b])=>known(a)&&known(b)&&(m.vis.has(a)||m.vis.has(b))).map(([a,b])=>{const [r1,c1,r2,c2]=[a>>2,a%4,b>>2,b%4],h=r1===r2;
@@ -1198,6 +1212,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='go'){if(ui.screen==='title'){ui.screen='hub';ui.ht='go';ui.ps=null;return render()}if(ui.ps&&ui.ps.length===3)return newRun(ui.ps);return}if(a==='title'){ui.screen='title';return render()}
  if(a==='mv')return move(+v);if(a==='ret')return endRun('return');if(a==='down')return descend();
  if(a==='ev')return resolveEv(v==='open'?'leave':v);
+  if(a==='deal')return dealPick(v);
  if(a==='storyok')return storyOk();
  if(a==='cb')return comboPick(+v);
  if(a==='take')return takeItem(v);
