@@ -153,7 +153,7 @@ breakpoints: ['600px', '820px']
 | 6 | Arknights — 기지 RIIC ([위키](https://arknights.wiki.gg/wiki/Base)) | 대원이 일하지 않을 땐 기지 방에서 쉬고, 방을 누르면 들어가 볼 수 있다 | 방 여러 칸을 격자로 | 가는 영문 대문자 라벨 | 어두운 회색·흰 선·포인트 1색 | 칸 사이 가는 선 | 영문 라벨 + 한 가지 포인트색 (우리 규칙과 같음) |
 | 7 | Game Dev Story — 사무실 ([PC Gamer](https://www.pcgamer.com/uk/game-dev-story-leads-kairosofts-irresistible-sim-lite-games-onto-steam)) | 작은 도트 사무실에서 직원이 일하고, 머리 위 이모티콘·말풍선으로 상태를 보여 준다 | 아이소메트릭 방 + 아래 메뉴 | 도트 글꼴 | 채도 높은 원색 | 칸이 촘촘하고 정보가 많음 | **머리 위 이모티콘으로 상태 한눈에** · 도트 디오라마 |
 | 8 | Spiritfarer — 배 ([Steam](https://store.steampowered.com/app/972660)) | 배가 곧 집이고, 동료들이 배 위를 돌아다니며 함께 사는 느낌을 준다 | 옆에서 본 단면 | 손그림풍 | 부드러운 노을색 | 여유 있게 | 옆에서 본 단면 구도 · 동료가 사는 공간 |
-| 9 | Slay the Spire — 판 끝 점수 ([위키](https://slaythespire.wiki.gg/wiki/Score)) · 2편의 판 끝 배지 ([PC Gamer](https://www.pcgamer.com/uk/games/card-games/slay-the-spire-2-adds-end-of-run-badges-to-let-you-know-what-was-unique-about-each-adventure-in-latest-beta-patch/)) | 판이 끝나면 그 판에서 있었던 일을 점수 줄과 배지로 하나씩 보여 준다 | 세로로 쌓이는 줄 목록 | 굵은 숫자 | 어두운 바탕에 금색 | 줄 간격 일정 | **이번 판만의 배지**(사고 4번, 거두는 자 회피 등) |
+| 9 | Slay the Spire — 판 끝 점수 ([위키](https://slaythespire.wiki.gg/wiki/Score)) · 2편의 판 끝 배지 ([PC Gamer](https://www.pcgamer.com/uk/games/card-games/slay-the-spire-2-adds-end-of-run-badges-to-let-you-know-what-was-unique-about-each-adventure-in-latest-beta-patch/)) | 판이 끝나면 그 판에서 있었던 일을 점수 줄과 배지로 하나씩 보여 준다 | 세로로 쌓이는 줄 목록 | 굵은 숫자 | 어두운 바탕에 금색 | 줄 간격 일정 | **이번 판만의 배지**(사고 4번, 거둬들이는 자 회피 등) |
 | 10 | Balatro — 기록 화면 ([RAWG](https://rawg.io/games/977316)) | 가장 잘 나온 패, 가장 많이 쓴 조커 같은 개인 기록을 보여 줘서 다음 판 동기가 생긴다 | 큼직한 숫자 패널 몇 개 | 두꺼운 도트 글꼴 | CRT 질감 위 원색 패널 | 패널 사이 굵은 여백 | **개인 최고 기록**(최고 엔, 최다 사고 캐릭터) |
 
 ### 10-2. 여기서 나온 허브 규칙

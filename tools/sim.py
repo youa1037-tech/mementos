@@ -9,7 +9,7 @@ index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
 - greedy-best  : 매 턴 가장 깊은 구역, 선택지는 미리 정한 선호 순서
 - oracle       : 매 턴 가장 깊은 구역, 선택지마다 같은 상태에서 12번씩 미리 굴려 본 뒤 기대값(엔+보물가치+HP·분위기·위험도 환산)이 가장 큰 쪽 (기대값 기준선)
 - smart        : 매 턴 가장 깊은 구역, 선택지는 화면의 확률·손실·보너스를 읽고 기대값으로 (생각하는 플레이)
-- shallow      : 얕은 역(통로·승강장)만 돈다. HP 40 이하·전투불능·거두는 자면 귀환
+- shallow      : 얕은 역(통로·승강장)만 돈다. HP 40 이하·전투불능·거둬들이는 자면 귀환
 - cautious     : 위험도 7 이상이면 승강장으로 물러나 위험도를 낮추고, 누군가 HP 40 이하·전투불능이면 귀환
 """
 import json, os, statistics as st, sys, tempfile, collections
@@ -37,7 +37,7 @@ for(let k=0;k<a.n;k++){
   if(r.phase==='choose'){
    const al=r.party.filter(m=>m.hp>0);
    if((a.strat==='cautious'||a.strat==='shallow')&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
-   if(r.reaper&&a.strat!=='reckless'){g.endRun('retreat');break}/* 거두는 자가 나타나면 튄다 */
+   if(r.reaper&&a.strat!=='reckless'){g.endRun('retreat');break}/* 거둬들이는 자가 나타나면 튄다 */
    const cur=r.map.st[r.at],opts=[cur.id,...cur.links].filter(g.canEnter),kOf=id=>r.map.st.find(s=>s.id===id).k;
    const order=a.strat==='shallow'?['pass','gate','lost','plat']:a.strat==='cautious'&&r.heat>=7?['gate','pass','lost','plat']:['plat','lost','pass','gate'];
    let to=cur.id;for(const k of order){const c=opts.filter(o=>kOf(o)===k);if(c.length){to=c[Math.floor(Math.random()*c.length)];break}}

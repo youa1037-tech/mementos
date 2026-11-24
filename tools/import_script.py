@@ -273,7 +273,7 @@ TRIG = {'A가 B를 감쌈': '감싸기', 'A의 대실패': '대실패', '의견 
 RELS = ['의기투합', '티격태격', '냉전', '뜻밖의 신뢰']
 RSTAGE = {'경고 1 (위험도 9)': 'warn1', '경고 2 (위험도 10)': 'warn2', '출현 (위험도 10~)': 'appear', '도망침': 'escape', '붙잡힘': 'caught',
           '경고 1 (위험도 10)': 'warn1', '경고 2 (위험도 11)': 'warn2', '출현 (위험도 12)': 'appear'}  # 아래 셋은 예전 표기
-CUTS = ['대실패', '감싸기', '긴급 구출·전멸', '조합 이벤트', '사슬 결말', '거두는 자 탈출', '케미 반전', '유물 대박', '히든', '평범한 날']
+CUTS = ['대실패', '감싸기', '긴급 구출·전멸', '조합 이벤트', '사슬 결말', '거둬들이는 자 탈출', '케미 반전', '유물 대박', '히든', '평범한 날']
 
 
 def any_id(v, w):
@@ -281,7 +281,7 @@ def any_id(v, w):
 
 
 def new_tabs(wb, out):
-    """케미 대사·케미 변화·혼잣말·거두는 자·결정적 1컷·인지 유물. 탭이 없으면 빈 목록(게임은 기본 문구를 씀)."""
+    """케미 대사·케미 변화·혼잣말·거둬들이는 자·결정적 1컷·인지 유물. 탭이 없으면 빈 목록(게임은 기본 문구를 씀)."""
     tab = lambda n: rows(wb[n]) if n in wb.sheetnames else []
     lines, shifts = [], []
     for d in tab('케미 대사'):
@@ -309,8 +309,8 @@ def new_tabs(wb, out):
         if who and s(d['혼잣말']):
             out['idle'].append({'who': who, 'n': s(d.get('딴짓 서술(선택)')), 'q': s(d['혼잣말']), 'c': conds(d.get('조건(선택)'), w) + need(d, w)})
     out['reaper'] = []
-    for d in tab('거두는 자'):
-        w = f"거두는 자 {d['_row']}행"; st = RSTAGE.get(s(d['단계']))
+    for d in tab('거둬들이는 자'):
+        w = f"거둬들이는 자 {d['_row']}행"; st = RSTAGE.get(s(d['단계']))
         if not st or not s(d['내용']):
             unknown.append(f'{w}: 단계나 내용 확인'); continue
         out['reaper'].append({'st': st, 'who': name_id(d.get('화자(없으면 서술)'), w), 't': s(d['내용'])})
