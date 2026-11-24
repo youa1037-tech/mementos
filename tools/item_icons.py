@@ -591,6 +591,32 @@ ICONS = {
   "...........kkk..",
   "................",
  ],
+
+ 'bloodcrown': [  # 피의 대관식
+  "", "", "..k...k...k...k.", ".kyk.kyk.kyk.kyk", ".kyykyyykyyykyyk", ".kyyyyyyyyyyyyyk", ".kyyrryyyyrryyyk",
+  ".kyyrryyyyrryyyk", ".kyyyyyyyyyyyyyk", ".kYYYYYYYYYYYYYk", ".kkkkkkkkkkkkkkk", "....kr...kr.....",
+  "....kr....k.....", ".....r..........", "", "",
+ ],
+ 'grail': [  # 불멸의 성배
+  "", "..kkkkkkkkkkkk..", "..klllllllllllk.", "..kyyyyyyyyyyyk.", "..kyeeyyyyyyyyk.", "..kyyyyyyyyyyyk.",
+  "...kyyyyyyyyyk..", "....kyyyyyyyk...", ".....kkyyykk....", ".......kyk......", ".......kyk......",
+  ".....kkyyykk....", "....kYYYYYYYk...", "....kkkkkkkkk...", "", "",
+ ],
+ 'drum': [  # 무한 회전 탄창
+  "", ".....kkkkkk.....", "...kkggggggkk...", "..kgkkggggkkgk..", "..kgkyykkyykgk..", ".kggkyykkyykggk.",
+  ".kgggkkggkkgggk.", ".kgkkggkkggkkgk.", ".kgkyykggkyykgk.", "..kkyykggkyykk..", "..kgkkggggkkgk..",
+  "...kkggggggkk...", ".....kkkkkk.....", "", "", "",
+ ],
+ 'stone': [  # 현자의 돌
+  "", "", ".......kk.......", "......kcck......", ".....kcwcck.....", "....kcwcccck....", "...kccccbbcck...",
+  "..kcccccbbbcck..", "...kccbbbbbck...", "....kcbbbbck....", ".....kbbBbk.....", "......kBBk......",
+  ".......kk.......", "", "", "",
+ ],
+ 'engine': [  # 황금 기관차
+  "", "", "..kk............", "..kyk.kkkkkkk...", "..kyk.kyyyyyk...", ".kkkkkkywwwyk...", ".kyyyyyyyyyykk..",
+  ".kyyeyyyyyyyyyk.", ".kyyyyyyyyyyyyk.", ".kYYYYYYYYYYYYk.", ".kkkkkkkkkkkkkk.", "..kgk..kgk..kgk.",
+  "..kkk..kkk..kkk.", "", "", "",
+ ],
 }
 
 
