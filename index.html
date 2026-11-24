@@ -48,7 +48,7 @@ button:disabled{opacity:.35;cursor:default}
 .unit.ko{opacity:.35;transform:translateY(8px) rotate(-8deg)}.unit.ko img{animation:none}
 @keyframes bob{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .stage.walk .unit:not(.ko) img{animation:walk .32s steps(1,end) infinite}@keyframes walk{0%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
-.unit.lunge{animation:lunge .38s ease-out}@keyframes lunge{40%{transform:translateX(26px) scale(1.06)}100%{transform:none}}
+.unit.lunge{animation:lunge .42s cubic-bezier(.2,.9,.3,1)}@keyframes lunge{24%{transform:translateX(44px) scale(1.14)}40%{transform:translateX(38px) scale(1.08)}100%{transform:none}}/* 0.1초 만에 튀어나가 부딪힘 */
 .unit.cast img{animation:cast .5s steps(2,end)}@keyframes cast{50%{filter:drop-shadow(0 0 10px #fff) brightness(1.6)}}
 .unit.hop img{animation:hop .5s steps(4,end) 2}@keyframes hop{50%{transform:translateY(-12px)}}
 .unit.act:not(.ko) img{animation:bob .55s steps(1,end) infinite}
@@ -70,7 +70,7 @@ button:disabled{opacity:.35;cursor:default}
 .foe.down .bd{animation:none;transform:rotate(80deg) translateX(14px);opacity:.75}
 @keyframes float{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 .foe .bd:before,.foe .bd:after{animation:blink 3.2s steps(1,end) infinite}@keyframes blink{0%,94%{transform:none}95%,98%{transform:scaleY(.15)}}
-.foe.fhit .bd{filter:brightness(3) saturate(0)}.foe.flunge{animation:flunge .35s ease-out}@keyframes flunge{40%{transform:translateX(-24px)}100%{transform:none}}
+.foe.fhit .bd{filter:brightness(4) saturate(0);transform:translateX(8px)}/* 흰 번쩍 + 뒤로 밀림 */.foe.flunge{animation:flunge .35s ease-out}@keyframes flunge{40%{transform:translateX(-24px)}100%{transform:none}}
 .foe.dead{visibility:visible;animation:fade .5s forwards;pointer-events:none}@keyframes fade{to{opacity:0;transform:translateY(10px) scale(.7)}}
 .foe.boss .bd,.foe.reap .bd{animation-duration:2.4s}
 .stage .bg{display:none}@media (prefers-reduced-motion:reduce){.unit img,.foe .bd,.stage.quake{animation:none!important}}
@@ -84,8 +84,10 @@ button:disabled{opacity:.35;cursor:default}
 .fx b{font:52px/1 var(--en);color:#fff;background:var(--red);padding:6px 18px;transform:rotate(-6deg);box-shadow:8px 8px 0 #000;animation:slam .5s}
 .fx b.g{background:var(--gold);color:#141012}
 @keyframes slam{from{transform:rotate(-6deg) scale(2.2);opacity:0}}
-.dmg{position:absolute;top:-24px;font:18px/1 var(--en);color:#fff;text-shadow:0 2px 0 #000;animation:up .8s forwards;z-index:4}.dmg.w{color:var(--gold)}.dmg.h{color:#6fdc6a}
-@keyframes up{to{transform:translateY(-18px);opacity:0}}
+.dmg{position:absolute;top:calc(-24px - var(--k,0) * 15px);font:18px/1 var(--en);color:#fff;text-shadow:0 2px 0 #000;animation:up .8s both;z-index:4}.dmg.w{color:var(--gold)}.dmg.h{color:#6fdc6a}
+.dmg.t1{font-size:17px}.dmg.t2{font-size:22px;color:var(--gold)}.dmg.t3{font-size:28px;color:#ff3b3b;-webkit-text-stroke:1.5px #fff;text-shadow:0 3px 0 #000}
+.dmg.w.t3{color:#ff3b3b}
+@keyframes up{0%{transform:translateY(6px) scale(.6);opacity:0}18%{transform:translateY(-4px) scale(1.15);opacity:1}35%{transform:none}100%{transform:translateY(-18px);opacity:0}}
 /* 하단 */
 .panel{flex:1;background:var(--p);padding:10px 12px 14px;display:flex;flex-direction:column;gap:9px}
 .party{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -291,6 +293,22 @@ button:disabled{opacity:.35;cursor:default}
 .htro{position:absolute;image-rendering:pixelated;pointer-events:auto;z-index:1}
 .dlg.ending{border-color:var(--gold)}.dlg.ending .who{background:var(--gold);color:#141012}
 .slots{grid-auto-rows:52px}
+/* ===== 타격감: 히트스톱 · 스파크 · 사선 컷인 · TOTAL 스탬프 · 총공격 플래시 ===== */
+.stage.hstop *{animation-play-state:paused!important}
+.spark{position:absolute;left:50%;top:40%;width:70px;height:6px;margin-left:-35px;background:linear-gradient(90deg,transparent,#fff 30%,var(--gold) 60%,transparent);transform:rotate(-28deg);z-index:5;animation:spark .26s ease-out forwards;pointer-events:none}
+.spark::after{content:'';position:absolute;inset:0;background:inherit;transform:rotate(56deg)}
+@keyframes spark{from{transform:rotate(-28deg) scaleX(.2);opacity:1}to{transform:rotate(-28deg) scaleX(1.4);opacity:0}}
+.fx b.slash{position:relative;font-size:40px;padding:10px 60px;width:130%;text-align:center;transform:rotate(-8deg) skewX(-14deg);background:repeating-linear-gradient(-45deg,var(--red) 0 14px,#c4121a 14px 28px);color:#fff;box-shadow:0 6px 0 #000,0 -6px 0 #000;animation:slashin .3s cubic-bezier(.2,.9,.3,1)}
+.fx b.slash.g{background:repeating-linear-gradient(-45deg,var(--gold) 0 14px,#e0a91c 14px 28px);color:#141012}
+.fx b.slash.cut{font-size:30px;padding:6px 40px;background:#000;color:var(--gold);box-shadow:0 4px 0 var(--red),0 -4px 0 var(--red)}
+@keyframes slashin{from{transform:translateX(-120%) rotate(-8deg) skewX(-14deg)}}
+.total{position:absolute;right:10px;top:34%;z-index:6;font:44px/1 var(--en);color:#fff;background:#000;padding:4px 12px 6px;transform:rotate(-7deg);border:3px solid var(--red);box-shadow:5px 5px 0 var(--red);animation:stamp .35s cubic-bezier(.2,1.6,.4,1);pointer-events:none}
+.total small{display:block;font-size:13px;letter-spacing:.2em;color:var(--gold)}
+@keyframes stamp{from{transform:rotate(-7deg) scale(2.4);opacity:0}}
+.stage.aoflash::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;animation:aof .7s steps(4,end)}
+@keyframes aof{0%{background:rgba(229,25,28,.55)}25%{background:rgba(0,0,0,.6)}50%{background:rgba(229,25,28,.35)}100%{background:transparent}}
+.slot.on{animation:tok .6s cubic-bezier(.2,1.6,.4,1)}@keyframes tok{0%{transform:scale(1)}30%{transform:scale(1.25);box-shadow:0 0 0 3px var(--gold),0 0 14px var(--gold)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.spark,.fx b.slash,.total,.stage.aoflash::after,.slot.on{animation:none!important}.stage.hstop *{animation-play-state:running!important}}
 </style>
 </head>
 <body>
@@ -678,7 +696,7 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;cons
   return endAct(m,false)}
  if(s.adv&&m.row>1)await shift(m,-1);
  act(m.id,'lunge');await sleep(160);
- const pw=s.pow*powMul(bat)*memMul(m)*(B.moreHit&&cnt('radio')?1+.6*cnt('radio'):1);m.crit=s.crit||0;let weak=false;B.moreHit=false;
+ B.rc={sum:0,n:0};const pw=s.pow*powMul(bat)*memMul(m)*(B.moreHit&&cnt('radio')?1+.6*cnt('radio'):1);m.crit=s.crit||0;let weak=false;B.moreHit=false;
  if(s.all){for(const x of foeAlive())if(hit(m,x,pw,s.el,s.n))weak=true}
  else if(f.hp>0){weak=hit(m,f,pw,s.el,s.n);if(f.hp>0){if(s.dot){f.dot={v:s.dot,t:2};}if(s.stun&&!f.immune&&chance(s.stun)){f.stun=1;log(`${f.n} 기절!`)}if(s.push){const a=B.foes,i=a.indexOf(f),j=a.findIndex((x,k)=>k>i&&x.hp>0);if(j>0){a[i]=a[j];a[j]=f;B.sel=j;log(`${jo(f.n,"을","를")} 뒤로 밀쳤다!`)}}}}
  m.crit=0;if(s.self)m.hp=Math.max(1,m.hp-s.self);
@@ -692,7 +710,8 @@ function hit(m,f,pow,el,sn){const B=G.battle,wasDown=f.down,we=effWeak(f);
  const cr=!we.includes(el)&&chance(.05+(m.crit||0)+(B.crit||0)+(DF().crit||0));if(f.sleep)d=Math.round(d*1.3);
  if(f.reap){d=Math.round(d*.5);txt=' (경감)'}else if(f.def){d=Math.round(d*f.def);txt=' (방어)'}
  if(f.reap){}else if(we.includes(el)||maskOn(m)){d=Math.round(d*(maskOn(m)?1.95:1.5));w=true}else if(cr){d=Math.round(d*1.6);w=true;txt=' · CRITICAL'}else if(f.res===el){d=Math.round(d*.5);txt=' (내성)'}
- f.hp=Math.max(0,f.hp-d);pop('f'+B.foes.indexOf(f),String(d),w?'w':'');G.stats.best=Math.max(G.stats.best,d);
+ f.hp=Math.max(0,f.hp-d);pop('f'+B.foes.indexOf(f),String(d),w?'w':'');G.stats.best=Math.max(G.stats.best,d);sfx(w?'weak':'hit');
+ if(w){ui.hs=Date.now();ui.quake=Date.now();(ui.spk||(ui.spk={}))['f'+B.foes.indexOf(f)]=Date.now();ui.cut={t:cr?'CRITICAL':'WEAK',at:Date.now()};setTimeout(render,90);setTimeout(render,420)}
  log(`${m.c.name}의 ${sn} → ${f.n} ${d}${w&&!cr?' · 약점!':''}${txt}`);
  if(w&&!cr&&f.weak&&f.weak!=='rot'&&!B.unify&&!SV.weak[f.n]){SV.weak[f.n]=1;save()}
  if(wasDown&&cnt('term')){m.sp=Math.min(m.msp,m.sp+6*cnt('term')*mul());glow('term')}
@@ -717,7 +736,7 @@ async function doSwap(dir){const m=actor(),B=G.battle;if(!m||ui.busy||cuffed(m,d
  if(free){B.free++;ui.busy=false;if(checkWin())return;render();return autoGo()}
  endAct(m,false)}
 async function envCheck(){const B=G.battle;if(!B||B.env||!cnt('envelope')||B.combo<4||!foeAlive().length)return;B.env=true;log('예고장 봉투: 예고는 끝났다 — 총공격!');glow('envelope');await allOutHit()}
-function endAct(m,weak){const B=G.battle;
+function endAct(m,weak){const B=G.battle;receipt();
  if(checkWin())return;
  if(weak){B.moreT++;B.combo++;G.stats.maxMore=Math.max(G.stats.maxMore,B.moreT);G.stats.moreT++;if(cnt('relay')){B.relay+=cnt('relay');glow('relay')}
   flash('1 MORE');say(m.id,'win');
@@ -726,7 +745,7 @@ function endAct(m,weak){const B=G.battle;
  B.acted.add(m.id);ui.busy=false;
  if(!actor()){render();return enemyPhase()}
  render();autoGo()}
-async function showtime(m){const B=G.battle;G.stats.showtime++;await sleep(500);flash('SHOWTIME','g');log('SHOWTIME! 적 전체를 휩쓸었다');
+async function showtime(m){const B=G.battle;G.stats.showtime++;await sleep(500);flash('SHOWTIME','g');sfx('finish');log('SHOWTIME! 적 전체를 휩쓸었다');
  const d=Math.round((40*cnt('ticket')+60*cnt('gold'))*(1+B.vuln));for(const f of foeAlive()){f.hp=Math.max(0,f.hp-d);f.down=true;pop('f'+B.foes.indexOf(f),String(d),'w')}glow(cnt('gold')?'gold':'ticket');G.stats.best=Math.max(G.stats.best,d);
  await sleep(500);if(checkWin())return;B.extra={id:m.id};ui.busy=false;render();autoGo()}
 function baton(id){const B=G.battle;if(!B.extra||ui.busy||cnt('radio'))return;const from=B.extra.id;B.extra={id,baton:1,from};B.acted.delete(id);B.moreHit=false;
@@ -735,12 +754,12 @@ function baton(id){const B=G.battle;if(!B.extra||ui.busy||cnt('radio'))return;co
  const p=[...(LINES.chem||[]),...(LINES.pairs||[])].filter(x=>(x.a===from&&x.b===id)||(x.a===id&&x.b===from));
  if(p.length){const x=pick(p);say(x.a,x.qa,null,1800);setTimeout(()=>say(x.b,x.qb,null,1800),500)}else say(id,'reply');
  {const bl=bondOf(from,id).lv;log(`바톤 터치: ${CH[from].name} → ${CH[id].name} (이번 공격 +${Math.round((.25+BOND.bat[bl])*100)}%${bl?` · 유대 ${bl}단계`:''})`)}render();autoGo()}
-async function allOutHit(){const B=G.battle;G.stats.allout++;flash('ALL-OUT ATTACK','g');await sleep(600);const dm=1+cnt('dice');
- for(const f of foeAlive()){const d=Math.round((30+alive().length*8)*(1+.3*B.relay+B.atk)*(1+B.vuln)*dm);f.hp=Math.max(0,f.hp-d);f.down=false;pop('f'+B.foes.indexOf(f),String(d),'w');G.stats.best=Math.max(G.stats.best,d)}
+async function allOutHit(){const B=G.battle;G.stats.allout++;ui.ao=Date.now();flash('ALL-OUT ATTACK','g');sfx('finish');await sleep(600);const dm=1+cnt('dice');
+ for(const f of foeAlive()){await sleep(80);sfx('hit');const d=Math.round((30+alive().length*8)*(1+.3*B.relay+B.atk)*(1+B.vuln)*dm);f.hp=Math.max(0,f.hp-d);f.down=false;pop('f'+B.foes.indexOf(f),String(d),'w');G.stats.best=Math.max(G.stats.best,d)}
  log('총공격! 쓰러진 적들을 한꺼번에 몰아쳤다');
  if(cnt('dice')){for(const m of alive()){m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3*cnt('dice')));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*.3*cnt('dice')))}log('만능의 주사위: 전원 HP·SP 회복');glow('dice')}
  await sleep(300)}
-async function allOut(){const B=G.battle;if(ui.busy)return;ui.busy=true;const m=actor();B.extra=null;await allOutHit();say(m.id,'win');
+async function allOut(){const B=G.battle;if(ui.busy)return;ui.busy=true;const m=actor();B.extra=null;B.rc={sum:0,n:0};await allOutHit();receipt();say(m.id,'win');
  if(checkWin())return;B.acted.add(m.id);ui.busy=false;if(!actor()){render();return enemyPhase()}render();autoGo()}
 function hurt(t,d,f){if(t.dodge){t.dodge=false;log(`잔상 코트: ${t.c.name}가 공격을 흘려 냈다`);pop(t.id,'MISS','h');return}
  if(t.shield){const a=Math.min(t.shield,d);t.shield-=a;d-=a;if(a)log(`정기권 실드가 ${a} 막았다`)}
@@ -856,13 +875,29 @@ function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep
  if(kind!=='wipe'){const m=pick(alive());if(m)log(line(m.id,'back'),m.id)}ui.screen='result';G.battle=null;render()}
 /* ============ 연출 도우미 ============ */
 function flash(t,c=''){ui.fx={t,c};if(c==='g'||t==='BREAK')ui.quake=Date.now();render();setTimeout(()=>{ui.fx=null;render()},700)}
-function pop(id,t,c=''){(ui.pops||(ui.pops=[])).push({id,t,c,at:Date.now()});if(id[0]==='f'&&c!=='h')(ui.fh||(ui.fh={}))[id]=Date.now();setTimeout(()=>{ui.pops=ui.pops.filter(p=>Date.now()-p.at<800);render()},820)}
+/* 영수증 대미지: 같은 대상의 숫자는 0.08초 간격으로 줄줄이 튀어 오르고, 크기·색이 피해 구간마다 오른다. 적에게 들어간 피해는 행동마다 합산해 TOTAL 스탬프 */
+function pop(id,t,c=''){const P=ui.pops||(ui.pops=[]),now=Date.now(),k=P.filter(p=>p.id===id&&now-p.at<900).length,v=+t;
+ const tier=isNaN(v)||c==='h'?'':v>=50?'t3':v>=20?'t2':'t1';P.push({id,t,c,at:now,k,tier});
+ if(id[0]==='f'&&c!=='h'){(ui.fh||(ui.fh={}))[id]=now+k*80;const B=G.battle;if(B&&!isNaN(v)){const r=B.rc||(B.rc={sum:0,n:0});r.sum+=v;r.n++}}
+ setTimeout(()=>{ui.pops=(ui.pops||[]).filter(p=>Date.now()-p.at<900+p.k*80);render()},920+k*80)}
+function receipt(){const B=G.battle,r=B&&B.rc;if(r&&r.n>=2){ui.total={v:r.sum,at:Date.now()};setTimeout(render,1400)}if(B)B.rc={sum:0,n:0}}
+/* WebAudio 타격음 4단계: hit 일반 · weak 약점(묵직한 저음 + 스파크) · chain 템 연쇄(딩, 연쇄 순서마다 한 음씩 위로) · finish 총공격 */
+let SFX=null;
+function sfx(k,n=0){if(SV.mute)return;try{SFX=SFX||new (window.AudioContext||window.webkitAudioContext)();if(SFX.state==='suspended')SFX.resume()}catch(e){return}
+ const A=SFX,t=A.currentTime,out=A.createGain();out.gain.value=.22;out.connect(A.destination);
+ const tone=(type,f0,f1,dur,vol,at=0)=>{const o=A.createOscillator(),g=A.createGain();o.type=type;o.frequency.setValueAtTime(f0,t+at);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+at+dur);g.gain.setValueAtTime(vol,t+at);g.gain.exponentialRampToValueAtTime(.001,t+at+dur);o.connect(g);g.connect(out);o.start(t+at);o.stop(t+at+dur+.02)};
+ const noise=(dur,vol,hp=800,at=0)=>{const b=A.createBuffer(1,A.sampleRate*dur|0,A.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=A.createBufferSource(),f=A.createBiquadFilter(),g=A.createGain();f.type='highpass';f.frequency.value=hp;g.gain.value=vol;s.buffer=b;s.connect(f);f.connect(g);g.connect(out);s.start(t+at)};
+ if(k==='hit'){noise(.07,.5,1500);tone('square',220,110,.06,.25)}
+ else if(k==='weak'){tone('sine',110,45,.22,.9);noise(.12,.6,3000);tone('square',880,1760,.05,.15,.02)}
+ else if(k==='chain'){const f=660*Math.pow(2,Math.min(n,12)/12);tone('triangle',f,0,.18,.35);tone('sine',f*2,0,.12,.12)}
+ else if(k==='finish'){tone('sawtooth',196,98,.5,.35);tone('sine',98,40,.6,.8);noise(.35,.7,600);[523,659,784].forEach((f,i)=>tone('triangle',f,0,.4,.2,.12+i*.05))}}
 function shake(id){(ui.sh||(ui.sh={}))[id]=Date.now()}
 /* 동작 표시: lunge(공격) · cast(보조) · hop(승리) · flunge(적 공격). 그린 순간부터 시간을 재서 다시 그려도 이어진다 */
 function act(id,k,ms=420){(ui.mv||(ui.mv={}))[id]={k,at:Date.now(),ms};render();setTimeout(render,ms+20)}
 const mvOf=id=>{const x=ui.mv&&ui.mv[id];return x&&Date.now()-x.at<x.ms?x:null};
 const phase=(ms,off=0)=>`animation-delay:-${(Date.now()+off)%ms}ms`;
-function glow(id){(ui.gl||(ui.gl={}))[id]=Date.now()}
+/* 템 슬롯 연쇄 번쩍임: 한 행동 안에서 터진 템은 발동 순서대로 0.09초씩 늦게 톡! 톡! 톡! (피치도 한 음씩 위로) */
+function glow(id){const now=Date.now(),gl=ui.gl||(ui.gl={}),k=Object.values(gl).filter(x=>now-x.at<450).length;gl[id]={at:now+k*90};setTimeout(()=>{sfx('chain',k);render()},k*90);setTimeout(render,k*90+700)}
 /* ============ 그리기 ============ */
 /* ============ 픽셀 배경: 130×100 캔버스를 3배로 키워 도트처럼. 기둥·타일·조명·침목·먼지·열차 불빛이 겹으로 흐름 ============ */
 const PX={cv:document.createElement('canvas'),W:130,H:100,o:{far:0,tile:0,flr:0,lamp:0},last:0,train:-200};
@@ -1024,7 +1059,7 @@ function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO 
  <div class="row2"><button class="go sub" data-a="tutr">튜토리얼 처음부터</button><button class="go" data-a="title">BACK</button></div></div>`}
 function vHud(){if(!G.map)return '';const m=G.map,cells=Array.from({length:16},(_,i)=>{const c=m.cells.includes(i);return `<i class="${!c?'':i===G.at?'at':m.vis.has(i)?'v':known(i)?'k':''} ${c&&known(i)&&m.T[i]==='boss'?'b':''}"></i>`}).join('');
  return `<header class="hud"><div class="mini" aria-label="미니맵">${cells}</div><div class="fl en">B${G.fl+1}<small>${FLOORS[G.fl].n}</small></div><div class="sp"></div><span class="risk ${G.risk>=RISK_HOT?'hot':''}" title="경계도">경계 ${G.risk}/${RISK_MAX}</span><span class="yen">¥${G.yen}</span></header>`}
-function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=>p.id===id).map(p=>`<span class="dmg ${p.c}">${esc(p.t)}</span>`).join('');
+function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=>p.id===id).map(p=>`<span class="dmg ${p.c} ${p.tier||''}" style="--k:${p.k||0};animation-delay:${(p.k||0)*80-(now-p.at)}ms">${esc(p.t)}</span>`).join('')+(id[0]==='f'&&ui.spk&&now-(ui.spk[id]||0)<260?'<i class="spark" aria-hidden="true"></i>':'');
  const party=[...G.party].sort((a,b)=>b.row-a.row).map(m=>{const b=G.bub[m.id],act=B&&actor()===m,sh=ui.sh&&now-(ui.sh[m.id]||0)<400;
   const mv=mvOf(m.id),i=G.party.indexOf(m);
   return `<div class="unit ${m.hp<=0?'ko':''} ${act?'act':''} ${sh?'hitf':''} ${mv?mv.k:''}" style="${mv?`animation-delay:-${now-mv.at}ms`:''}">${b&&b.until>now?`<div class="bub">${esc(b.t)}</div>`:''}${pp(m.id)}<img src="${IMG}sprites/${m.id}.png" width="${Math.round(m.c.w*SPR)}" alt="${m.c.name}" style="${mv?`animation-delay:-${now-mv.at}ms`:phase(act?550:1100,i*370)}"><div class="hb"><i class="${m.hp<m.max*.35?'lo':''}" style="width:${m.hp/m.max*100}%"></i></div><span class="row">${m.row}열${m.shield?` · 🛡${m.shield}`:''}${m.dodge?' · 잔상':''}</span></div>`}).join('');
@@ -1032,13 +1067,13 @@ function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=
  if(B){right=B.foes.map((f,i)=>{const we=effWeak(f),fm=mvOf('f'+i),fh=ui.fh&&now-(ui.fh['f'+i]||0)<160,dd=f.hp<=0&&(f.dt||(f.dt=now));return `<div class="foe ${f.boss?'boss':''} ${f.reap||f.fin?'reap':''} ${f.hp<=0?(now-dd>600?'gone':'dead'):''} ${fm?fm.k:''} ${fh?'fhit':''}" style="${fm?`animation-delay:-${now-fm.at}ms`:f.hp<=0?`animation-delay:-${now-dd}ms`:''} ${f.down?'down':''} ${B.sel===i?'sel':''}" data-a="sel:${i}" role="button" aria-label="${esc(f.n)} 선택">${f.down?'<span class="dn">DOWN</span>':''}${pp('f'+i)}<div class="bd" style="${phase(f.boss?2400:1700,i*530)}"></div>${f.hp>0?`<span class="fr">${foeRow(f)}열</span>`:''}<div class="nm">${esc(f.n)}</div><div class="hb"><i style="width:${f.hp/f.max*100}%"></i></div><div class="wks">${!we.length?'<span class="wk">약점 없음</span>':wkKnown(f)?we.map(x=>`<span class="wk k" style="background:${EL[x]}">약점 ${x}</span>`).join(''):'<span class="wk">약점 ?</span>'}${f.res?`<span class="wk">내성 ${f.res}</span>`:''}${f.sleep?'<span class="wk">💤</span>':''}${f.taunt?'<span class="wk">🛡</span>':''}${f.mirror?'<span class="wk">🪞</span>':''}${f.stolen&&f.hp>0?'<span class="wk">💰</span>':''}${f.charge?'<span class="wk">⚠️</span>':''}${f.evUp?'<span class="wk">💨</span>':''}${f.stun?'<span class="wk">💫</span>':''}${f.dot?'<span class="wk">🔥</span>':''}</div></div>`}).join('');
   top=`<div class="rt"><b>${B.kind==='boss'?((SV.q||0)===G.fl?'REQUEST TARGET':'GATE'):B.kind==='reaper'?'THE REAPER':'SHADOW'}</b>${B.round}턴${B.relay?` · 릴레이 +${B.relay*30}%`:''}${B.atk?` · 공격력 +${Math.round(B.atk*100)}%`:''}${B.vuln?` · 감염 +${Math.round(B.vuln*100)}%`:''}</div>`}
  else{const t=G.map.T[G.at];top=`<div class="rt"><b>${ui.screen==='event'&&G.ev?esc(G.ev.t):ui.screen==='floor'?'GATE CLEARED':ROOM[t].n}</b>${G.map.done.has(G.at)&&ui.screen==='map'?'이미 지나온 역':''}</div>`}
- const walk=ui.walk&&now-ui.walk<900&&now>=ui.walk,cls=`f${G.fl} ${B?'bat':''} ${walk?'walk':''} ${ui.quake&&now-ui.quake<400?'quake':''}`;
- return `<section class="stage ${cls}">${top}<div class="side pt">${party}</div><div class="side en">${right}</div>${ui.fx?`<div class="fx"><b class="${ui.fx.c}">${esc(ui.fx.t)}</b></div>`:''}</section>`}
+ const walk=ui.walk&&now-ui.walk<900&&now>=ui.walk,cls=`f${G.fl} ${B?'bat':''} ${walk?'walk':''} ${ui.quake&&now-ui.quake<400?'quake':''} ${ui.hs&&now-ui.hs<80?'hstop':''} ${ui.ao&&now-ui.ao<700?'aoflash':''}`;
+ return `<section class="stage ${cls}">${top}<div class="side pt">${party}</div><div class="side en">${right}</div>${ui.fx?`<div class="fx"><b class="${ui.fx.c} ${['1 MORE','WEAK','CRITICAL','ALL-OUT ATTACK','SHOWTIME'].includes(ui.fx.t)?'slash':''}">${esc(ui.fx.t)}</b></div>`:''}${ui.cut&&now-ui.cut.at<300&&!ui.fx?`<div class="fx"><b class="slash cut">${esc(ui.cut.t)}</b></div>`:''}${ui.total&&now-ui.total.at<1300?`<div class="total"><small>TOTAL</small>${ui.total.v}</div>`:''}</section>`}
 function vParty(){return `<div class="party">${G.party.map(m=>`<div class="pc" style="--c:${m.c.col}"><b>${m.c.code}</b><small>${m.row}열</small><div class="bar"><i class="${m.hp<m.max*.35?'lo':''}" style="width:${m.hp/m.max*100}%"></i></div><div class="bar s"><i style="width:${m.sp/m.msp*100}%"></i></div><div class="nu">HP ${m.hp} · SP ${m.sp}</div></div>`).join('')}</div>`}
 function vSlots(){const now=Date.now(),B=G.battle,bench=ui.screen==='bench'&&!G.benchUsed,n=Math.max(6,G.items.length);
  return `<div class="slots" aria-label="템 ${G.items.length}개">${Array.from({length:n},(_,i)=>{const id=G.items[i],I=id&&IT(id);if(!I)return `<div class="slot"></div>`;
   const act=bench?'bsel:'+i:'tip:'+id,sealed=B&&B.sealed.includes(i);
-  return `<button class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''} ${ui.gl&&now-(ui.gl[id]||0)<600?'on':''} ${bench&&ui.bsel.includes(i)?'pick':''} ${sealed?'seal':''}" data-r="${I.r}" data-a="${act}" aria-label="${I.n}">${I.ic}<small>${sealed?'봉인':I.risk?'왜곡':I.r}</small></button>`}).join('')}</div>
+  return `<button class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''} ${ui.gl&&ui.gl[id]&&now>=ui.gl[id].at&&now-ui.gl[id].at<600?'on':''} ${bench&&ui.bsel.includes(i)?'pick':''} ${sealed?'seal':''}" data-r="${I.r}" data-a="${act}" aria-label="${I.n}">${I.ic}<small>${sealed?'봉인':I.risk?'왜곡':I.r}</small></button>`}).join('')}</div>
  <div class="tip">${ui.tip&&IT(ui.tip)?`${IT(ui.tip).ic} <b>${IT(ui.tip).n}</b> [${IT(ui.tip).r} · ${IT(ui.tip).ax}] ${IT(ui.tip).d}${IT(ui.tip).risk?` · <b class="rk">대가: ${IT(ui.tip).risk}</b>`:''}`:''}</div>`}
 function vBattle(){const B=G.battle,m=actor();if(!m)return '<p class="tip">적의 차례…</p>';
  const sk=m.c.sk.map((s,i)=>{const f=target(),we=f?effWeak(f):[],hint=f&&!s.type&&wkKnown(f)?(we.includes(s.el)?' · 약점!':f.res===s.el?' · 내성':''):'';
