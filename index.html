@@ -54,7 +54,7 @@ button:disabled{opacity:.35;cursor:default}
 .unit.act:not(.ko) img{animation:bob .55s steps(1,end) infinite}
 .unit.coll img{animation:coll .25s steps(2,end) infinite;filter:hue-rotate(250deg) saturate(1.6) drop-shadow(0 0 6px #ff4fd8)}@keyframes coll{50%{transform:translateX(2px)}}
 .unit.awk img{filter:drop-shadow(0 0 8px var(--gold)) brightness(1.15)}
-.unit .row{font:10px/1 var(--kr);color:var(--mut);margin-top:4px}
+.unit .row{font:12px/1 var(--kr);color:var(--mut);margin-top:4px}
 .unit .hb{width:40px;height:5px;background:#3a2a2e;margin-top:3px}.unit .hb i{display:block;height:100%;background:#6fdc6a}.unit .hb i.lo{background:var(--red)}
 .unit.hitf{animation:hit .3s}@keyframes hit{0%,100%{transform:none}30%{transform:translateX(-6px)}60%{transform:translateX(5px)}}
 .bub{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);width:max-content;max-width:150px;background:var(--ink);color:#141012;font:11px/1.35 var(--kr);padding:5px 7px;margin-bottom:6px;z-index:3;animation:pop .2s}
@@ -75,9 +75,9 @@ button:disabled{opacity:.35;cursor:default}
 .foe.boss .bd,.foe.reap .bd{animation-duration:2.4s}
 .stage .bg{display:none}@media (prefers-reduced-motion:reduce){.unit img,.foe .bd,.stage.quake{animation:none!important}}
 .foe.gone{visibility:hidden}
-.foe .nm{font:10px/1.15 var(--kr);margin-top:5px;text-align:center;word-break:keep-all}.foe .fr{position:absolute;top:-12px;left:2px;font:9px/1 var(--kr);color:var(--mut)}.foe .wk{font-size:9px;padding:1px 3px}
+.foe .nm{font:12px/1.15 var(--kr);margin-top:5px;text-align:center;word-break:keep-all}.foe .fr{position:absolute;top:-12px;left:2px;font:12px/1 var(--kr);color:var(--mut)}.foe .wk{font-size:12px;padding:1px 3px}
 .foe .hb{width:44px;height:5px;background:#3a2a2e;margin-top:3px}.foe .hb i{display:block;height:100%;background:var(--red)}
-.wk{font:10px/1 var(--kr);padding:2px 4px;margin-top:3px;background:#2a1e22;color:var(--mut)}
+.wk{font:12px/1 var(--kr);padding:2px 4px;margin-top:3px;background:#2a1e22;color:var(--mut)}
 .wk.k{color:#141012}
 .foe .dn{position:absolute;top:-6px;font:16px/1 var(--en);color:var(--gold);text-shadow:0 2px 0 #000}
 .fx{position:absolute;inset:0;pointer-events:none;display:grid;place-items:center;z-index:5}
@@ -90,24 +90,24 @@ button:disabled{opacity:.35;cursor:default}
 .panel{flex:1;background:var(--p);padding:10px 12px 14px;display:flex;flex-direction:column;gap:9px}
 .party{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pc{background:var(--p2);padding:6px 7px;border-left:4px solid var(--c)}
-.pc b{font:15px/1 var(--en);color:var(--c)}.pc small{float:right;color:var(--mut);font-size:10px}
+.pc b{font:15px/1 var(--en);color:var(--c)}.pc small{float:right;color:var(--mut);font-size:12px}
 .bar{height:6px;background:#3a2a2e;margin-top:4px}.bar i{display:block;height:100%;background:#6fdc6a}.bar.s i{background:#59a7ff}.bar i.lo{background:var(--red)}
-.pc .nu{font-size:10px;color:var(--mut);margin-top:2px}
+.pc .nu{font-size:12px;color:var(--mut);margin-top:2px}
 .slots{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .slot{height:52px;background:#120d0f;border:2px dashed #3b2b2f;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;font-size:19px;line-height:1;position:relative}
 .slot.f{border:2px solid var(--line);background:var(--p2)}.slot.f[data-r=증폭]{border-color:#59a7ff}.slot.f[data-r=폭발]{border-color:var(--gold)}
-.slot small{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;line-height:1.1;color:var(--mut)}
+.slot small{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:12px;line-height:1.1;color:var(--mut)}
 .slot.on{animation:glow .6s}@keyframes glow{50%{box-shadow:0 0 12px var(--gold)}}
 .slot.evo{border-color:var(--gold)!important;background:#2b2210}.slot.pick{outline:3px solid #fff;outline-offset:-3px}.slot.seal{opacity:.35;filter:grayscale(1)}
 .pk.evo{border-left-color:var(--gold);background:#2b2210}
 .bar.t i{background:#b45cff}.bar.t i.hi{background:#ff4fd8}
-.md{font-size:10px;padding:0 4px;color:#141012}.md.c{background:#ff4fd8}.md.a{background:var(--gold)}
+.md{font-size:12px;padding:0 4px;color:#141012}.md.c{background:#ff4fd8}.md.a{background:var(--gold)}
 .negs{display:flex;flex-wrap:wrap;gap:5px}.neg{font-size:11px;padding:4px 7px;background:#2a0f14;border:1px solid var(--red2);color:#ffb3b3}.neg small{color:var(--gold)}
 .psg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .psc{display:flex;gap:8px;align-items:center;text-align:left;background:var(--p);padding:7px;border-left:4px solid var(--c);position:relative;min-height:62px}
 .psc.on{background:#3a2a2e;outline:2px solid var(--c)}.psc img{image-rendering:pixelated;flex:none}.psc b{color:var(--c);font:15px/1 var(--en)}
-.psc small{display:block;font-size:10px;color:var(--mut)}.psc .po{position:absolute;top:4px;right:6px;font:16px/1 var(--en);font-style:normal;color:var(--c)}
-.els{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}.els i{font-style:normal;font-size:9px;color:#141012;padding:0 3px}
+.psc small{display:block;font-size:12px;color:var(--mut)}.psc .po{position:absolute;top:4px;right:6px;font:16px/1 var(--en);font-style:normal;color:var(--c)}
+.els{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}.els i{font-style:normal;font-size:12px;color:#141012;padding:0 3px}
 .wk+.wk{margin-left:2px}.foe .wk{display:inline-block}.foe .wks{display:flex;flex-wrap:wrap;justify-content:center}
 .pk.lock{opacity:.7}.pk.lock .ic{filter:grayscale(1)}
 #tut{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;pointer-events:none}
@@ -132,7 +132,7 @@ button:disabled{opacity:.35;cursor:default}
 .cell.k{background:#241a1d;border:2px dashed #5b444a}.cell.v{background:#33262a}.cell.at{background:var(--red);color:#fff}
 .cell.nx{background:#3b2b2f;border:2px solid var(--gold);animation:pulse 1.2s infinite;clip-path:none;font-size:22px;padding:0}
 @keyframes pulse{50%{border-color:#fff}}
-.cell small{position:absolute;bottom:2px;font-size:9px;color:var(--mut)}.cell.at small{color:#fff}
+.cell small{position:absolute;bottom:2px;font-size:12px;color:var(--mut)}.cell.at small{color:#fff}
 .lk{position:absolute;background:#5b444a;z-index:0}
 /* 대화창 · 선택 */
 .dlg{background:#000;border:3px solid var(--ink);padding:10px 12px;position:relative}
@@ -143,7 +143,7 @@ button:disabled{opacity:.35;cursor:default}
 .pick{display:grid;gap:7px}
 .pk{background:var(--p2);padding:10px;text-align:left;border-left:4px solid var(--line);display:flex;gap:10px;align-items:center}
 .pk .ic{font-size:26px;width:34px;text-align:center}.pk b{font-size:15px}.pk small{display:block;color:var(--mut);font-size:11px}
-.pk .tg{font-size:10px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px}
+.pk .tg{font-size:12px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px}
 .pk.syn{border-left-color:var(--gold)}
 .log{max-height:160px;overflow:auto;font-size:12px;background:#0b0809;padding:6px 8px;color:var(--mut)}
 .log p{margin:2px 0}.log p b{color:var(--ink)}
@@ -244,7 +244,7 @@ button:disabled{opacity:.35;cursor:default}
 .hman .hph{display:block;width:40px}.hman .hph svg{width:100%;height:auto}
 .hman .hcode{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-family:var(--en);font-size:11px;letter-spacing:.04em;color:var(--c);background:rgba(13,11,18,.85);padding:0 4px;white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none}
 .hman:hover .hcode,.hman:focus-visible .hcode,.hman.on .hcode{opacity:1}/* 이름표는 누르거나 올렸을 때만 */
-.hmark{position:absolute;top:-14px;z-index:2;width:12px;height:13px;background:var(--ink);color:var(--ink2,#141012);font-family:var(--en);font-size:10px;line-height:13px;text-align:center}
+.hmark{position:absolute;top:-14px;z-index:2;width:12px;height:13px;background:var(--ink);color:var(--ink2,#141012);font-family:var(--en);font-size:12px;line-height:13px;text-align:center}
 .hman:not(:hover) .hmark{animation:hbob 1.6s steps(2) infinite}
 .hsay{position:absolute;bottom:calc(100% + 6px);width:max-content;max-width:180px;background:var(--ink);color:#141012;font-size:13px;line-height:1.4;padding:6px 9px;border-radius:9px;text-align:left;z-index:3;white-space:normal}
 .hsay.l{left:-4px}.hsay.l::after{left:24px}.hsay.r{right:-4px}.hsay.r::after{left:auto;right:18px}/* 양끝 캐릭터의 말풍선은 방 안쪽으로 펼쳐서 잘리지 않게 */
@@ -462,10 +462,10 @@ function move(to){if(ui.busy||!G.map.adj(G.at).includes(to))return;ui.walk=Date.
  for(const m of G.party)if(m.hp>0){m.sp=Math.min(m.msp,m.sp+4);if(DF().hurt)m.hp=Math.max(1,m.hp-DF().hurt);if(DF().calm)m.st=Math.max(0,m.st-DF().calm)}
  const t=G.map.T[to],fresh=!G.map.done.has(to);log(`B${G.fl+1} · ${ROOM[t].n} 방으로 이동했다. (위험도 ${G.risk})`);
  if(G.risk>=RISK_MAX&&!G.reaperMet){G.reaperMet=true;log(pick((LINES.reaper||[]).slice(0,5))||'…쇠사슬 소리가 바로 뒤에서 들린다.');
-  return startBattle('reaper')}
+  runSave(true,{reaper:1});return startBattle('reaper')}
  if(G.risk===RISK_HOT)log(`…어디선가 쇠사슬 끌리는 소리가 들린다. (위험도 ${RISK_MAX}에서 거두는 자 출현)`);
  if(!fresh){march();return render()}
- G.map.done.add(to);
+ G.map.done.add(to);runSave(true,{room:t});
  const C=G.chain;if(C&&C.st===G.fl&&C.shown<G.fl){C.shown=G.fl;const key=['find','grow','end'][G.fl],x=C.c.steps[key],w=G.party.find(m=>m.id===x.who&&m.hp>0)||pick(alive());
   const res=sheetFx(x.fx,w.id),sc=SV.chains||(SV.chains={}),isNew=(sc[C.c.id]||0)<G.fl+1;if(isNew){sc[C.c.id]=G.fl+1;save()}C.st++;if(key==='end')C.done=1;
   return story({tag:'CHAIN',title:`사슬 — ${C.c.name}${key==='end'?' (결말)':key==='grow'?' (전개)':''}`,n:x.n,qs:[[w.id,x.q]],res,isNew},()=>enterRoom(t))}
@@ -750,8 +750,8 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  const y=Math.round((B.kind==='boss'?(B.foes[0].boss==='lost'?3500:2200):B.kind==='reaper'?6000:B.foes.reduce((t,f)=>t+fy(f),0))*(hasNeg('cuffs')?2:1)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1):1));G.yen+=y;log(`승리! +¥${y}${hasNeg('cuffs')?' (녹슨 수갑 ×2)':''}`);
  G.neg=G.neg.filter(x=>!brk.includes(x));for(const x of brk){log(`${jo(NEG[x.id].n,"이","가")} 깨졌다! — ${NEG[x.id].up}`);if(x.id==='radio'){for(const m of G.party){m.max+=20;if(m.hp>0)m.hp+=20}G.cmd+=2}}
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
- G.battle=null;
- if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.fl===(DF().maxFl??2)){G.cleared=true;SV.wins++}else G.floorDone=true;save();offer(`${B.foes[0].n}가 떨어뜨린 것 (확정)`,1,G.fl===2?'evo':'boom');return true}
+ G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
+ if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.fl===(DF().maxFl??2)){G.cleared=true;SV.wins++}else G.floorDone=true;save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${B.foes[0].n}가 떨어뜨린 것 (확정)`,1,G.fl===2?'evo':'boom');return true}
  if(B.kind==='reaper'){G.reaperKill=1;SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
  if(brk.some(x=>x.id==='crack')){offer('깨진 정기권 속에서 나온 것',1,'boom');return true}
  const el=B.foes.some(f=>f.tier==='e');offer(el?'정예 섀도가 남긴 것 (증폭기)':'섀도가 남긴 것 (발동기)',1,el?'amp':'trig');return true}
@@ -832,15 +832,21 @@ function pxDraw(t){const g=PX.g,W=PX.W,H=PX.H,dt=Math.min(.1,(t-(PX.last||t))/10
  requestAnimationFrame(pxDraw)}
 requestAnimationFrame(pxDraw);
 /* 이어하기: 지도 화면에 설 때마다 판을 저장(전투 중 저장 없음). 끝나면 지움 */
-function runSave(){if(!G.map||G.end||G.battle||ui.screen!=='map')return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
+/* pend: 새로고침 되감기 막기 — 방에 들어선 순간·전투를 이긴 순간에도 저장하고, 이어하기 때 그 자리부터 다시 연다 */
+function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='map')))return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
  party:G.party.map(x=>({id:x.id,hp:x.hp,max:x.max,sp:x.sp,msp:x.msp,row:x.row,st:x.st})),map:{cells:m.cells,edges:m.edges,start:m.start,boss:m.boss,T:m.T,vis:[...m.vis],done:[...m.done]},
  at:G.at,fl:G.fl,risk:G.risk,yen:G.yen,items:G.items,neg:G.neg,kills:G.kills,cmd:G.cmd,stats:G.stats,reroll:G.reroll,curry:G.curry,setup:G.setup,combos:G.combos,
- day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,log:G.log.slice(-30)}))}catch(e){}}
+ day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  Object.assign(G,{...d,party:d.party.map(x=>({...x,c:CH[x.id],mode:null})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
   day:DAYS.find(x=>x.id===d.day)||null,chain:d.chain?{...d.chain,c:SCRIPT.chains.find(c=>c.id===d.chain.id)}:null,bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,floorDone:false,auto:false});
- if(G.chain&&!G.chain.c)G.chain=null;ui.screen='map';log('— 이어서 탐사한다 —');render()}
+ if(G.chain&&!G.chain.c)G.chain=null;ui.screen='map';log('— 이어서 탐사한다 —');delete G.pend;const P=d.pend;
+ if(P&&P.reaper)return startBattle('reaper');/* 새로고침해도 들어선 방은 다시 열린다 */
+ if(P&&P.room)return enterRoom(P.room);
+ if(P&&P.clear){G.cleared=true;return endRun('clear')}
+ if(P&&P.floor){ui.screen='floor';return render()}
+ render()}
 /* 기록 슬롯: 르블랑 진행(지갑 · 해금 · 개조 · 스트레스 · 장면)을 3칸에 */
 const slots=()=>{try{return JSON.parse(localStorage.getItem('mm-slots')||'[]')}catch(e){return []}};
 function slotSave(i){const L=slots();L[i]={at:Date.now(),runs:SV.runs,yen:SV.yen,sv:JSON.parse(JSON.stringify(SV))};try{localStorage.setItem('mm-slots',JSON.stringify(L))}catch(e){}render()}
