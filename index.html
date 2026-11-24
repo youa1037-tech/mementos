@@ -374,6 +374,7 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .htab button.on{color:var(--ink);font-weight:700;border-bottom-color:var(--red)}
 .htab button:not(.on):active{color:var(--ink)}
 .htab .dot{position:absolute;top:5px;right:calc(50% - 19px);width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px #0f0b0c}
+.ach .pct{font:15px/1 var(--en);font-style:normal;color:var(--ink);margin-right:6px}.sbst{font-size:12px}
 </style>
 </head>
 <body>
@@ -628,8 +629,24 @@ const ACH_ITEM={};for(const a of ACH)if(a.rw!=='reroll')ACH_ITEM[a.rw]=a.id;
 const achDone=k=>!!(SV.ach&&SV.ach[k]);
 function achLocked(id){return !!ACH_ITEM[id]&&!achDone(ACH_ITEM[id])}
 const achRw=a=>a.rw==='reroll'?'판마다 3지선다 리롤 +1 (영구)':`${IT(a.rw).g||tier(a.rw)}급 「${IT(a.rw).n}」 ${IT(a.rw).rift?'— 인지의 균열에 나타남':'— 보상 · 상점에 나옴'}`;
-function achGet(k){if(achDone(k))return;const a=ACH.find(x=>x.id===k);if(!a)return;SV.ach=SV.ach||{};SV.ach[k]=Date.now();save();(G.achNew||(G.achNew=[])).push(k);
+function achGet(k){if(achDone(k))return;const a=ACH.find(x=>x.id===k);if(!a)return;SV.ach=SV.ach||{};SV.ach[k]=Date.now();save();setTimeout(sbFlush,200);(G.achNew||(G.achNew=[])).push(k);
  log(`업적 달성 — ${a.n} · 해금: ${achRw(a)}`);band(`<b>ACHIEVEMENT · ${a.r}</b> ${esc(a.n)} <small>해금: ${esc(achRw(a))}</small>`,'chain',5200)}
+/* 익명 업적 통계 (Supabase): 무작위 ID + 업적 이름만 보낸다. 실패하면 조용히 등급 표시로 */
+const SB={url:'https://cdybxxphrwjgcidrhyib.supabase.co',key:'sb_publishable_I0HHy_jV6Rnk2_n4qBvhOA_nAfhUpYC',min:20,ttl:600000};
+const sbOn=()=>!SV.sbOff&&typeof fetch==='function';
+async function sbPost(path,body){const r=await fetch(`${SB.url}/rest/v1/${path}`,{method:'POST',headers:{apikey:SB.key,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(body)});
+ if(r.status===409)return true;/* 이미 있음 = 성공 */if(!r.ok)throw new Error(r.status);return r.status===204?true:r.json().catch(()=>true)}
+let sbBusy=false;
+async function sbFlush(){if(!sbOn()||sbBusy||!(SV.runs>0))return;sbBusy=true;try{
+  if(!SV.pid){SV.pid=(crypto.randomUUID&&crypto.randomUUID())||'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16));save()}
+  if(!SV.sbReg){await sbPost('players',{id:SV.pid});SV.sbReg=1;save()}
+  const sent=new Set(SV.sbSent||[]);for(const k of Object.keys(SV.ach||{})){if(sent.has(k))continue;await sbPost('unlocks',{player_id:SV.pid,ach:k});sent.add(k);SV.sbSent=[...sent];save()}
+ }catch(e){}finally{sbBusy=false}}
+async function sbStats(force){if(!sbOn())return;const c=ui.sbS;if(!force&&c&&Date.now()-c.at<SB.ttl)return;ui.sbS={at:Date.now(),map:c&&c.map||{},total:c&&c.total||0};
+ try{const r=await fetch(`${SB.url}/rest/v1/rpc/ach_stats`,{method:'POST',headers:{apikey:SB.key,'Content-Type':'application/json'},body:'{}'});if(!r.ok)throw 0;const L=await r.json(),map={};let total=0;
+  for(const x of L){map[x.ach]=+x.n;total=+x.total}ui.sbS={at:Date.now(),map,total:total||(c&&c.total)||0,ok:1};if(ui.screen==='hub'&&ui.ht==='ach')render()}catch(e){ui.sbS.err=1;if(ui.screen==='hub'&&ui.ht==='ach')render()}}
+const achPct=k=>{const S=ui.sbS;if(!S||!S.ok||S.total<SB.min)return null;return Math.max(.1,Math.round((S.map[k]||0)/S.total*1000)/10)};
+setTimeout(sbFlush,1500);
 const achTag4=()=>{if(Object.values(tagCnt()).some(n=>n>=4))achGet('tag4')};
 const UPG={bus:{n:'모나 버스 개조',d:'Lv.2: B2로 가는 막힌 선로를 뚫는다 · Lv.3: B3 최심부로 내려가는 선로를 뚫는다',cost:[7500,12000]},
  reroll:{n:'3지선다 리롤',en:'REROLL',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000]},
@@ -1149,7 +1166,7 @@ function pickCut(kind){const by=k=>(SCRIPT.cuts||[]).filter(x=>x.k===k),ids=G.pa
  const L=by(k).length?by(k):by('평범한 날');if(!L.length)return '';const x=pick(L),who=k==='감싸기'&&G.party.find(m=>m.id==='kasumi')?'kasumi':pick(ids),tg=k==='감싸기'&&G.coverT?G.coverT:pick(ids.filter(i=>i!==who))||who;
  return x.t.replace(/\{이름\}/g,CH[who].name).replace(/\{대상\}/g,CH[tg].name).replace(/\{엔\}/g,'¥'+G.yen).replace(/\{역\}/g,FLR(G.fl).n).replace(/\{[^}]*\}/g,'')
   .replace(/([가-힣A-Za-z0-9¥]+)\((이|과|을|은)\)(가|와|를|는)/g,(_,w,a,b)=>jo(w,a,b))}
-function endRun(kind){if(kind!=='wipe'&&G.cleared&&G.devil)achGet('devil');try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
+function endRun(kind){setTimeout(sbFlush,600);if(kind!=='wipe'&&G.cleared&&G.devil)achGet('devil');try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
  const sb=subNow(),subOk=kind!=='wipe'&&G.sub===sb.id&&sb.ok(),sy=subOk?Math.max(0,Math.min(sb.y,RUN_CAP-y-bet)):0;
  const dy=kind==='wipe'?0:(G.deepBonus||0);G.end={kind,y,bet,sub:sb,subOk,sy,dy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy+dy;
  {const ids=G.party.map(m=>m.id);for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const k=bkey(ids[i],ids[j]),x=SV.bond[k]||(SV.bond[k]={n:0,lv:0});x.n+=(G.stats.bat[k]||0)+(kind==='wipe'?0:1)}}/* 유대: 바톤 횟수 + 함께 살아 돌아오면 +1 */
@@ -1369,8 +1386,9 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   ${V?(()=>{const c=V.ch[ui.sv.i];return `<div class="dlg"><span class="who">REPLAY</span><p><b>${esc(V.title)} — ${esc(c.label)}</b></p><p>${esc(V.intro)}</p>${Q(V.a,V.qa)}${Q(V.b,V.qb)}<p>${esc(c.n)}</p>${Q(V.a,c.qa)}${Q(V.b,c.qb)}</div>`})():''}
   <div class="scg">${C.map(x=>`<div class="scc"><small>${CH[x.a].code} · ${CH[x.b].code}</small><b>${esc(x.title)}</b><span class="sce">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i class="nx" title="아직 못 본 결말"></i>').join('')}</span></div>`).join('')}</div>
   <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="scg">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="scc"><small>${v>=3?'END':v+'/3'}</small><b>${v?esc(c.name):'???'}</b></div>`}).join('')}</div>`}
- if(t==='ach'){const n=ACH.filter(a=>achDone(a.id)).length;body=`<p class="tip">업적을 깨면 새 템이 풀립니다. 다음 판에 노려 볼 목표를 고르세요. <b>${n}/${ACH.length}</b></p>`+ACH.map(a=>{const ok=achDone(a.id),hid=a.r==='HIDDEN'&&!ok;
-  return `<div class="card ach ${ok?'ok':''}" style="--rc:${RAR[a.r]}"><div class="ah"><b>${hid?'???':esc(a.n)}</b><em class="rar">${a.r}</em></div><p>${hid?esc(a.hint):esc(a.d)}</p><small>${ok?'✓ 해금됨 — ':'보상: '}${hid?'???':esc(achRw(a))}</small></div>`}).join('')}
+ if(t==='ach'){sbStats();sbFlush();const n=ACH.filter(a=>achDone(a.id)).length,S=ui.sbS,tot=S&&S.ok?S.total:0;
+  body=`<p class="tip">업적을 깨면 새 템이 풀립니다. 다음 판에 노려 볼 목표를 고르세요. <b>${n}/${ACH.length}</b></p><p class="tip sbst">${SV.sbOff?'익명 통계 꺼짐 — 비율 대신 등급만 보입니다.':tot>=SB.min?`괴도 ${tot.toLocaleString()}명의 실제 달성 비율입니다.`:S&&S.err?'통계 서버에 연결하지 못해 등급만 보입니다.':S&&S.ok?`달성 비율 집계 중 — 괴도 ${tot}명 (${SB.min}명부터 비율 표시)`:'달성 비율을 불러오는 중…'} <button class="sm" data-a="sbtog">익명 통계 ${SV.sbOff?'켜기':'끄기'}</button></p>`+ACH.map(a=>{const ok=achDone(a.id),hid=a.r==='HIDDEN'&&!ok,pc=achPct(a.id);
+  return `<div class="card ach ${ok?'ok':''}" style="--rc:${RAR[a.r]}"><div class="ah"><b>${hid?'???':esc(a.n)}</b><span>${pc!=null?`<em class="pct">${pc}%</em>`:''}<em class="rar">${a.r}</em></span></div><p>${hid?esc(a.hint):esc(a.d)}</p><small>${ok?'✓ 해금됨 — ':'보상: '}${hid?'???':esc(achRw(a))}</small></div>`}).join('')}
  if(t==='rec'){const L=slots();body=`<p class="tip">르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 저장해 둡니다. 불러오면 지금 진행이 그 기록으로 바뀌고, 이어하던 판은 사라집니다.</p><div class="pick">${[0,1,2].map(i=>{const x=L[i];return `<div class="pk"><span class="ic">${i+1}</span><span style="flex:1">${x?`<b>${new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</b><small>${x.runs}판 · 지갑 ¥${x.yen}${x.sv&&x.sv.q!=null?` · 지지율 ${[0,35,70,100][x.sv.q]}%`:''}</small>`:'<small>빈 칸</small>'}</span><button class="tog" data-a="ssave:${i}">저장</button>${x?`<button class="tog" data-a="sload:${i}">불러오기</button>`:''}</div>`}).join('')}</div>
   <div class="row2" style="margin-top:8px"><button class="tog ${SV.tutOff?'':'on'}" data-a="tutt">튜토리얼 안내 ${SV.tutOff?'끔':'켬'}</button><button class="tog" data-a="tutr">안내 처음부터</button></div>`}
  return `<main class="hub">${vAttic()}<div class="title" style="padding-top:10px">${vQuest()}${vNext()}
@@ -1408,7 +1426,7 @@ function vTitle(){const sv=runSaved(),dy=DAYS.find(d=>d.id===SV.today),sc=SV.sce
  <a class="mlegacy" href="legacy.html">PLAY THE OLD VERSION (OBSERVATION)</a></section></main>`}
 function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO PLAY</h1>
  <div class="card"><b>왜 메멘토스에 들어가나</b><br>메멘토스 최심부에 <b>왜곡된 선로</b>가 생겨 도쿄의 인지가 뒤틀렸다. 괴도 채널에 올라온 의뢰 대상 셋을 개심시켜 <b>지지율 100%</b>를 만들어라.<br>· 의뢰 1: B1 관문 「검표원의 그림자」 · 의뢰 2: B2 관문 「분실물 보관소의 주인」 · 의뢰 3: B3 최심부 「거두는 자」</div>
- <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를. 처음엔 유리의 구두만 있고, 나머지는 <b>업적</b>으로 풀립니다.<br>· <b>업적</b>(르블랑 〈업적〉 탭): 1턴 컷 · 스크래치 없는 괴도단 같은 도전을 깨면 새 템이 드롭 풀에 들어옵니다.<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
+ <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를. 처음엔 유리의 구두만 있고, 나머지는 <b>업적</b>으로 풀립니다.<br>· <b>업적</b>(르블랑 〈업적〉 탭): 1턴 컷 · 스크래치 없는 괴도단 같은 도전을 깨면 새 템이 드롭 풀에 들어옵니다. 달성 비율은 무작위 익명 ID와 업적 이름만 모아 계산합니다(업적 탭에서 끌 수 있음).<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
  <div class="card"><b>돈은 어디에</b><br>· 귀환하면 번 엔이 <b>르블랑 지갑</b>으로(전멸하면 절반). 서브 의뢰를 해내면 보너스.<br>· ① <b>모나 버스</b>: B2 선로 개방 · 리롤 · 출발 자금 · 선로 직행 ② <b>템 해금</b>: 3지선다에 나올 템을 늘림 ③ <b>유대</b>: 바톤을 주고받은 두 사람의 장면과 바톤 보너스</div>
  <div class="row2"><button class="go sub" data-a="tutr">튜토리얼 처음부터</button><button class="go" data-a="title">BACK</button></div></div>`}
 function vHud(){if(!G.map)return '';const m=G.map,cells=Array.from({length:16},(_,i)=>{const c=m.cells.includes(i);return `<i class="${!c?'':i===G.at?'at':m.vis.has(i)?'v':known(i)?'k':''} ${c&&known(i)&&m.T[i]==='boss'?'b':''}"></i>`}).join('');
@@ -1513,6 +1531,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='buy')return shopBuy(+v);if(a==='shopheal')return shopHeal();if(a==='shoprr')return shopReroll();
  if(a==='bsel')return benchToggle(+v);if(a==='synth')return synth();if(a==='leave'){benchLeave();ui.screen='map';return render()}
  if(a==='tip'){ui.tip=ui.tip===v?null:v;return render()}
+ if(a==='sbtog'){SV.sbOff=SV.sbOff?0:1;save();if(!SV.sbOff){sbFlush();sbStats(true)}return render()}
  if(a==='tagi'){ui.tagi=ui.tagi===v?null:v;return render()}
  if(a==='tagmv'){const i=G.items.indexOf(ui.tip);if(i<0||G.battle)return;const [x]=G.items.splice(i,1);if(v==='in')G.items.splice(TAG_N-1,0,x);else G.items.push(x);log(`${IT(x).n}: 각인 칸${v==='in'?'으로 올렸다':'에서 뺐다'}`);achTag4();runSave(true,null);return render()}
  if(a==='log'){ui.log=!ui.log;return render()}
