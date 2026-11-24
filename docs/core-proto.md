@@ -139,3 +139,10 @@
 - 관문: B1 검표원 HP 250 · 공격 16 / B2 보관소 주인 HP 300 · 공격 15 / B3 최심부 거두는 자 HP 480 · 공격 19
 - 서브 의뢰 완화: 총공격 2 · 한 턴 1 MORE 2 · 금고 1 · 약점 6 · 경계도 10 이하 관문 · 전투 4승 (¥500~700)
 - 봇 결과는 docs/verify.md 3차
+
+## 픽셀 이펙트 · 몸 연기 (2026-11-24)
+- [pixelfx](https://github.com/patch-gg/pixelfx)(MIT)에서 15종만 esbuild로 묶어 `fx/pixelfx.js`(123KB)로. 라이선스 `fx/LICENSE-pixelfx.txt`
+- 무대 위에 무대와 같은 해상도의 캔버스를 겹쳐 그림(이펙트 1픽셀 = 1 CSS px). 히트스톱 동안은 이펙트도 멈춤. 동작 줄이기면 끔
+- 속성별: 물리 sword-slash · 화염 flame-pillar · 빙결 ice-shatter · 전격 zap-hit · 질풍 tornado · 염동 mana-burst · 핵열 plasma-explosion · 축복 smite · 주원 dark-explosion. 큰 것은 0.8~1.1초에서 끊어 흐려지게
+- 모든 타격에 hit-spark, 약점·크리면 crit-hit. 적이 쓰러지면 poof, 아군이 맞으면 blunt-hit, 메디아는 heal-aoe, 총공격·SHOWTIME은 impact-frame(집중선)
+- 몸 연기(pixelfx의 acting 원칙): 공격 = 뒤로 움츠리는 예비 동작 → 찌그러지며 튀어나감 → 닿는 순간 멈춤 → 복귀(0.56초, 타격은 0.23초에). 적 공격도 같은 흐름. 맞은 적은 흰 번쩍 + 밀리며 찌그러짐, 맞은 아군은 붉게 번쩍 + 젖혀짐
