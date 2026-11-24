@@ -7,7 +7,7 @@ proto/index.html의 /*LINES-BEGIN*/ ... /*LINES-END*/ 사이를 바꾼다. 대�
 import json, os
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
-PARTY = {'joker', 'ryuji', 'mona'}
+PARTY = {'joker', 'mona', 'ryuji', 'ann', 'yusuke', 'makoto', 'futaba', 'haru', 'akechi', 'kasumi'}
 
 src = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
 a = src.index('/*SCRIPT-BEGIN*/const SCRIPT=') + len('/*SCRIPT-BEGIN*/const SCRIPT=')
