@@ -1,5 +1,5 @@
 """구조 개편 측정: 여러 판을 자동으로 돌려 성격 사고·지휘 창·큰 사건·자동 처리 횟수와 판 수입을 잰다 (개발용)
-사용법: python3 -I tools/quirk_measure.py index.html 100 rand|leave
+사용법: python3 -I tools/quirk_measure.py legacy.html 100 rand|leave
 첫 판(#0)은 튜토리얼을 건너뛴 탓에 편성 화면으로 빠질 수 있음 — 무시
 """
 import tempfile,json,sys,os

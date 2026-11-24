@@ -4,7 +4,7 @@
 import os
 import tempfile,sys,time
 from playwright.sync_api import sync_playwright
-src=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','index.html'),encoding='utf-8').read()
+src=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','legacy.html'),encoding='utf-8').read()
 MARK="render();\n}\n</script>"
 src=src.replace(MARK,"window.__g={get run(){return run},get S(){return S},get ui(){return ui},step,newRun,render,save,choose,get tq(){return tq},tutRun,cmdOk};\n"+MARK)
 tmp=tempfile.NamedTemporaryFile('w',suffix='.html',delete=False,encoding='utf-8',dir='/tmp');tmp.write(src);tmp.close()
