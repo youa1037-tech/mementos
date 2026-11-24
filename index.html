@@ -28,7 +28,7 @@ button:disabled{opacity:.35;cursor:default}
 .hud{display:flex;align-items:center;gap:10px;padding:10px 12px 8px;background:#000;border-bottom:4px solid var(--red)}
 .hud .fl{font:22px/1 var(--en)}.hud .fl small{display:block;font:11px/1.3 var(--kr);color:var(--mut)}
 .hud .sp{flex:1}
-.risk{font:16px/1 var(--en);padding:6px 9px;background:var(--gold);color:#141012}.risk.hot{background:var(--red);color:#fff}
+.hud .risk{font:16px/1 var(--en);padding:6px 9px;background:var(--gold);color:#141012}.hud .risk.hot{background:var(--red);color:#fff}
 .yen{font:20px/1 var(--en)}
 .mini{display:grid;grid-template-columns:repeat(4,11px);gap:2px}.mini i{width:11px;height:11px;background:#1d1517}.mini i.v{background:#5a4247}.mini i.k{background:#3a2a2e;outline:1px dashed #6b5157}.mini i.at{background:var(--red)}.mini i.b{box-shadow:inset 0 0 0 2px var(--gold)}
 /* 무대 */
@@ -145,7 +145,7 @@ button:disabled{opacity:.35;cursor:default}
 .pick{display:grid;gap:7px}
 .pk{background:var(--p2);padding:10px;text-align:left;border-left:4px solid var(--line);display:flex;gap:10px;align-items:center}
 .pk .ic{font-size:26px;width:34px;text-align:center}.pk b{font-size:15px}.pk small{display:block;color:var(--mut);font-size:11px}
-.pk .tg{font-size:12px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px}
+.pk .tg{font-size:12px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px;white-space:nowrap}.pk small .rk{font-size:11px;font-weight:400}
 .pk.syn{border-left-color:var(--gold)}
 .log{max-height:160px;overflow:auto;font-size:12px;background:#0b0809;padding:6px 8px;color:var(--mut)}
 .log p{margin:2px 0}.log p b{color:var(--ink)}
@@ -285,10 +285,11 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .quest{background:#1a1013;border:1px solid var(--gold);border-left:5px solid var(--gold);padding:9px 11px;margin:0 0 8px}.quest .en{color:var(--gold);font-size:13px;letter-spacing:.06em}.quest p{margin:4px 0}.quest small{color:var(--mut)}
 .qbar{height:6px;background:#2a2023;margin-top:6px}.qbar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--gold))}
 .nextu{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;width:100%;margin:0 0 8px;padding:8px 11px;background:#141012;border:1px solid var(--line);color:var(--ink);text-align:left;min-height:44px}
-.nextu .en{font-size:13px;color:var(--mut);letter-spacing:.06em}.nextu span{flex:1;font-weight:700}.nextu em{font-style:normal;font-family:var(--en);color:var(--mut)}
+.nextu .en{font-size:13px;color:var(--mut);letter-spacing:.06em}.nextu span{order:3;flex:1 0 100%;font-weight:700}.nextu em{font-style:normal;font-family:var(--en);color:var(--mut)}
 .nextu.ok{border-color:var(--gold)}.nextu.ok em{color:var(--gold)}
 .shopb{font-style:normal;font:400 12px var(--en);background:var(--red);color:#fff;padding:1px 6px;letter-spacing:.05em;animation:pulse 1.2s infinite}
-.tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}
+.tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}.scg{display:grid;grid-template-columns:1fr 1fr;gap:4px}.scc{background:var(--p2);padding:7px 8px;min-width:0}.scc small{display:block;font:11px/1.2 var(--en);color:var(--mut);letter-spacing:.04em}.scc b{display:block;font-size:13px;line-height:1.25;word-break:keep-all;margin-top:2px}.sce{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.sce .nx{display:inline-block;width:9px;height:9px;background:#3a2a2e}.sce .tog{padding:3px 6px;font-size:11px;min-height:0}
+.tabs{gap:4px}.tabs .tog{flex:1;min-width:0;padding:9px 2px;position:relative;white-space:nowrap;font-size:13px}.tabs .tog .dot{position:absolute;top:4px;right:4px;margin:0}
 .card.sub{border-color:var(--gold)}.card.sub .en{color:var(--gold);font-size:13px;letter-spacing:.06em;margin-right:4px}
 .pk.risk,.slot.f.risk{border-color:#ff4fd8!important}.rk{color:#ff7ae3}.pk .price{font-family:var(--en);color:var(--gold);white-space:nowrap;align-self:center}
 .htro{position:absolute;image-rendering:pixelated;pointer-events:auto;z-index:1}
@@ -1030,10 +1031,10 @@ function vAttic(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,Math.f
  const spots=Object.entries(ATTIC.spots).map(([k,[x,y,w,h,t,n]])=>`<button class="hspot ${k}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%" data-a="${t==='title'?'title':'ht:'+t}" aria-label="${n}"></button>`).join('');
  const hk=Math.max(1,Math.floor(sc/2))*((devicePixelRatio||1)>=1.5?.72:1);
  const people=cast.map((id,i)=>{const c=CH[id],[x,y]=ATTIC.stand[i],q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-a="htalk:${id}" aria-label="${c.name}">${q?`<span class="hsay${x<30?' l':x>70?' r':''}">${esc(q)}</span>`:''}<i class="hshd" aria-hidden="true"></i><img class="art sprites stand" src="${IMG}sprites/${id}.png" width="${Math.round(c.w*hk)}" alt="" draggable="false"><span class="hcode">${c.code}</span></button>`}).join('');
- return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1} · 지지율 ${supNow()}%</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
+ return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1}</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
  <section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
 function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.yen>=UPG[k].cost[SV.up[k]||0]),canPool=Object.entries(LOCK).some(([k,c])=>!SV.unl.includes(k)&&SV.yen>=c),canBond=Object.keys(SV.bond).some(k=>bondReady(k)&&SV.yen>=BOND.cost[SV.bond[k].lv]);
- const tabs=[['go','출발'],['up','모나 버스',canUp],['pool','템 해금',canPool],['bond','유대',canBond],['scene','장면'],['rec','기록']];
+ const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['scene','장면'],['rec','기록']];
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
@@ -1051,14 +1052,14 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   <div class="pick">${K.length?K.map(k=>{const [a,b]=k.split('|'),x=SV.bond[k],need=BOND.need[x.lv],c=BOND.cost[x.lv];return `<div class="pk"><span class="ic" style="font-size:12px;width:auto">${CH[a].code}<br>${CH[b].code}</span><span style="flex:1"><b>${CH[a].name} · ${CH[b].name}</b> <span class="tg">${x.lv}단계</span><small>${x.lv<3?`바톤 ${Math.min(x.n,need)}/${need}`:'최고 단계'}${BOND.bat[x.lv]?` · 바톤 +${BOND.bat[x.lv]*100}%`:''}</small><div class="bar"><i style="width:${x.lv<3?Math.min(100,x.n/need*100):100}%"></i></div></span>${x.lv?`<button class="tog" data-a="bsee:${k}">장면</button>`:''}${x.lv<3?`<button class="tog" data-a="bond:${k}" ${x.n>=need&&SV.yen>=c?'':'disabled'}>${x.n>=need?`¥${c}`:'더 싸우기'}</button>`:''}</div>`}).join(''):'<p class="tip">아직 쌓인 유대가 없습니다. 전투에서 1 MORE 때 바톤을 넘겨 보세요.</p>'}</div>`}
  if(t==='scene'){const sc=SV.scenes||[],cx=SV.chains||{},C=SCRIPT.combos||[],seen=C.reduce((n,x)=>n+x.ch.filter((_,i)=>sc.includes(x.id+':'+(i+1))).length,0),tot=C.reduce((n,x)=>n+x.ch.length,0);
   const V=ui.sv&&C.find(x=>x.id===ui.sv.id),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
-  body=`<p class="tip">조합 사건 결말 ${seen} / ${tot} · 사슬 ${Object.values(cx).filter(v=>v>=3).length} / ${SCRIPT.chains.length}. 본 장면을 누르면 다시 봅니다.</p>
+  body=`<p class="tip">조합 사건 결말 ${seen} / ${tot} · 사슬 ${Object.values(cx).filter(v=>v>=3).length} / ${SCRIPT.chains.length}</p>
   ${V?(()=>{const c=V.ch[ui.sv.i];return `<div class="dlg"><span class="who">REPLAY</span><p><b>${esc(V.title)} — ${esc(c.label)}</b></p><p>${esc(V.intro)}</p>${Q(V.a,V.qa)}${Q(V.b,V.qb)}<p>${esc(c.n)}</p>${Q(V.a,c.qa)}${Q(V.b,c.qb)}</div>`})():''}
-  <div class="pick">${C.map(x=>`<div class="pk"><span class="ic" style="font-size:12px;width:auto">${CH[x.a].code}<br>${CH[x.b].code}</span><span style="flex:1"><b>${esc(x.title)}</b><span class="els">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i style="background:#3a2a2e;color:var(--mut)">???</i>').join('')}</span></span></div>`).join('')}</div>
-  <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="pick">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="pk"><span class="ic en">${v>=3?'END':v?v+'/3':'?'}</span><span><b>${v?esc(c.name):'???'}</b><small>${['아직 못 봄','발견','전개','결말까지'][v]||''}</small></span></div>`}).join('')}</div>`}
+  <div class="scg">${C.map(x=>`<div class="scc"><small>${CH[x.a].code} · ${CH[x.b].code}</small><b>${esc(x.title)}</b><span class="sce">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i class="nx" title="아직 못 본 결말"></i>').join('')}</span></div>`).join('')}</div>
+  <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="scg">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="scc"><small>${v>=3?'END':v+'/3'}</small><b>${v?esc(c.name):'???'}</b></div>`}).join('')}</div>`}
  if(t==='rec'){const L=slots();body=`<p class="tip">르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 저장해 둡니다. 불러오면 지금 진행이 그 기록으로 바뀌고, 이어하던 판은 사라집니다.</p><div class="pick">${[0,1,2].map(i=>{const x=L[i];return `<div class="pk"><span class="ic">${i+1}</span><span style="flex:1">${x?`<b>${new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</b><small>${x.runs}판 · 지갑 ¥${x.yen}${x.sv&&x.sv.q!=null?` · 지지율 ${[0,35,70,100][x.sv.q]}%`:''}</small>`:'<small>빈 칸</small>'}</span><button class="tog" data-a="ssave:${i}">저장</button>${x?`<button class="tog" data-a="sload:${i}">불러오기</button>`:''}</div>`}).join('')}</div>
   <div class="row2" style="margin-top:8px"><button class="tog ${SV.tutOff?'':'on'}" data-a="tutt">튜토리얼 안내 ${SV.tutOff?'끔':'켬'}</button><button class="tog" data-a="tutr">안내 처음부터</button></div>`}
  return `<main class="hub">${vAttic()}<div class="title" style="padding-top:10px">${vQuest()}${vNext()}
- <div class="row2" style="gap:4px;flex-wrap:wrap">${tabs.map(([k,n,b])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</div>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
+ <div class="row2 tabs">${tabs.map(([k,n,b])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</div>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
 /* 유대 장면: 그 두 사람의 쌍대사·케미 대사 (1단계 첫째, 3단계 둘째) */
 function bondScene(k){const [a,b]=k.split('|'),x=SV.bond[k];if(!x||!x.lv)return '';const L=[...(LINES.pairs||[]),...(LINES.chem||[])].filter(p=>(p.a===a&&p.b===b)||(p.a===b&&p.b===a)),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
  const sh=L.slice(0,x.lv>=3?2:1);return `<p><b>르블랑의 밤 — ${jo(CH[a].name,'과','와')} ${CH[b].name}</b></p>${sh.length?sh.map(p=>Q(p.a,p.qa)+Q(p.b,p.qb)).join('<hr>'):'<p>둘은 말없이 커피를 나눠 마셨다. 그걸로 충분했다.</p>'}`}
