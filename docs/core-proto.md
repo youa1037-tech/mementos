@@ -276,3 +276,9 @@
 - 모나 버스를 개조해 새 층이 열리면(의뢰도 그 층까지 진행돼 있을 때) 다음 판 한 번은 그 층(B2/B3)에서 바로 출발. 출발 탭에 카드 + "이번엔 B1부터"로 끌 수 있음. NEXT 안내도 맞춤.
 - 직행 보급(유료 선로 직행에도 적용): 건너뛴 층 수만큼 단련(최대 HP +10%씩 · 받는 피해 -5%씩)과 템 고르기.
 - 심층 거두는 자 빈도: 층을 내려갈 때 경계도 본편 -6 / 심층(B3→B4부터) -12. 거두는 자를 쓰러뜨리면 경계도 절반. (상한에 붙은 채 -6만 깎여 심층 매 층 6역쯤에 다시 나오던 문제)
+
+## 밸런스용 판 기록 (Supabase public.runs)
+- 판이 끝날 때 요약 1줄(익명 ID · 업적과 같은 끄기 스위치). 플레이어 등록 뒤 전송, 실패하면 최대 20개 보관했다가 다시.
+- 칼럼: dev(주소에 ?dev=1이면 true, ?dev=0으로 해제) · ver(배포 시각) · kind(return/clear/wipe) · start_fl · end_fl · party · dur_s · yen
+- data(jsonb): run 번호, cleared, deep, risk, rooms, battles, ko, best, allout, spent(출장소), raw(번 엔), items("id:등급"), sets(켜진 각인), bosses[{fl, r(턴), hp(평균 %), ko}], wipe{fl, kind, foes, r}, reaper{n, fl[], res kill/escape/caught}, quest, sub, day, setup, grd, rift, ach(이번 판 업적)
+- 분석은 dev=false만. Supabase 노트북 「밸런스 대시보드」.
