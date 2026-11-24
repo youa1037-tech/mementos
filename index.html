@@ -290,6 +290,7 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .shopb{font-style:normal;font:400 12px var(--en);background:var(--red);color:#fff;padding:1px 6px;letter-spacing:.05em;animation:pulse 1.2s infinite}
 .tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}.scg{display:grid;grid-template-columns:1fr 1fr;gap:4px}.scc{background:var(--p2);padding:7px 8px;min-width:0}.scc small{display:block;font:11px/1.2 var(--en);color:var(--mut);letter-spacing:.04em}.scc b{display:block;font-size:13px;line-height:1.25;word-break:keep-all;margin-top:2px}.sce{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.sce .nx{display:inline-block;width:9px;height:9px;background:#3a2a2e}.sce .tog{padding:3px 6px;font-size:11px;min-height:0}
 .pk.awk{border-left-color:var(--c)}.pk.awk.on{background:#221a1e}.pk.awk .pxi{width:30px;height:auto;image-rendering:pixelated}.awb{font-style:normal;font-size:10px;padding:0 4px;background:var(--gold);color:#141012;vertical-align:1px}.fx b.awk{font:400 clamp(30px,9vw,46px)/1 var(--hd);color:#fff;background:#141012;padding:8px 16px;box-shadow:6px 6px 0 var(--red);transform:rotate(-4deg)}
+.bctl{min-height:330px}
 .tabs{gap:4px}.tabs .tog{flex:1;min-width:0;padding:9px 2px;position:relative;white-space:nowrap;font-size:13px}.tabs .tog .dot{position:absolute;top:4px;right:4px;margin:0}
 .card.sub{border-color:var(--gold)}.card.sub .en{color:var(--gold);font-size:13px;letter-spacing:.06em;margin-right:4px}
 .pk.risk,.slot.f.risk{border-color:#ff4fd8!important}.rk{color:#ff7ae3}.pk .price{font-family:var(--en);color:var(--gold);white-space:nowrap;align-self:center}
@@ -1146,15 +1147,17 @@ function vSlots(){const now=Date.now(),B=G.battle,bench=ui.screen==='bench'&&!G.
   const act=bench?'bsel:'+i:'tip:'+id,sealed=B&&B.sealed.includes(i);
   return `<button class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''} ${ui.gl&&ui.gl[id]&&now>=ui.gl[id].at&&now-ui.gl[id].at<600?'on':''} ${bench&&ui.bsel.includes(i)?'pick':''} ${sealed?'seal':''}" data-r="${I.r}" data-a="${act}" aria-label="${I.n}">${I.ic}<small>${sealed?'봉인':I.risk?'왜곡':I.r}</small></button>`}).join('')}</div>
  <div class="tip">${ui.tip&&IT(ui.tip)?`${IT(ui.tip).ic} <b>${IT(ui.tip).n}</b> [${IT(ui.tip).r} · ${IT(ui.tip).ax}] ${IT(ui.tip).d}${IT(ui.tip).risk?` · <b class="rk">대가: ${IT(ui.tip).risk}</b>`:''}`:''}</div>`}
-function vBattle(){const B=G.battle,m=actor();if(!m)return '<p class="tip">적의 차례…</p>';
+function vBattle(){const B=G.battle,m=actor(),tg=`<div class="row2"><button class="tog ${G.auto?'on':''}" data-a="auto">자동 전투 ${G.auto?'ON':'OFF'}</button>${B.kind==='reaper'?'<button class="ab red" data-a="ret"><b>RETURN NOW</b><small>엔 전부 들고 귀환</small></button>':''}</div>`;
+ /* 자동 전투 중엔 버튼 판을 접고, 적 차례에도 같은 높이를 유지해 화면이 위아래로 튀지 않게 */
+ if(G.auto)return `<div class="tip">${m?`<b style="color:${m.c.col}">${m.c.name}</b>의 차례`:'적의 차례…'}</div>${tg}`;
+ if(!m)return `<div class="bctl"><p class="tip">적의 차례…</p></div>${tg}`;
  const sk=m.c.sk.map((s,i)=>{const f=target(),we=f?effWeak(f):[],hint=f&&!s.type&&wkKnown(f)?(we.includes(s.el)?' · 약점!':f.res===s.el?' · 내성':''):'';
   return `<button class="ab" style="--c:${EL[s.el]}" data-a="sk:${i}" ${canUse(m,s)&&!ui.busy?'':'disabled'}><b>${s.n}</b><small>${s.type?s.d:s.el+(s.all?' 전체':'')}${s.sp?` · SP ${s.sp}`:''}${hint}${s.rows.includes(m.row)?'':` · ${s.rows.join('·')}열만`}${!reach(s,target())?' · 앞 2열만':''}</small></button>`}).join('');
  const allDown=foeAlive().length&&foeAlive().every(f=>f.down),freeN=cnt('oil')+3*cnt('rails'),fl=freeN-B.free;
  const bat=B.extra&&!B.extra.baton&&!cnt('radio')?alive().filter(x=>x.id!==m.id).map(x=>{const bl=bondOf(m.id,x.id).lv;return `<button class="ab" style="--c:${x.c.col}" data-a="bt:${x.id}" ${ui.busy?'disabled':''}><b>바톤 → ${x.c.name}</b><small>+${Math.round((.25+BOND.bat[bl])*100)}%</small></button>`}).join(''):'';
  const sw=d=>`<button class="ab" data-a="sw:${d}" ${(d<0?m.row>1:m.row<3)&&!ui.busy&&!cuffed(m,d)?'':'disabled'}><b>${d<0?'앞 열로':'뒤 열로'}</b><small>${cuffed(m,d)?'수갑':fl>0&&!B.extra?`무료 ${fl}`:''}</small></button>`;
- return `<div class="tip"><b style="color:${m.c.col}">${m.c.name}</b>의 차례${B.extra?' · <b style="color:var(--gold)">1 MORE!</b>':''}</div>
- <div class="acts">${allDown?`<button class="ab gold wide" data-a="allout"><b>ALL-OUT ATTACK</b><small>총공격${cnt('dice')?' · 주사위 ×2':''}</small></button>`:''}${sk}${bat}${sw(-1)}${sw(1)}</div>
- <div class="row2"><button class="tog ${G.auto?'on':''}" data-a="auto">자동 전투 ${G.auto?'ON':'OFF'}</button>${B.kind==='reaper'?'<button class="ab red" data-a="ret"><b>RETURN NOW</b><small>엔 전부 들고 귀환</small></button>':''}</div>`}
+ return `<div class="bctl"><div class="tip"><b style="color:${m.c.col}">${m.c.name}</b>의 차례${B.extra?' · <b style="color:var(--gold)">1 MORE!</b>':''}</div>
+ <div class="acts">${allDown?`<button class="ab gold wide" data-a="allout"><b>ALL-OUT ATTACK</b><small>총공격${cnt('dice')?' · 주사위 ×2':''}</small></button>`:''}${sk}${bat}${sw(-1)}${sw(1)}</div></div>${tg}`}
 function vEvent(){const e=G.ev;if(e.kind==='deal'){const tk=G.party.find(m=>DEAL_TALK.includes(m.id)),y=Math.round(G.yen*.4);
   return `<div class="dlg"><span class="who">LOST &amp; FOUND</span><p><b>분실물 보관소의 주인</b> 「주운 물건은 전부 이 몸의 것. 내놓으면 길을 비켜 주지.」</p></div>
  <div class="acts"><button class="ab" data-a="deal:give"><b>1. 보물을 내준다</b><small>¥${y} 잃고 싸우지 않고 통과 · 의뢰는 그대로</small></button><button class="ab" data-a="deal:talk" ${G.cmd?'':'disabled'}><b>2. 협상한다</b><small>지휘 -1 · ${tk?`${tk.c.name}가 거들어 `:''}성공 ${tk?75:50}%: 주인 체력 -25% · 압수 못 함 / 실패: 공격력 +20%</small></button><button class="ab wide" data-a="deal:fight"><b>3. 싸운다</b><small>그대로 개심 전투</small></button></div>`}if(e.kind==='combo'){const x=e.x,Q=(id,q)=>`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(fillT(q))}</q>`;
