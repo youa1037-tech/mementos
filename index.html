@@ -368,7 +368,12 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .ach{border-left:4px solid var(--rc);opacity:.75}.ach.ok{opacity:1;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
 .ach .ah{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.ach p{margin:4px 0 2px;font-size:13px}.ach small{color:var(--mut)}.ach.ok small{color:var(--gold)}
 .ach .rar{font:12px/1 var(--en);font-style:normal;letter-spacing:.1em;color:var(--rc);border:1px solid var(--rc);padding:2px 5px}
-.tabs{flex-wrap:wrap}
+/* 르블랑 탭: 같은 너비 한 줄 · 테두리 없이 밑줄로 · 살 수 있음 점은 글자 밖 모서리 */
+.htab{display:grid;grid-template-columns:repeat(8,1fr);border-bottom:2px solid #2a2226;margin:4px 0 6px}
+.htab button{position:relative;padding:11px 0 9px;font:14px/1 var(--kr);color:var(--mut);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+.htab button.on{color:var(--ink);font-weight:700;border-bottom-color:var(--red)}
+.htab button:not(.on):active{color:var(--ink)}
+.htab .dot{position:absolute;top:5px;right:calc(50% - 19px);width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px #0f0b0c}
 </style>
 </head>
 <body>
@@ -1369,7 +1374,7 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
  if(t==='rec'){const L=slots();body=`<p class="tip">르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 저장해 둡니다. 불러오면 지금 진행이 그 기록으로 바뀌고, 이어하던 판은 사라집니다.</p><div class="pick">${[0,1,2].map(i=>{const x=L[i];return `<div class="pk"><span class="ic">${i+1}</span><span style="flex:1">${x?`<b>${new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</b><small>${x.runs}판 · 지갑 ¥${x.yen}${x.sv&&x.sv.q!=null?` · 지지율 ${[0,35,70,100][x.sv.q]}%`:''}</small>`:'<small>빈 칸</small>'}</span><button class="tog" data-a="ssave:${i}">저장</button>${x?`<button class="tog" data-a="sload:${i}">불러오기</button>`:''}</div>`}).join('')}</div>
   <div class="row2" style="margin-top:8px"><button class="tog ${SV.tutOff?'':'on'}" data-a="tutt">튜토리얼 안내 ${SV.tutOff?'끔':'켬'}</button><button class="tog" data-a="tutr">안내 처음부터</button></div>`}
  return `<main class="hub">${vAttic()}<div class="title" style="padding-top:10px">${vQuest()}${vNext()}
- <div class="row2 tabs">${tabs.map(([k,n,b])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</div>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
+ <nav class="htab" role="tablist">${tabs.map(([k,n,b])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</nav>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
 /* 유대 장면: 그 두 사람의 쌍대사·케미 대사 (1단계 첫째, 3단계 둘째) */
 function bondScene(k){const [a,b]=k.split('|'),x=SV.bond[k];if(!x||!x.lv)return '';const L=[...(LINES.pairs||[]),...(LINES.chem||[])].filter(p=>(p.a===a&&p.b===b)||(p.a===b&&p.b===a)),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
  const sh=L.slice(0,x.lv>=3?2:1);return `<p><b>르블랑의 밤 — ${jo(CH[a].name,'과','와')} ${CH[b].name}</b></p>${sh.length?sh.map(p=>Q(p.a,p.qa)+Q(p.b,p.qb)).join('<hr>'):'<p>둘은 말없이 커피를 나눠 마셨다. 그걸로 충분했다.</p>'}`}
