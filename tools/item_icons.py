@@ -1,0 +1,259 @@
+"""템 · 진화 템 · 부정 기물 아이콘(16×16 도트)을 img/items/*.png 로 만든다 (개발용)
+
+사용법: python3 tools/item_icons.py   → img/items/<id>.png 와 미리보기 img/items/_sheet.png
+그림은 아래 글자 격자로 그린다. 한 글자 = 한 칸, '.' = 투명. 색은 PAL 참고.
+직접 그린 PNG로 바꾸고 싶으면 같은 이름(img/items/<id>.png, 16×16 권장)으로 덮어쓰면 된다.
+"""
+import os
+from PIL import Image
+
+PAL = {
+    'k': '#141012', 'w': '#f6f1ea', 'r': '#e5191c', 'd': '#8e0f13', 'y': '#f5b942', 'Y': '#b07a1c',
+    'o': '#ff7a3d', 'g': '#9a8f8a', 'G': '#5a5052', 'b': '#59a7ff', 'B': '#2a4d8f', 'c': '#7fd8ff',
+    'p': '#b45cff', 'P': '#ff4fd8', 'n': '#a8693e', 'N': '#5a3a22', 'l': '#5ee08a', 'L': '#2a8f4a',
+    's': '#cfd6df', 'e': '#ffe14a', 'm': '#3a2a2e',
+}
+
+ICONS = {
+ # ---------- 스위칭 축 ----------
+ 'boots': [  # 스프링 부츠
+  "................", "................", "......kkkk......", ".....kwwwwk.....",
+  ".....kwrrwk.....", "....kwrrrwk.....", "....kwrrrwkkkk..", "...kwrrrrwwwwwk.",
+  "..kwrrrrrrrrrrk.", "..kwwwwwwwwwwwk.", "..kkkkkkkkkkkkk.", ".....ksk.ksk....",
+  "......kssssk....", ".....ksk.ksk....", "......kssssk....", ".......kkkk.....",
+ ],
+ 'pass': [  # 지하철 정기권
+  "................", "................", "................", ".kkkkkkkkkkkkkk.",
+  ".kbbbbbbbbbbbbk.", ".kbwwwbbbbbbbbk.", ".kbwkwbbyyyyybk.", ".kbwwwbbbbbbbbk.",
+  ".kbbbbbbyyyybbk.", ".kwwwwwwwwwwwwk.", ".kwkkwkkwkkwkwk.", ".kwwwwwwwwwwwwk.",
+  ".kkkkkkkkkkkkkk.", "................", "................", "................",
+ ],
+ 'gear': [  # 회전문 톱니
+  "................", ".......kk.......", "...kk.kggk.kk...", "..kggkkggkkggk..",
+  "...kggggggggk...", "..kkggGkkGggkk..", ".kgggGk..kGgggk.", ".kkggk....kggkk.",
+  ".kkggk....kggkk.", ".kgggGk..kGgggk.", "..kkggGkkGggkk..", "...kggggggggk...",
+  "..kggkkggkkggk..", "...kk.kggk.kk...", ".......kk.......", "................",
+ ],
+ 'mirror': [  # 거울 파편
+  "................", "...........k....", "..........kck...", ".........kcwck..",
+  "........kccwck..", ".......kcccwck..", "......kccccck...", ".....kcccccck...",
+  "....kcccwccck...", "...kccwwcccck...", "...kcwwcccccck..", "..kccccccccccck.",
+  "..kkkkkkkkkkkkk.", "................", "................", "................",
+ ],
+ 'oil': [
+  "................", "...........kk...", "..........kgk...", ".........kgk....",
+  "...kkkkkkgk.....", "..kGGGGGGGk.....", "..kGsGGGGGGkkkk.", "..kGyyyyyGGGGGGk",
+  "..kGykkkyGkkkkk.", "..kGyyyyyGk.....", "..kGGGGGGGk.....", "..kGsGGGGGk.....",
+  "..kGGGGGGGk.....", "..kkkkkkkkk.....", "................", "................",
+ ],
+ 'coat': [  # 잔상 코트
+  "................", ".....kkkkkk.....", "....kGGwwGGk....", "...kGGGwwGGGk...",
+  "..kGGGGGGGGGGk..", "..kGkGGGGGGkGk..", "..kGkGGrrGGkGk..", "..kGkGGGGGGkGk..",
+  ".bkGkGGGGGGkGkb.", ".bkGkGGGGGGkGkb.", ".bkGGGGGGGGGGkb.", ".bkGGGGkkGGGGkb.",
+  ".bkGGGk..kGGGkb.", "..kkkk....kkkk..", "................", "................",
+ ],
+ 'envelope': [  # 예고장 봉투
+  "................", "................", "................", ".kkkkkkkkkkkkkk.",
+  ".kmrmmmmmmmmrmk.", ".kmmrmmmmmmrmmk.", ".kmmmrmmmmrmmmk.", ".kmmmmrrrrmmmmk.",
+  ".kmmmmrwwrmmmmk.", ".kmmmmrrrrmmmmk.", ".kmmmmmmmmmmmmk.", ".kmmmmmmmmmmmmk.",
+  ".kkkkkkkkkkkkkk.", "................", "................", "................",
+ ],
+ 'express': [  # 급행 열차표 (열차 앞모습)
+  "................", "....kkkkkkkk....", "...krrrrrrrrk...", "..krwwwrrwwwrk..",
+  "..krwccrrccwrk..", "..krwccrrccwrk..", "..krrrrrrrrrrk..", "..krrrrrrrrrrk..",
+  "..krkkrrrrkkrk..", "..kreyrrrryerk..", "..krrrrrrrrrrk..", "..kkkkkkkkkkkk..",
+  "...kgk....kgk...", "..kgggggggggggk.", "................", "................",
+ ],
+ # ---------- 약점 축 ----------
+ 'lens': [  # 분석 렌즈
+  "................", "....kkkkk.......", "...kcccccck.....", "..kcwwccccck....",
+  ".kcwccccccck....", ".kcccccccccck...", ".kcccccccccck...", ".kcccccccccck...",
+  "..kcccccccck....", "...kccccccnk....", "....kkkkknnk....", "..........knnk..",
+  "...........knnk.", "............knk.", ".............k..", "................",
+ ],
+ 'glove': [  # 전도성 장갑
+  "................", "......k.k.k.....", ".....kyk.kyk....", "....kkbkkbkk....",
+  "...kbkbkbkbk....", "...kbbbbbbbkk...", "...kbbbbbbbbbk..", "...kbbeebbbbbk..",
+  "...kbbbeebbbk...", "...kbbbbebbbk...", "...kbbbbbbbbk...", "....kbbbbbbk....",
+  "....kssssssk....", "....kkkkkkkk....", "................", "................",
+ ],
+ 'term': [  # 교란 단말기
+  "................", "..........kk....", ".........kGk....", "...kkkkkkGkk....",
+  "...kGGGGGGGGk...", "...kGkkkkkkGk...", "...kGkllllkGk...", "...kGklLlLkGk...",
+  "...kGkllllkGk...", "...kGkkkkkkGk...", "...kGGGGGGGGk...", "...kGrGeGlGGk...",
+  "...kGGGGGGGGk...", "...kkkkkkkkkk...", "................", "................",
+ ],
+ 'relay': [  # 연쇄 릴레이
+  "................", "................", "..kkkk..........", ".kgsgsk.........",
+  ".kg..kgk........", ".ks..kkkkkk.....", ".kgsgkgsgsgk....", "..kkkkkg..kgk...",
+  ".....ks..kskkkk.", ".....kgsgkgsgsk.", "......kkkkkg..kg", "..........ks..ks",
+  "..........kgsgsk", "...........kkkk.", "................", "................",
+ ],
+ 'chip': [  # 감염 칩
+  "................", "....k.k.k.k.....", "....k.k.k.k.....", "..kkkkkkkkkkk...",
+  "k.kLLLLLLLLLk.k.", "kkkLlllllllLkkk.", "..kLlpplpplLk...", "kkkLlpPPPplLkkk.",
+  "..kLlpPkPplLk...", "kkkLlpPPPplLkkk.", "..kLlpplpplLk...", "k.kLLLLLLLLLk.k.",
+  "..kkkkkkkkkkk...", "....k.k.k.k.....", "....k.k.k.k.....", "................",
+ ],
+ 'battery': [  # 배터리 팩
+  "................", "......kkkk......", "....kkkGGkkk....", "....kGGGGGGk....",
+  "....kGkkkkGk....", "....kGkllkGk....", "....kGkllkGk....", "....kGkkkkGk....",
+  "....kGkllkGk....", "....kGkllkGk....", "....kGkkkkGk....", "....kGkllkGk....",
+  "....kGkllkGk....", "....kGGGGGGk....", "....kkkkkkkk....", "................",
+ ],
+ 'ticket': [  # 쇼타임 티켓
+  "................", "................", "................", "kkkkkkkkkkkkkkkk",
+  "kyyyyyyykyyyyyyk", "kyyyykyykyyyyyyk", ".kyyykkkkyyrryk.", "..kykkkkkyyrryk.",
+  ".kyyykkkkyyyyyk.", "kyyykyykkyyyyyyk", "kyyyyyyykyyyyyyk", "kkkkkkkkkkkkkkkk",
+  "................", "................", "................", "................",
+ ],
+ 'dice': [
+  "................", "................", "..kkkkkkkkkkk...", ".kwwwwwwwwwwwk..",
+  ".kwkkwwwwwwwwk..", ".kwkkwwwwwwwwk..", ".kwwwwwkkwwwwk..", ".kwwwwwkkwwwwk..",
+  ".kwwwwwwwwkkwk..", ".kwwwwwwwwkkwk..", ".kwwwwwwwwwwwk..", ".kgwwwwwwwwwgk..",
+  "..kkkkkkkkkkk...", "................", "................", "................",
+ ],
+ # ---------- 스트레스 폭주 축 ----------
+ 'thorn': [  # 가시 목걸이
+  "................", "..k..........k..", ".kGk........kGk.", ".kGk...k....kGk.",
+  "..kGk.kgk..kGk..", "..kGk.kgk..kGk..", "...kGkkgkkkGk...", "...kGGGGGGGGk...",
+  "..kgkGGGGGGkgk..", "...kkkGrrGkkk...", ".....kGrrGk.....", "......krrk......",
+  ".......kk.......", "................", "................", "................",
+ ],
+ 'clock': [  # 깨진 회중시계
+  "................", ".......kk.......", "......kyyk......", ".....kkkkkk.....",
+  "....kyyyyyyk....", "...kywwwwwwyk...", "..kywwwkwwwwyk..", "..kywwwkwwkwyk..",
+  "..kywwwkkwkwyk..", "..kywwwwwkwwyk..", "..kywwwwwwkwyk..", "...kywwwwkwyk...",
+  "....kyyyyyyk....", ".....kkkkkk.....", "................", "................",
+ ],
+ 'phones': [  # 분노의 헤드폰
+  "................", ".....kkkkkk.....", "....kGGGGGGk....", "...kGkkkkkkGk...",
+  "..kGk......kGk..", "..kGk......kGk..", ".kkkk......kkkk.", ".krrk......krrk.",
+  ".krrk......krrk.", ".krrk......krrk.", ".kddk......kddk.", ".kkkk......kkkk.",
+  "................", "................", "................", "................",
+ ],
+ 'badge': [  # 공명 뱃지
+  "................", "....kkkkkkk.....", "...kpppppppk....", "..kppwwwwwppk...",
+  ".kppwPPPPPwppk..", ".kpwPkkPkkPwpk..", ".kpwPPPPPPPwpk..", ".kpwPkPPPkPwpk..",
+  ".kpwPPkkkPPwpk..", ".kppwPPPPPwppk..", "..kppwwwwwppk...", "...kpppppppk....",
+  "....kkkkkkk.....", "................", "................", "................",
+ ],
+ 'valve': [  # 압력 밸브
+  "................", "......kkkk......", "....kkrrrrkk....", "...krrkkkkrrk...",
+  "..krk.kssk.krk..", "..krkkkssk.krk..", ".krr.kssssk.rrk.", ".krrkssGGsskrrk.",
+  ".krr.kssssk.rrk.", "..krk.kssk.krk..", "..krk.kssk.krk..", "...krrkkkkrrk...",
+  "....kkrrrrkk....", "......kkkk......", "................", "................",
+ ],
+ 'fuse': [
+  "................", "............ey..", "...........eoe..", "...........kok..",
+  "..........k.....", ".........k......", "..kkkkkkkk......", ".krrkrrkrrk.....",
+  ".krrkrrkrrk.....", ".kwwkwwkwwk.....", ".krrkrrkrrk.....", ".krrkrrkrrk.....",
+  ".kddkddkddk.....", ".kkkkkkkkkk.....", "................", "................",
+ ],
+ 'mask': [  # 광기의 가면 (오리지널 디자인)
+  "................", "................", "...kkkkkkkkkk...", "..kwwwwwwwwwwk..",
+  ".kwwwwwwwwwwwwk.", ".kwkkkwwwwkkkwk.", ".kwkrrkwwkrrkwk.", ".kwkkkwwwwkkkwk.",
+  ".kwwwwwkkwwwwwk.", ".kwwwwkwwkwwwwk.", "..kwwwwwwwwwwk..", "..kwwkkkkkkwwk..",
+  "...kwkPPPPkwk...", "....kkkkkkkk....", "................", "................",
+ ],
+ 'seal': [  # 적반하장 인장
+  "................", ".....kkkkkk.....", "...kkrrrrrrkk...", "..krrddddddrrk..",
+  "..krdrrrrrrdrk..", ".krdrrkkkkrrdrk.", ".krdrkrrrrkrdrk.", ".krdrkrkkrkrdrk.",
+  ".krdrkrrrrkrdrk.", ".krdrrkkkkrrdrk.", "..krdrrrrrrdrk..", "..krrddddddrrk..",
+  "...kkrrrrrrkk...", ".....kkrrkk.....", "......krrk......", ".......kk.......",
+ ],
+ 'contra': [  # 역발상 부적
+  "................", ".....kkkkkk.....", ".....keeeek.....", ".....keeeek.....",
+  ".....kerrek.....", ".....keerek.....", ".....kerrek.....", ".....keeeek.....",
+  ".....kerrek.....", ".....kereek.....", ".....kerrek.....", ".....keeeek.....",
+  ".....keeeek.....", ".....kkrrkk.....", "......krrk......", ".......kk.......",
+ ],
+ # ---------- 진화 템 ----------
+ 'sboots': [  # 초음속 부츠
+  "................", ".e..............", "..e...kkkk......", "...e.kyyyyk.....",
+  "....eky..yk.....", "...e.kyyyyk.kk..", "..e.kyyyyykkwwk.", ".e..kyyyyyyywwk.",
+  "...kyyyyyyyyyyk.", "..kyyyyyyyyyyyk.", "..kyyyyyyyyyyyk.", "..kkkkkkkkkkkkk.",
+  "..ee.ee.ee......", "................", "................", "................",
+ ],
+ 'rails': [  # 무한 선로
+  "................", "................", "...k........k...", "..ksk......ksk..",
+  ".kkkkkkkkkkkkkk.", ".knnnnnnnnnnnnk.", ".kkkkkkkkkkkkkk.", "..ksk......ksk..",
+  ".kkkkkkkkkkkkkk.", ".knnnnnnnnnnnnk.", ".kkkkkkkkkkkkkk.", "..ksk......ksk..",
+  ".kkkkkkkkkkkkkk.", ".knnnnnnnnnnnnk.", ".kkkkkkkkkkkkkk.", "..ksk......ksk..",
+ ],
+ 'gaunt': [  # 과부하 건틀릿
+  "................", "...kkkkkkkk.....", "..kssksskssk....", "..kssksskssk.k..",
+  "..kssksskssskek.", "..kssssssssseek.", "..ksGGGGGGsseek.", "..ksGeeeeGssek..",
+  "..ksGGGGGGssk...", "..kssssssssk....", "...kGGGGGGk.....", "...ksssssk......",
+  "...kGGGGGGk.....", "...kkkkkkkk.....", "................", "................",
+ ],
+ 'navi': [  # 내비의 코어
+  "................", ".......kk.......", "......klLk......", ".....kllLLk.....",
+  "....kllwlLLk....", "...kllwllLLLk...", "..kllllllLLLLk..", ".kllllllLLLLLLk.",
+  "..kLLLLLLLLLLk..", "...kLLLLLLLLk...", "....kLLLLLLk....", ".....kLLLLk.....",
+  "......kLLk......", ".......kk.......", "................", "................",
+ ],
+ 'gold': [  # 골드 쇼타임
+  "................", "....k..k..k.....", "...kyk.kyk.kyk..", "...kyykyyykyyk..",
+  "...kyyyyyyyyyk..", "...kkkkkkkkkkk..", "kkkkkkkkkkkkkkkk", "kyyyyyyykyyyyyyk",
+  "kyyykyyykyyyyyyk", ".kykkkkkkyyrryk.", ".kyyykyyykyyyyk.", "kyyyyyyykyyyyyyk",
+  "kkkkkkkkkkkkkkkk", "................", "................", "................",
+ ],
+ 'choker': [  # 광전사의 초커
+  "................", "................", "...k.k.k.k.k....", "..kGkGkGkGkGk...",
+  ".kkkkkkkkkkkkk..", ".kGGGGGGGGGGGk..", ".kGrGGGGGGGrGk..", ".kkkkkkkkkkkkk..",
+  ".....kgggk......", "......kgk.......", ".....kgggk......", "......krk.......",
+  ".....krrrk......", "......krk.......", ".......k........", "................",
+ ],
+ # ---------- 부정 기물 ----------
+ 'crack': [  # 깨진 정기권
+  "................", "................", "................", ".kkkkkkkk.kkkkk.",
+  ".kbbbbbbk.kbbbk.", ".kbwwwbk.kbbbbk.", ".kbwkwbbk.kyybk.", ".kbwwwbk.kbbbbk.",
+  ".kbbbbbbk.kyybk.", ".kwwwwwk.kwwwwk.", ".kwkkwwwk.kwkwk.", ".kwwwwwk.kwwwwk.",
+  ".kkkkkkk.kkkkkk.", "................", "................", "................",
+ ],
+ 'cuffs': [  # 녹슨 수갑
+  "................", "................", "...kkkk...kkkk..", "..knnnnk.knnnnk.",
+  ".knk..knknk..knk", ".knk..kgggk..knk", ".knk..knknk..knk", "..knnnnk.knnnnk.",
+  "...kkkk...kkkk..", "................", "................", "................",
+  "................", "................", "................", "................",
+ ],
+ 'chain': [  # 쇠사슬 파편
+  "................", "....kkkk........", "...kGggGk.......", "...kg..gk.......",
+  "...kGkkGkkk.....", "....kkkGggGk....", ".......kg..gk...", ".......kGkkGkkk.",
+  "........kkkGggGk", "...........kg..g", "...........kGkkG", "............kkkk",
+  "................", "................", "................", "................",
+ ],
+ 'radio': [  # 먹통 무전기
+  "................", "...k............", "...k............", "...k............",
+  "..kkkkkkk.......", "..kGGGGGk.......", "..kGkkkGk.......", "..kGkrkGk.......",
+  "..kGkkkGk.......", "..kGGGGGkr...r..", "..kGgGgGk.r.r...", "..kGGGGGk..r....",
+  "..kGgGgGk.r.r...", "..kGGGGGkr...r..", "..kkkkkkk.......", "................",
+ ],
+}
+
+
+def main():
+    root = os.path.join(os.path.dirname(__file__), '..', 'img', 'items')
+    os.makedirs(root, exist_ok=True)
+    rgb = {k: tuple(int(v[i:i + 2], 16) for i in (1, 3, 5)) for k, v in PAL.items()}
+    ims = []
+    for name, rows in ICONS.items():
+        rows = [(r + '.' * 16)[:16] for r in (rows + ['.' * 16] * 16)[:16]]
+        im = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        for y, r in enumerate(rows):
+            for x, ch in enumerate(r):
+                if ch in rgb:
+                    im.putpixel((x, y), rgb[ch] + (255,))
+        im.save(os.path.join(root, f'{name}.png'))
+        ims.append((name, im))
+    cols = 8
+    sheet = Image.new('RGBA', (cols * 72, ((len(ims) + cols - 1) // cols) * 72), (15, 11, 12, 255))
+    for i, (_, im) in enumerate(ims):
+        sheet.paste(im.resize((64, 64), Image.NEAREST), ((i % cols) * 72 + 4, (i // cols) * 72 + 4), im.resize((64, 64), Image.NEAREST))
+    sheet.save(os.path.join(root, '_sheet.png'))
+    print(len(ims), 'icons')
+
+
+if __name__ == '__main__':
+    main()
