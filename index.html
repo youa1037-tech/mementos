@@ -319,6 +319,17 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 #band.on{transform:none}#band b{color:var(--gold);margin-right:4px}#band small{color:var(--mut)}
 #band.red{border-bottom-color:var(--red)}#band.red b{color:#ff8a8a}#band.warn{border-bottom-color:#ff9a1f}
 .res .cut{font:16px/1.5 var(--kr);color:var(--gold);margin:-4px 0 4px}
+.tier{font:italic 13px/1 var(--en);font-style:normal;padding:3px 6px 2px;align-self:flex-start;background:#000;color:#9fb3c8;border:2px solid #5d6d7e;flex:none}
+.tier.tA{color:#7ee0ff;border-color:#2fa8d6}.tier.tS{color:#141012;background:var(--gold);border-color:#fff3b0;box-shadow:0 0 10px rgba(255,214,64,.7)}
+.slot{position:relative}.tier.sl{position:absolute;left:1px;top:1px;font-size:9px;padding:1px 3px;border-width:1px;box-shadow:none}
+.pk.rv{animation:pkIn .42s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pkIn{0%{opacity:0;transform:translateY(18px) scale(.92)}100%{opacity:1;transform:none}}
+.pk.rS{border-left-color:var(--gold);position:relative;overflow:hidden;background:linear-gradient(90deg,#2b2210,var(--p2) 70%)}
+.pk.rS::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,240,170,.35) 50%,transparent 65%);transform:translateX(-100%);animation:shine 2.4s ease-in-out .5s infinite;pointer-events:none}
+.pk.rA{border-left-color:#2fa8d6}
+.pk.up{outline:2px solid #ff4fd8;outline-offset:-2px}.pk .tg.upg{background:#ff4fd8;color:#141012}
+@keyframes shine{0%{transform:translateX(-100%)}45%,100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.pk.rv,.pk.rS::after{animation:none}}
 </style>
 </head>
 <body>
@@ -711,10 +722,15 @@ function benchToggle(i){if(G.benchUsed||!G.items[i])return;const s=ui.bsel;const
 function synth(){const s=ui.bsel;if(s.length!==2||G.benchUsed)return;const ax=s.map(i=>IT(G.items[i]).ax);log(`출장소 합성: ${s.map(i=>IT(G.items[i]).n).join(' + ')} → ?`);
  G.items=G.items.filter((_,i)=>!s.includes(i));G.benchUsed=true;ui.bsel=[];G.stats.evo++;offer('벨벳 룸에서 새로 짜 맞춘 것',1,'evo',ax)}
 /* ============ 템 3지선다 (시너지 가중 드롭: 가진 템과 맞물리는 템 ×2.5) ============ */
+/* 등급 B/A/S: 기존 역할 그대로 — 발동기 B · 증폭기 A · 폭발기·진화 S. 보상 3지선다에서 가끔 한 칸이 한 등급 위로 뜬다(랭크업) */
+const TIER_OF={발동:'B',증폭:'A',폭발:'S',진화:'S'},tier=id=>EVO[id]?'S':TIER_OF[IT(id).r]||'B',RANKUP=.12;
+const tierI=(id,c='')=>{const t=tier(id);return `<i class="tier t${t} ${c}">${t}</i>`};
 function offer(why,n=1,pool='base',ax=null){const P=pool==='evo'?EVO:ITEMS,keys=Object.keys(P).filter(k=>(pool==='evo'||unlocked(k))&&!(pool==='evo'&&G.items.includes(k))&&(pool!=='boom'||P[k].r==='폭발')&&(pool!=='trig'||P[k].r==='발동')&&(pool!=='amp'||P[k].r==='증폭'));if(!keys.length)return offer(why,n,'base');
  const syn=id=>{const I=IT(id);if(ax)return ax.includes(I.ax);if(G.party.some(m=>m.c.rec.includes(id)))return true;if(id==='mirror')return G.items.some(i=>IT(i).r==='발동');if(id==='contra')return riskN()>0;if(IT(id).risk)return G.items.some(i=>IT(i).ax==='왜곡');return G.items.some(i=>IT(i).ax===I.ax)||(I.r==='발동'&&G.items.includes('mirror'))},w=id=>syn(id)?(ax?3:2.5):1;
  const ch=[];while(ch.length<Math.min(3,keys.length)){const c=keys.filter(x=>!ch.includes(x)),tot=c.reduce((t,x)=>t+w(x),0);let r=Math.random()*tot;for(const x of c){r-=w(x);if(r<=0){ch.push(x);break}}}
- G.pick={why,ch,left:n,pool,ax,syn:ch.map(syn)};ui.screen='pick';render()}
+ let up=-1;if(pool!=='evo'&&pool!=='boom'&&chance(RANKUP)){const i=ch.findIndex(x=>tier(x)!=='S'),nx=i<0?null:tier(ch[i])==='B'?'증폭':'폭발',hi=nx&&Object.keys(ITEMS).filter(k=>ITEMS[k].r===nx&&unlocked(k)&&!ch.includes(k));if(hi&&hi.length){ch[i]=pick(hi);up=i}}
+ G.pick={why,ch,left:n,pool,ax,syn:ch.map(syn),up,at:Date.now()};ui.screen='pick';render();
+ const big=up>=0||ch.some(x=>tier(x)==='S');if(big)setTimeout(()=>{if(G.pick&&ui.screen==='pick'){flash(up>=0?'RANK UP':'S RANK','g');try{fxMid('coins')}catch(e){}}},380)}
 function reroll(){const P=G.pick;if(!P||G.reroll<=0)return;G.reroll--;log('3지선다를 다시 뽑았다');offer(P.why,P.left,P.pool,P.ax)}
 function takeItem(id){G.items.push(id);/* 가방 칸 제한 없음 */log(`템 획득: ${IT(id).n}`);if(EVO[id])flash('EVOLVED','g');afterPick()}
 function afterPick(){const P=G.pick;P.left--;if(P.left>0)return offer(P.why,P.left,P.pool,P.ax);G.pick=null;
@@ -1239,8 +1255,8 @@ function vParty(){return `<div class="party">${G.party.map(m=>`<div class="pc" s
 function vSlots(){const now=Date.now(),B=G.battle,bench=ui.screen==='bench'&&!G.benchUsed,n=Math.max(6,G.items.length);
  return `<div class="slots" aria-label="템 ${G.items.length}개">${Array.from({length:n},(_,i)=>{const id=G.items[i],I=id&&IT(id);if(!I)return `<div class="slot"></div>`;
   const act=bench?'bsel:'+i:'tip:'+id,sealed=B&&B.sealed.includes(i);
-  return `<button class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''} ${ui.gl&&ui.gl[id]&&now>=ui.gl[id].at&&now-ui.gl[id].at<600?'on':''} ${bench&&ui.bsel.includes(i)?'pick':''} ${sealed?'seal':''}" data-r="${I.r}" data-a="${act}" aria-label="${I.n}">${I.ic}<small>${sealed?'봉인':I.risk?'왜곡':I.r}</small></button>`}).join('')}</div>
- <div class="tip">${ui.tip&&IT(ui.tip)?`${IT(ui.tip).ic} <b>${IT(ui.tip).n}</b> [${IT(ui.tip).r} · ${IT(ui.tip).ax}] ${IT(ui.tip).d}${IT(ui.tip).risk?` · <b class="rk">대가: ${IT(ui.tip).risk}</b>`:''}`:''}</div>`}
+  return `<button class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''} ${ui.gl&&ui.gl[id]&&now>=ui.gl[id].at&&now-ui.gl[id].at<600?'on':''} ${bench&&ui.bsel.includes(i)?'pick':''} ${sealed?'seal':''}" data-r="${I.r}" data-a="${act}" aria-label="${I.n} ${tier(id)}등급">${tierI(id,'sl')}${I.ic}<small>${sealed?'봉인':I.risk?'왜곡':I.r}</small></button>`}).join('')}</div>
+ <div class="tip">${ui.tip&&IT(ui.tip)?`${IT(ui.tip).ic} <b>${IT(ui.tip).n}</b> [${tier(ui.tip)}등급 · ${IT(ui.tip).r} · ${IT(ui.tip).ax}] ${IT(ui.tip).d}${IT(ui.tip).risk?` · <b class="rk">대가: ${IT(ui.tip).risk}</b>`:''}`:''}</div>`}
 function vBattle(){const B=G.battle,m=actor(),tg=`<div class="row2"><button class="tog ${G.auto?'on':''}" data-a="auto">자동 전투 ${G.auto?'ON':'OFF'}</button>${B.kind==='reaper'?'<button class="ab red" data-a="ret"><b>RETURN NOW</b><small>엔 전부 들고 귀환</small></button>':''}</div>`;
  /* 자동 전투 중엔 버튼 판을 접고, 적 차례에도 같은 높이를 유지해 화면이 위아래로 튀지 않게 */
  if(G.auto)return `<div class="tip">${m?`<b style="color:${m.c.col}">${m.c.name}</b>의 차례`:'적의 차례…'}</div>${tg}`;
@@ -1259,8 +1275,8 @@ function vEvent(){const e=G.ev;if(e.kind==='deal'){const tk=G.party.find(m=>DEAL
  if(e.kind==='plain')return `<div class="dlg"><span class="who">VAULT CAR</span><p>${esc(e.n)}</p></div><button class="go" data-a="ev:open">OPEN</button>`;
  const m=CH[e.who];return `<div class="cmd"><h3>COMMAND <span>지휘 ${G.cmd}/3</span></h3><p style="margin:8px 0 2px">${esc(e.n)}</p><p class="tip">${esc(e.odds)}</p>
  <div class="acts"><button class="ab" data-a="ev:stop" ${G.cmd?'':'disabled'}><b>1. 말린다</b><small>지휘 -1${e.kind==='chest'?' · 조심히 열기':''}</small></button><button class="ab" data-a="ev:boost" ${G.cmd?'':'disabled'}><b>2. 부추긴다</b><small>보상·위험 2배 · 지휘 -1</small></button><button class="ab wide" data-a="ev:leave"><b>3. 그냥 둔다</b><small>${esc(m.name)} 마음대로</small></button></div></div>`}
-function vPick(){const P=G.pick;if(!P)return '';return `<div class="tip"><b>${esc(P.why)}</b> — 하나를 고르세요.${P.left>1?` (${P.left}번)`:''}</div><div class="pick">${P.ch.map((id,i)=>{const I=IT(id),n=cnt(id);
-   return `<button class="pk ${P.syn[i]?'syn':''} ${EVO[id]?'evo':''}" data-a="take:${id}"><span class="ic">${I.ic}</span><span><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${P.syn[i]?'<span class="tg">시너지</span>':''}${n?`<span class="tg">×${n+1}</span>`:''}<small>${I.d}</small></span></button>`}).join('')}</div>${G.reroll>0?`<button class="sm" data-a="reroll">다시 뽑기 (${G.reroll})</button>`:''}`}
+function vPick(){const P=G.pick;if(!P)return '';const el=Date.now()-(P.at||0);return `<div class="tip"><b>${esc(P.why)}</b> — 하나를 고르세요.${P.left>1?` (${P.left}번)`:''}</div><div class="pick">${P.ch.map((id,i)=>{const I=IT(id),n=cnt(id),T=tier(id);
+   return `<button class="pk rv r${T} ${P.syn[i]?'syn':''} ${EVO[id]?'evo':''} ${P.up===i?'up':''}" style="animation-delay:${i*140-el}ms" data-a="take:${id}">${tierI(id)}<span class="ic">${I.ic}</span><span><b>${I.n}</b>${P.up===i?'<span class="tg upg">RANK UP</span>':''}<span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${P.syn[i]?'<span class="tg">시너지</span>':''}${n?`<span class="tg">×${n+1}</span>`:''}<small>${I.d}</small></span></button>`}).join('')}</div>${G.reroll>0?`<button class="sm" data-a="reroll">다시 뽑기 (${G.reroll})</button>`:''}`}
 function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  return `<div class="dlg"><span class="who">VELVET ROOM</span><p>"어서 오시게, 손님." · <b>¥${G.yen}</b></p></div>
  <div class="pick">${S_.ch.map((id,i)=>{const I=IT(id),p=shopPrice(id),sold=S_.sold.includes(i);return `<button class="pk ${I.risk?'risk':''}" data-a="buy:${i}" ${sold||G.yen<p?'disabled':''}><span class="ic">${I.ic}</span><span style="flex:1"><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${cnt(id)?`<span class="tg">×${cnt(id)+1}</span>`:''}<small>${I.d}${I.risk?` · <b class="rk">대가: ${I.risk}</b>`:''}</small></span><b class="price">${sold?'SOLD':'¥'+p}</b></button>`}).join('')}</div>
@@ -1280,7 +1296,7 @@ function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 
 function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?'ALL CLEAR':'RETURNED';
  return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?'최심부의 거두는 자를 쓰러뜨리고 메멘토스 끝까지 내려갔습니다.':`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
  <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd><dt>도달</dt><dd>B${G.fl+1}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
- <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
+ <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${tierI(id,'sl')}${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
  ${(G.afters||[]).length?`<div class="card"><b class="en" style="color:var(--gold)">AFTER</b>${G.afters.map(a=>`<div style="margin-top:8px">${a.chain?`<small class="tg">사슬 · ${esc(a.chain)}</small>`:''}${a.lines.map(l=>l.who&&CH[l.who]?`<p style="margin:4px 0"><b style="color:${CH[l.who].col}">${CH[l.who].name}</b> 「${esc(fillT(l.t))}」</p>`:`<p style="margin:4px 0;color:var(--mut)">${esc(fillT(l.t))}</p>`).join('')}</div>`).join('')}</div>`:''}
  ${vNext()}
  <button class="go" data-a="start">BACK TO LEBLANC →</button><button class="sm" data-a="title">처음 화면</button></div>`}
