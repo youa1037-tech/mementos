@@ -822,6 +822,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 /* 375px 폴리시 패스: 터치 영역 44px */
 .msnd,.btn.sm[data-act="copy"],.lnk[data-act="random"],.lnk.sm.more,[data-act="cashout"]{min-height:44px}
 .hudt{position:relative}.hudt::after{content:'';position:absolute;inset:-9px}
+.psel .care{display:block;margin:6px 0 0;min-height:40px;text-align:left}.psel .care small{color:var(--mut);margin-left:4px}
 .tile .skb{display:flex;align-items:baseline;justify-content:space-between;gap:4px;width:100%;margin-top:6px;min-height:40px;padding:4px 6px;background:var(--p2);border:1px solid var(--line2);border-left:3px solid var(--c);color:inherit;font:inherit;font-size:13px;text-align:left;cursor:pointer}
 .tile .skb b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tile .skb small{flex:none;font-size:12px;color:var(--mut)}
@@ -1652,12 +1653,10 @@ function relicPay(id,res,yen=0){const rx=rsynOk(id);if(rx){const z=Zc(),v=rx.v||
 /* ============ 도감 보상: 도감 점수가 쌓이면 판을 바꾸는 특전이 열린다 ============ */
 const PERKS=[
  {id:'scout',pt:12,en:'RELIC SCOUT',name:'유물 감별안',eff:'인지 유물 후보가 3개에서 4개로 늘어납니다.'},
- {id:'resv',pt:24,en:'RELIC RESERVE',name:'유물 예약',eff:'출발 전에 본 적 있는 유물 하나를 예약할 수 있습니다(¥1,500). 첫 유물 후보에 반드시 나옵니다.'},
- {id:'reroll',pt:36,en:'DAY REROLL',name:'오늘 다시 뽑기',eff:'파티 편성 화면에서 오늘의 메멘토스를 다시 뽑을 수 있습니다(¥600).'},
  {id:'regular',pt:50,en:'LEBLANC REGULAR',name:'르블랑 단골',eff:'출발할 때 분위기가 10 높습니다.'},
  {id:'talker',pt:66,en:'SMOOTH TALKER',name:'능숙한 말솜씨',eff:'조커의 지휘를 판마다 3번에서 4번으로 늘립니다.'},
  {id:'archive',pt:85,en:'ARCHIVIST',name:'괴도단 기록관',eff:'활동 보고서에 금색 기록관 도장이 찍힙니다.'}];
-const RESV_COST=1500,REROLL_COST=600;
+const RESV_COST=3000,REROLL_COST=600,CARE_COST=1500;/* 돈 쓰는 곳 (docs/chain.md 5장): 유물 예약·다시 뽑기는 첫 판 뒤 바로 열림, 컨디션 케어 */
 /* 도감 점수: 조합 1 · 조합 사건 2 · 사슬 단계(발견 1·전개 2·결말 3) · 오늘의 메멘토스 1 · 역 1 · 히든 3 · 유물 1 · 섀도 1 · 쉬는 시간 짝 1 */
 function codexPts(){const c=S.codex,rk={find:1,grow:2,end:3};
  return c.combos.length+c.events.length*2+Object.values(c.chains||{}).reduce((a,v)=>a+(rk[v]||0),0)+(c.days||[]).length+(c.stations||[]).length+c.hidden.length*3+(c.relics||[]).length+(c.shadows||[]).length+(c.breaks||[]).length}
@@ -2214,7 +2213,7 @@ function vFocus(f){if(!unl('mind'))return '';if(!known(f.id))return `<p class="f
  const best=CHARS.filter(o=>o.id!==f.id).map(o=>({o,b:bondOf(f.id,o.id)})).filter(y=>y.b.aff>0).sort((p,q)=>q.b.aff-p.b.aff)[0];
  const a=[`<i>${COND_KR[c]}</i>${c==='fresh'?'탐색 엔 +15%':c==='tired'?`${x.streak}연속 출격`:x&&x.rest?`${x.rest}판 쉼`:''}`,D&&unl('wish')?`<i>소원</i>${w.step>=3?`「${esc(D.card)}」`:`${w.step+1}/3 ${esc(D.steps[w.step][0])} (${w.prog}/${D.steps[w.step][1]})`}`:''].filter(Boolean);
  const b=[m?`<i>기억</i>${esc(memTxt(m))} (${m.ttl}판)`:'',best?`<i>짝</i>${best.o.code} Lv.${tierOf(best.b.aff)} ${bondName(tierOf(best.b.aff),best.b.last)}`:''].filter(Boolean);
- return `<p class="fx">${a.join(' · ')}${b.length?`<br>${b.join(' · ')}`:''}</p>`}
+ return `<p class="fx">${a.join(' · ')}${b.length?`<br>${b.join(' · ')}`:''}</p>${c!=='fresh'?`<button class="btn ghost sm care" data-act="care:${f.id}" ${S.yen<CARE_COST?'disabled':''}>르블랑 특제 카레로 케어 ¥${fmt(CARE_COST)} <small>${COND_KR[c]} → 상쾌</small></button>`:''}`}
 /* 파티 편성 = 명단(5×2) + 출발 준비(BOARDING) 패널. 초상은 캐릭터 그림 대신 아이디로 만든 대칭 픽셀 문장(紋章) */
 function emb(id,col){/* 캐릭터 그림 대신: 공통 도미노 가면 실루엣 + 아이디로 정한 대칭 장식 (원작 가면 모양을 따르지 않음) */
  let h=2166136261;for(const ch of id)h=Math.imul(h^ch.charCodeAt(0),16777619);const rnd=()=>{h=Math.imul(h^h>>>15,2246822507);h=Math.imul(h^h>>>13,3266489909);return ((h^=h>>>16)>>>0)/4294967296};
@@ -2234,8 +2233,8 @@ function vParty(){
  const fw=wOf(f),fs=fw.reduce((a,b)=>a+b,0),pc=fw.map(v=>Math.round(v/fs*100));
  const lock=id=>tp&&TUT_FIX.includes(id);
  return `<main class="wrap psel">${hdr('PARTY SELECT',`<span class="pill">${sel.length} / 3</span>`)}
- ${dy?`<section class="today"><small>TODAY'S MEMENTOS</small><b>${esc(dy.en)}<i>${esc(dy.name)}</i></b><p class="rule">${esc(dy.rule)}</p>${dy.q?`<p class="dq">${dy.who?`<em style="color:${CH[dy.who].col}">${CH[dy.who].code}</em>`:''}“${esc(dy.q)}”</p>`:''}${perk('reroll')&&SCRIPT.days.length>1?`<button class="btn ghost sm rr" data-act="reroll" ${S.yen<REROLL_COST?'disabled':''}>REROLL ¥${fmt(REROLL_COST)}</button>`:''}</section>`:''}
- ${!tp&&perk('resv')&&(S.codex.relics||[]).length?`<section class="resv"><button class="rvhead" data-act="rvopen" aria-expanded="${!!ui.rvOpen}"><small>RELIC RESERVE</small><span>${ui.resv?`◆ ${esc(relicOf(ui.resv).name)} · 출발 때 ¥${fmt(RESV_COST)}`:`예약 안 함 · 본 유물 ${(S.codex.relics||[]).length}개`}</span><i aria-hidden="true">${ui.rvOpen?'▴':'▾'}</i></button>
+ ${dy?`<section class="today"><small>TODAY'S MEMENTOS</small><b>${esc(dy.en)}<i>${esc(dy.name)}</i></b><p class="rule">${esc(dy.rule)}</p>${dy.q?`<p class="dq">${dy.who?`<em style="color:${CH[dy.who].col}">${CH[dy.who].code}</em>`:''}“${esc(dy.q)}”</p>`:''}${SCRIPT.days.length>1?`<button class="btn ghost sm rr" data-act="reroll" ${S.yen<REROLL_COST?'disabled':''}>REROLL ¥${fmt(REROLL_COST)}</button>`:''}</section>`:''}
+ ${!tp&&(S.codex.relics||[]).length?`<section class="resv"><button class="rvhead" data-act="rvopen" aria-expanded="${!!ui.rvOpen}"><small>RELIC RESERVE</small><span>${ui.resv?`◆ ${esc(relicOf(ui.resv).name)} · 출발 때 ¥${fmt(RESV_COST)}`:`예약 안 함 · 본 유물 ${(S.codex.relics||[]).length}개`}</span><i aria-hidden="true">${ui.rvOpen?'▴':'▾'}</i></button>
  ${ui.rvOpen?`<ul class="rvlist">${(S.codex.relics||[]).map(id=>{const r=relicOf(id);return `<li><button class="rvrow ${ui.resv===id?'on':''}" data-act="resv:${id}" aria-pressed="${ui.resv===id}" ${S.yen<RESV_COST&&ui.resv!==id?'disabled':''}><b>${esc(r.name)}</b><small>${esc(r.eff||'')}</small></button></li>`}).join('')}</ul><p>하나를 예약하면 첫 유물 후보에 반드시 나옵니다 (¥${fmt(RESV_COST)}, 출발할 때 냄). 다시 누르면 취소.</p>`:''}</section>`:''}
  <div class="bwrap"><section class="bpanel roster-p"><header class="bhd"><h2>명단</h2><span>ROSTER</span></header>
  <div class="cards roster">${CHARS.map(c=>{const i=sel.indexOf(c.id),cd=tp||!known(c.id)||!unl('mind')?'normal':condOf(c.id);
@@ -2482,7 +2481,7 @@ function render(){
  tutCheck();tutSpot();armAuto();
 }
 /* 파티 출발 (편성 화면 DEPLOY · 다락방 · 보고 책상의 GO AGAIN 공통) */
-function startSel(){const rv=ui.resv&&perk('resv')&&S.yen>=RESV_COST?ui.resv:null;if(rv){S.yen-=RESV_COST;save()}ui.resv=null;newRun([...ui.sel]);if(rv){run.resv=rv;log({sys:1,relic:1,text:`◆ 예약해 둔 ${relicOf(rv).name}의 기척이 느껴진다.`,res:`-¥${fmt(RESV_COST)}`})}ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();}
+function startSel(){const rv=ui.resv&&S.tut&&S.yen>=RESV_COST?ui.resv:null;if(rv){S.yen-=RESV_COST;save()}ui.resv=null;newRun([...ui.sel]);if(rv){run.resv=rv;log({sys:1,relic:1,text:`◆ 예약해 둔 ${relicOf(rv).name}의 기척이 느껴진다.`,res:`-¥${fmt(RESV_COST)}`})}ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();}
 /* 출발 전환: 지하철 문이 양옆에서 0.4초 만에 닫히고 열리면 탐사 화면. 동작 줄이기면 바로 */
 function doors(cb){if(RM){cb();return}let d=$('#doors');if(!d){d=document.createElement('div');d.id='doors';d.setAttribute('aria-hidden','true');d.innerHTML='<i></i><i></i><b>DEPARTING</b>';document.body.appendChild(d)}
  d.className='shut';sfx('door');setTimeout(()=>{try{cb()}finally{d.className='open';setTimeout(()=>{d.className=''},450)}},440)}
@@ -2660,9 +2659,10 @@ $('#app').addEventListener('click',e=>{
  if(a==='tipok'){if(ui.tip){S.tips.push(ui.tip.id);save();ui.tip=null}if(run&&run.tipPause){run.paused=false;run.tipPause=false}render();schedule();return}
  if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
  if(a==='tab'){ui.tab=v;ui.msg='';render();return}
- if(a==='reroll'){if(!perk('reroll')||S.yen<REROLL_COST)return;const c=SCRIPT.days.filter(d=>d.id!==S.today);if(!c.length)return;S.yen-=REROLL_COST;S.today=pick(c).id;save();render();return}
+ if(a==='reroll'){if(!S.tut||S.yen<REROLL_COST)return;const c=SCRIPT.days.filter(d=>d.id!==S.today);if(!c.length)return;S.yen-=REROLL_COST;S.today=pick(c).id;save();render();return}
  if(a==='resv'){ui.resv=ui.resv===v?null:v;ui.rvOpen=false;render();return}
  if(a==='rvopen'){ui.rvOpen=!ui.rvOpen;render();return}
+ if(a==='care'){if(S.tut&&S.yen>=CARE_COST&&condOf(v)!=='fresh'){S.yen-=CARE_COST;(S.cond||(S.cond={}))[v]={streak:0,rest:2};save();sfx('good')}render();return}/* 컨디션 케어: 지침·보통 → 상쾌 */
  if(a==='nudge'){nudge(v);return}
  if(a==='random'&&!S.tut)return;
  if(a==='sel'&&!S.tut){ui.focus=v;if(!TUT_FIX.includes(v))ui.sel[0]=v;render();return}/* 첫 판: 자유 자리만 바꾼다 */
