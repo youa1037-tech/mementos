@@ -359,6 +359,14 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .tgb.on{border-color:var(--c);color:var(--c)}.tgb.max{background:var(--c);color:#141012}
 .tgtip{font-size:12px}.tip .sm{margin-left:6px}
 .dlg.rift{border-color:#ff4fd8;background:linear-gradient(135deg,#1a0a18,#0f0b0c)}.dlg.rift .who{background:#ff4fd8;color:#141012}
+.rcpt{position:absolute;right:8px;top:30px;z-index:7;width:min(200px,58%);background:#f6f1ea;color:#141012;padding:7px 10px 12px;transform:rotate(-3deg);box-shadow:5px 5px 0 #000;pointer-events:none;animation:rcin .3s cubic-bezier(.2,1.5,.4,1) both,rcout .3s ease-in 2.3s forwards}
+.stage>.rcpt{position:absolute}.rcpt::after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:6px;background:linear-gradient(-45deg,transparent 4px,#f6f1ea 0) 0 0/8px 6px,linear-gradient(45deg,transparent 4px,#f6f1ea 0) 0 0/8px 6px}
+.rcpt .hd{display:block;font:11px/1 var(--en);letter-spacing:.12em;color:#6b5f5a;border-bottom:1px dashed #9a8f8a;padding-bottom:4px;margin-bottom:4px}
+.rcpt ul{list-style:none;margin:0;padding:0}.rcpt li{display:flex;justify-content:space-between;gap:8px;font:12px/1.45 var(--kr)}.rcpt li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rcpt li b{font:14px/1.3 var(--en)}.rcpt li.etc{color:#6b5f5a}
+.rcpt .tt{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #141012;margin-top:4px;padding-top:3px}.rcpt .tt small{font:12px var(--en);letter-spacing:.15em}.rcpt .tt b{font:34px/1 var(--en);color:var(--red)}
+@keyframes rcin{0%{opacity:0;transform:translateY(-16px) rotate(-3deg)}100%{opacity:1;transform:rotate(-3deg)}}@keyframes rcout{to{opacity:0;transform:translateY(-8px) rotate(-3deg)}}
+.rcline{display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;background:#000;border-left:3px solid var(--red);padding:5px 10px;margin-bottom:6px;font:12px/1.3 var(--kr);color:var(--mut)}.rcline b{font:20px/1 var(--en);color:#fff}.rcline small{margin-left:auto;font-size:11px}
+@media (prefers-reduced-motion:reduce){.rcpt{animation:none}}
 </style>
 </head>
 <body>
@@ -936,7 +944,7 @@ function hit(m,f,pow,el,sn){const B=G.battle,wasDown=f.down,we=effWeak(f);
  const ctr=cnt('contract')&&B.round===1,cr=!we.includes(el)&&!ctr&&((cnt('trigger')&&B.hitsT>up('trigger',3,2))||(T4('탐욕')&&G.yen>=5000)||chance(.05+(m.crit||0)+(B.crit||0)+(DF().crit||0)));if(f.sleep)d=Math.round(d*1.3);
  const sat=cnt('satanael');if(sat){}else if(f.reap){d=Math.round(d*.5);txt=' (경감)'}else if(f.def){d=Math.round(d*f.def);txt=' (방어)'}
  if(f.reap){}else if(we.includes(el)||maskOn(m)||ctr){d=Math.round(d*(maskOn(m)?1.95:1.5));w=true}else if(cr){d=Math.round(d*1.6);w=true;txt=' · CRITICAL'}else if(f.res===el&&!sat){d=Math.round(d*.5);txt=' (내성)'}
- f.hp=Math.max(0,f.hp-d);pop('f'+B.foes.indexOf(f),String(d),w?'w':'');G.stats.best=Math.max(G.stats.best,d);sfx(w?'weak':'hit');
+ f.hp=Math.max(0,f.hp-d);ui.src=`${m.c.name} · ${sn}${w?(cr?' (크리)':' (약점)'):''}`;pop('f'+B.foes.indexOf(f),String(d),w?'w':'');ui.src=null;G.stats.best=Math.max(G.stats.best,d);sfx(w?'weak':'hit');
  {const fi=B.foes.indexOf(f),fs=foeSel(fi);fxPlay(EL_FX[el]||'slash',fs);fxPlay(w?'crit':'spark',fs,{stop:w?.7:null});if(f.hp<=0)setTimeout(()=>fxPlay('poof',fs,{foot:true}),120)}
  if(w){ui.hs=Date.now();ui.quake=Date.now();(ui.spk||(ui.spk={}))['f'+B.foes.indexOf(f)]=Date.now();ui.cut={t:cr?'CRITICAL':'WEAK',at:Date.now()};setTimeout(render,90);setTimeout(render,420)}
  log(`${m.c.name}의 ${sn} → ${f.n} ${d}${w&&!cr?' · 약점!':''}${txt}`);
@@ -988,8 +996,8 @@ function baton(id){const B=G.battle;if(!B.extra||ui.busy||cnt('radio'))return;co
  if(p.length){const x=pick(p);say(x.a,x.qa,null,1800,true);setTimeout(()=>say(x.b,x.qb,null,1800,true),500)}else say(id,'reply');
  {const bl=bondOf(from,id).lv;log(`바톤 터치: ${CH[from].name} → ${CH[id].name} (이번 공격 +${Math.round((.25+BOND.bat[bl])*100)}%${bl?` · 유대 ${bl}단계`:''})`)}render();autoGo()}
 async function allOutHit(){const B=G.battle;G.stats.allout++;ui.ao=Date.now();flash('ALL-OUT ATTACK','g');sfx('finish');fxPlay('frame',null,{stop:.3});await sleep(600);const dm=1+cnt('dice');
- for(const f of foeAlive()){await sleep(80);sfx('hit');fxPlay('crit',foeSel(B.foes.indexOf(f)),{stop:.6});const d=Math.round((30+alive().length*8)*(1+.3*B.relay+B.atk)*(1+B.vuln)*dm);f.hp=Math.max(0,f.hp-d);f.down=false;pop('f'+B.foes.indexOf(f),String(d),'w');G.stats.best=Math.max(G.stats.best,d)}
- log('총공격! 쓰러진 적들을 한꺼번에 몰아쳤다');
+ ui.src='총공격';for(const f of foeAlive()){await sleep(80);sfx('hit');fxPlay('crit',foeSel(B.foes.indexOf(f)),{stop:.6});const d=Math.round((30+alive().length*8)*(1+.3*B.relay+B.atk)*(1+B.vuln)*dm);f.hp=Math.max(0,f.hp-d);f.down=false;pop('f'+B.foes.indexOf(f),String(d),'w');G.stats.best=Math.max(G.stats.best,d)}
+ ui.src=null;log('총공격! 쓰러진 적들을 한꺼번에 몰아쳤다');
  if(cnt('dice')){for(const m of alive()){m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3*cnt('dice')));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*.3*cnt('dice')))}log('만능의 주사위: 전원 HP·SP 회복');glow('dice')}
  await sleep(300)}
 async function allOut(){const B=G.battle;if(ui.busy)return;ui.busy=true;const m=actor();B.extra=null;B.rc={sum:0,n:0};await allOutHit();receipt();say(m.id,'win');
@@ -1161,9 +1169,12 @@ function flash(t,c=''){ui.fx={t,c};if(c==='g'||t==='BREAK')ui.quake=Date.now();r
 /* 영수증 대미지: 같은 대상의 숫자는 0.08초 간격으로 줄줄이 튀어 오르고, 크기·색이 피해 구간마다 오른다. 적에게 들어간 피해는 행동마다 합산해 TOTAL 스탬프 */
 function pop(id,t,c=''){const P=ui.pops||(ui.pops=[]),now=Date.now(),k=P.filter(p=>p.id===id&&now-p.at<900).length,v=+t;
  const tier=isNaN(v)||c==='h'?'':v>=50?'t3':v>=20?'t2':'t1';P.push({id,t,c,at:now,k,tier});
- if(id[0]==='f'&&c!=='h'){(ui.fh||(ui.fh={}))[id]=now+k*80;const B=G.battle;if(B&&!isNaN(v)){const r=B.rc||(B.rc={sum:0,n:0});r.sum+=v;r.n++}}
+ if(id[0]==='f'&&c!=='h'){(ui.fh||(ui.fh={}))[id]=now+k*80;const B=G.battle;if(B&&!isNaN(v)){const r=B.rc||(B.rc={sum:0,n:0});r.sum+=v;r.n++;r.max=Math.max(r.max||0,v);const L=r.L||(r.L={}),k=ui.src||'템 효과',x=L[k]||(L[k]={n:0,v:0});x.n++;x.v+=v}}
  setTimeout(()=>{ui.pops=(ui.pops||[]).filter(p=>Date.now()-p.at<900+p.k*80);render()},920+k*80)}
-function receipt(){const B=G.battle,r=B&&B.rc;if(r&&r.n>=2){ui.total={v:r.sum,at:Date.now()};setTimeout(render,1400)}if(B)B.rc={sum:0,n:0}}
+/* 딜 영수증: 한 행동에 2타 이상이면 출처별로 찍어 준다 (2.6초). 전투 칸엔 직전 영수증이 한 줄로 남는다 */
+function receipt(){const B=G.battle,r=B&&B.rc;if(r&&r.n>=2){const L=Object.entries(r.L||{}).sort((a,b)=>b[1].v-a[1].v);ui.total={v:r.sum,n:r.n,max:r.max||0,L,at:Date.now()};B.lastRc=ui.total;setTimeout(render,RC_MS+50)}if(B)B.rc={sum:0,n:0}}
+const RC_MS=2600;
+function vRcLine(){const R=G.battle&&G.battle.lastRc;if(!R)return '';return `<button class="rcline" data-a="rcshow"><span>직전 딜</span><b>${R.v}</b><small>${R.n}타 · 최고 ${R.max}${R.L.length>1?` · ${R.L.length}곳에서`:''} · 다시 보기</small></button>`}
 /* WebAudio 타격음 4단계: hit 일반 · weak 약점(묵직한 저음 + 스파크) · chain 템 연쇄(딩, 연쇄 순서마다 한 음씩 위로) · finish 총공격 */
 let SFX=null;
 function sfx(k,n=0){if(SV.mute)return;try{SFX=SFX||new (window.AudioContext||window.webkitAudioContext)();if(SFX.state==='suspended')SFX.resume()}catch(e){return}
@@ -1268,7 +1279,7 @@ ui.lastIn=Date.now();for(const ev of ['pointerdown','keydown'])document.addEvent
 setInterval(()=>{const now=Date.now();if(ui.screen!=='map'||!G.party||ui.busy||tutCur||document.hidden)return;if(now-ui.lastIn<5000||now-(ui.idleAt||0)<9000)return;
  const al=alive(),L=(SCRIPT.idle||[]).filter(x=>al.some(m=>m.id===x.who));if(!L.length)return;const x=pick(L);ui.idleAt=now;if(x.n)log(x.n);say(x.who,fillT(x.q),null,2600,true)},1000);
 function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='manual')return A.innerHTML=vManual();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
- const body=ui.screen==='story'?vStory():ui.screen==='battle'&&G.battle?vBattle():ui.screen==='event'&&G.ev?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
+ const body=ui.screen==='story'?vStory():ui.screen==='battle'&&G.battle?vRcLine()+vBattle():ui.screen==='event'&&G.ev?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
  A.innerHTML=vHud()+vStage()+`<div class="panel">${vParty()}${vSlots()}${body}${vLog()}</div>`;
  {const st=$('.stage');if(st){st.prepend(PX.cv);for(const L of FXC.L)if(L.cv&&L.list.length)st.appendChild(L.cv)}}
  const l=$('.log');if(l)l.scrollTop=l.scrollHeight;runSave()}
@@ -1382,7 +1393,9 @@ function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=
   top=`<div class="rt"><b>${B.kind==='boss'?((SV.q||0)===G.fl?'REQUEST TARGET':'GATE'):B.kind==='reaper'?'THE REAPER':'SHADOW'}</b>${B.round}턴</div>`}
  else{const t=G.map.T[G.at];top=`<div class="rt"><b>${ui.screen==='event'&&G.ev?esc(G.ev.t):ui.screen==='floor'?'GATE CLEARED':ROOM[t].n}</b></div>`}
  const walk=ui.walk&&now-ui.walk<900&&now>=ui.walk,cls=`f${zoneOf(G.fl)} ${G.fl>=3?'deepz':''} ${B?'bat':''} ${walk?'walk':''} ${ui.quake&&now-ui.quake<400?'quake':''} ${ui.hs&&now-ui.hs<80?'hstop':''} ${ui.ao&&now-ui.ao<700?'aoflash':''}`;
- return `<section class="stage ${cls}">${top}${ui.freeMv&&now-ui.freeMv<1400?`<div class="fmv"><b>무료 이동!</b> 턴 유지${actor()?` — 지금은 ${actor().c.name} 차례`:''}</div>`:''}<div class="side pt">${party}</div><div class="side en">${right}</div>${ui.fx?`<div class="fx"><b class="${ui.fx.c} ${['1 MORE','WEAK','CRITICAL','ALL-OUT ATTACK','SHOWTIME'].includes(ui.fx.t)?'slash':''}">${esc(ui.fx.t)}</b></div>`:''}${ui.cut&&now-ui.cut.at<300&&!ui.fx?`<div class="fx"><b class="slash cut">${esc(ui.cut.t)}</b></div>`:''}${ui.total&&now-ui.total.at<1300?`<div class="total"><small>TOTAL</small>${ui.total.v}</div>`:''}</section>`}
+ return `<section class="stage ${cls}">${top}${ui.freeMv&&now-ui.freeMv<1400?`<div class="fmv"><b>무료 이동!</b> 턴 유지${actor()?` — 지금은 ${actor().c.name} 차례`:''}</div>`:''}<div class="side pt">${party}</div><div class="side en">${right}</div>${ui.fx?`<div class="fx"><b class="${ui.fx.c} ${['1 MORE','WEAK','CRITICAL','ALL-OUT ATTACK','SHOWTIME'].includes(ui.fx.t)?'slash':''}">${esc(ui.fx.t)}</b></div>`:''}${ui.cut&&now-ui.cut.at<300&&!ui.fx?`<div class="fx"><b class="slash cut">${esc(ui.cut.t)}</b></div>`:''}${ui.total&&now-ui.total.at<RC_MS?vRcpt(ui.total,now):''}</section>`}
+function vRcpt(R,now){const L=R.L||[],more=L.length>5?L.length-4:0,rows=(more?L.slice(0,4):L).map(([k,x])=>`<li><span>${esc(k)}${x.n>1?` ×${x.n}`:''}</span><b>${x.v}</b></li>`).join('')+(more?`<li class="etc"><span>그 밖에 ${more}곳</span><b>${L.slice(4).reduce((t,[,x])=>t+x.v,0)}</b></li>`:'');
+ return `<div class="rcpt" style="animation-delay:-${now-R.at}ms,${2300-(now-R.at)}ms"><small class="hd">DAMAGE RECEIPT · ${R.n}HIT</small><ul>${rows}</ul><div class="tt"><small>TOTAL</small><b>${R.v}</b></div></div>`}
 function vParty(){return `<div class="party">${G.party.map(m=>`<div class="pc" style="--c:${m.c.col}"><b>${m.c.code}</b><div class="bar"><i class="${m.hp<m.max*.35?'lo':''}" style="width:${m.hp/m.max*100}%"></i></div><div class="bar s"><i style="width:${m.sp/m.msp*100}%"></i></div><div class="nu">HP ${m.hp} · SP ${m.sp}</div></div>`).join('')}</div>`}
 function vSlots(){const now=Date.now(),B=G.battle,bench=ui.screen==='bench'&&!G.benchUsed,n=Math.max(6,Math.ceil((G.items.length+1)/6)*6);/* 늘 빈칸이 남는다: 가방은 차면 한 줄씩 늘어남 */
  return `<div class="slots" aria-label="템 ${G.items.length}개">${Array.from({length:n},(_,i)=>{const id=G.items[i],I=id&&IT(id);if(!I)return `<div class="slot"></div>`;
@@ -1473,6 +1486,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='buy')return shopBuy(+v);if(a==='shopheal')return shopHeal();if(a==='shoprr')return shopReroll();
  if(a==='bsel')return benchToggle(+v);if(a==='synth')return synth();if(a==='leave'){benchLeave();ui.screen='map';return render()}
  if(a==='tip'){ui.tip=ui.tip===v?null:v;return render()}
+ if(a==='rcshow'){const R=G.battle&&G.battle.lastRc;if(R){ui.total={...R,at:Date.now()};setTimeout(render,RC_MS+50)}return render()}
  if(a==='tagi'){ui.tagi=ui.tagi===v?null:v;return render()}
  if(a==='tagmv'){const i=G.items.indexOf(ui.tip);if(i<0||G.battle)return;const [x]=G.items.splice(i,1);if(v==='in')G.items.splice(TAG_N-1,0,x);else G.items.push(x);log(`${IT(x).n}: 각인 칸${v==='in'?'으로 올렸다':'에서 뺐다'}`);runSave(true,null);return render()}
  if(a==='log'){ui.log=!ui.log;return render()}
