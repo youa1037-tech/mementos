@@ -1001,7 +1001,7 @@ function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep
  rollSub();
  if(G.reaperMet&&!G.reaperKill)reaperTalk(kind==='wipe'&&G.battle&&G.battle.kind==='reaper'?'caught':'escape','red');/* 거두는 자에게서 도망쳤거나 붙잡혔을 때 */
  G.afters=pickAfters(kind);G.cut=pickCut(kind);
- SV.hubAft=(G.afters||[]).flatMap(a=>a.lines).filter(l=>l.who&&CH[l.who]).map(l=>({who:l.who,t:fillT(l.t)}));/* 다락방에서 누르면 하는 말 */
+ SV.hubSeen=[];SV.hubAft=(G.afters||[]).flatMap(a=>a.lines).filter(l=>l.who&&CH[l.who]).map(l=>({who:l.who,t:fillT(l.t)}));/* 다락방에서 누르면 하는 말 */
  SV.bang={id:pick(G.party.map(m=>m.id)),k:pick(Object.keys(HBUFF))};/* 판마다 딱 한 명 [!] */
  rollDay();save();
  if(kind!=='wipe'){const m=pick(alive());if(m)log(line(m.id,'back'),m.id)}ui.screen='result';G.battle=null;render()}
@@ -1140,7 +1140,7 @@ function bgmSync(){const want=!BG_.ok||SV.mute||document.hidden?null:['title','m
 document.addEventListener('pointerdown',()=>{if(!BG_.ok){BG_.ok=true;bgmSync()}},{capture:true});document.addEventListener('visibilitychange',()=>bgmSync());
 /* 혼잣말 (시트 '혼잣말' 112개): 지도·전투에서 5초 넘게 아무것도 안 누르면 한 명이 툭. 튜토리얼 안내 중엔 안 함 */
 ui.lastIn=Date.now();for(const ev of ['pointerdown','keydown'])document.addEventListener(ev,()=>{ui.lastIn=Date.now()},{capture:true});
-setInterval(()=>{const now=Date.now();if(!['map','battle'].includes(ui.screen)||!G.party||ui.busy||tutCur||document.hidden)return;if(now-ui.lastIn<5000||now-(ui.idleAt||0)<9000)return;
+setInterval(()=>{const now=Date.now();if(ui.screen!=='map'||!G.party||ui.busy||tutCur||document.hidden)return;if(now-ui.lastIn<5000||now-(ui.idleAt||0)<9000)return;
  const al=alive(),L=(SCRIPT.idle||[]).filter(x=>al.some(m=>m.id===x.who));if(!L.length)return;const x=pick(L);ui.idleAt=now;if(x.n)log(x.n);say(x.who,fillT(x.q),null,2600,true)},1000);
 function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='manual')return A.innerHTML=vManual();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
  const body=ui.screen==='story'?vStory():ui.screen==='battle'?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
@@ -1158,13 +1158,20 @@ const HBUFF={coffee:{n:'커피 한 잔',d:'다음 판 시작 SP +10',ic:'☕'},d
 const TROPHY_Q=['저 트로피 볼 때마다 그날 생각난다니까.','선반이 점점 괴도단 박물관 같아지네.','다음 전리품 자리도 비워 둬야겠어.','저거, 다음 판 부적으로 들고 갈까?'];
 function hubPaint(){const el=document.querySelector('.hscene');if(el){const d=document.createElement('div');d.innerHTML=vAtticScene();el.replaceWith(d.firstElementChild)}}
 function hubSay(id,q,ms=2600){ui.hubSay={id,q};hubPaint();clearTimeout(ui.hubT);ui.hubT=setTimeout(()=>{ui.hubSay=null;hubPaint()},ms)}
-setInterval(()=>{if(ui.screen!=='hub'||tutCur||document.hidden||Date.now()-(ui.hubAt||0)<6000)return;ui.hubAt=Date.now();const cast=hubCast(),r=Math.random();
- const P=(LINES.pairs||[]).filter(x=>cast.includes(x.a)&&cast.includes(x.b));
- if(r<.55&&P.length){const p=pick(P);hubSay(p.a,p.qa,2000);setTimeout(()=>{if(ui.screen==='hub')hubSay(p.b,p.qb,2200)},2100);return}
- if(r<.8){const L=(SCRIPT.idle||[]).filter(x=>cast.includes(x.who));if(L.length){const x=pick(L);return hubSay(x.who,fillT(x.q))}}
- if((SV.q||0)>0)return hubSay(pick(cast),pick(TROPHY_Q));const id=pick(cast);hubSay(id,line(id,'chat'))},1000);
+/* 다락방 대사: 르블랑에 맞는 것만 — 방금 판 후일담 → 귀환 대사(시트 '돌아왔을 때') → 트로피 감상. 메멘토스 탐사·전투용 대사는 안 씀
+   자동으로는 20~30초에 한 번, 손을 안 대면 2번까지. 한 번 나온 대사는 다음 판이 끝날 때까지 다시 안 나오고, 다 나오면 조용해짐(SV.hubSeen) */
+function hubDeck(cast){const D=[];(SV.hubAft||[]).forEach((l,i)=>{if(cast.includes(l.who))D.push({k:'a'+i,who:l.who,q:l.t})});
+ cast.forEach(id=>(((LINES.lines||{})[id]||{}).back||[]).forEach((e,i)=>{const t=typeof e==='string'?e:e[0];if(t&&(typeof e==='string'||(!e[1]&&(e[2]||[]).every(x=>cast.includes(x)))))D.push({k:'b'+id+i,who:id,q:fillT(t)})}));
+ if((SV.q||0)>0)TROPHY_Q.forEach((q,i)=>D.push({k:'t'+i,who:null,q}));return D}
+function hubNextLine(cast,who){const seen=new Set(SV.hubSeen||[]),D=hubDeck(cast).filter(x=>!seen.has(x.k)&&(!who||x.who===who||(!x.who&&x.k[0]==='t')));
+ const x=D.find(y=>y.k[0]==='a')||pick(D);if(!x)return null;seen.add(x.k);SV.hubSeen=[...seen];save();return {who:x.who||who||pick(cast),q:x.q}}
+setInterval(()=>{const now=Date.now();if(ui.screen!=='hub'||tutCur||document.hidden)return;
+ if(!ui.hubNext||ui.lastIn>(ui.hubLastIn||0)){ui.hubLastIn=ui.lastIn;ui.hubRun=0;ui.hubNext=Math.max(ui.hubNext||0,now+R(20000,30000))}/* 손을 대면 다시 2번 */
+ if(now<ui.hubNext||(ui.hubRun||0)>=2)return;ui.hubRun=(ui.hubRun||0)+1;ui.hubNext=now+R(20000,30000);
+ const x=hubNextLine(hubCast());if(x)hubSay(x.who,x.q,3200)},1000);
 const hubCast=()=>SV.last&&SV.last.length===3?SV.last:['joker','mona','ryuji'];
-function hubTalk(id){const A=(SV.hubAft||[]).filter(l=>l.who===id),N=ui.hubN||(ui.hubN={}),n=N[id]||0;N[id]=n+1;let q=A[n%Math.max(1,A.length)]?.t||line(id,'chat')||line(id,'reply');ui.hubAt=Date.now();
+function hubTalk(id){ui.hubNext=Date.now()+R(20000,30000);const cast=hubCast(),x=hubNextLine(cast,id);
+ const SH=['응?','왜, 무슨 일 있어?','…좀 쉬자.','다음 판 준비는 됐어?'];let q=x?x.q:SH[ui.hubSh=((ui.hubSh??-1)+1)%SH.length];/* 할 말을 다 했으면 짧은 반응만 돌아가며 */
  if(SV.bang&&SV.bang.id===id){const B=HBUFF[SV.bang.k];SV.nextBuff=SV.bang.k;SV.bang=null;save();band(`${B.ic} <b>${esc(B.n)}</b> — ${esc(B.d)}`,'chain',3600);if(ui.ht==='go'||!ui.ht)setTimeout(render,50)}
  hubSay(id,q,3000)}
 const ATTIC={w:180,h:136,spots:{desk:[3,56,23,31,'rec','기록'],codex:[85,34,12,53,'scene','장면'],shop:[68,39,14,10,'pool','템 풀'],window:[37,27,26,34,'go','출발'],tv:[68,54,15,33,'title','메인']},stand:[[18,94],[50,94],[81,94]]};
