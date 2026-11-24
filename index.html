@@ -28,7 +28,7 @@ button:disabled{opacity:.35;cursor:default}
 .hud{display:flex;align-items:center;gap:10px;padding:10px 12px 8px;background:#000;border-bottom:4px solid var(--red)}
 .hud .fl{font:22px/1 var(--en)}.hud .fl small{display:block;font:11px/1.3 var(--kr);color:var(--mut)}
 .hud .sp{flex:1}
-.risk{font:16px/1 var(--en);padding:6px 9px;background:var(--gold);color:#141012}.risk.hot{background:var(--red);color:#fff}
+.hud .risk{font:16px/1 var(--en);padding:6px 9px;background:var(--gold);color:#141012}.hud .risk.hot{background:var(--red);color:#fff}
 .yen{font:20px/1 var(--en)}
 .mini{display:grid;grid-template-columns:repeat(4,11px);gap:2px}.mini i{width:11px;height:11px;background:#1d1517}.mini i.v{background:#5a4247}.mini i.k{background:#3a2a2e;outline:1px dashed #6b5157}.mini i.at{background:var(--red)}.mini i.b{box-shadow:inset 0 0 0 2px var(--gold)}
 /* 무대 */
@@ -145,7 +145,7 @@ button:disabled{opacity:.35;cursor:default}
 .pick{display:grid;gap:7px}
 .pk{background:var(--p2);padding:10px;text-align:left;border-left:4px solid var(--line);display:flex;gap:10px;align-items:center}
 .pk .ic{font-size:26px;width:34px;text-align:center}.pk b{font-size:15px}.pk small{display:block;color:var(--mut);font-size:11px}
-.pk .tg{font-size:12px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px}
+.pk .tg{font-size:12px;padding:1px 5px;background:#000;color:var(--gold);margin-left:4px;vertical-align:2px;white-space:nowrap}.pk small .rk{font-size:11px;font-weight:400}
 .pk.syn{border-left-color:var(--gold)}
 .log{max-height:160px;overflow:auto;font-size:12px;background:#0b0809;padding:6px 8px;color:var(--mut)}
 .log p{margin:2px 0}.log p b{color:var(--ink)}
@@ -285,10 +285,11 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .quest{background:#1a1013;border:1px solid var(--gold);border-left:5px solid var(--gold);padding:9px 11px;margin:0 0 8px}.quest .en{color:var(--gold);font-size:13px;letter-spacing:.06em}.quest p{margin:4px 0}.quest small{color:var(--mut)}
 .qbar{height:6px;background:#2a2023;margin-top:6px}.qbar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--gold))}
 .nextu{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;width:100%;margin:0 0 8px;padding:8px 11px;background:#141012;border:1px solid var(--line);color:var(--ink);text-align:left;min-height:44px}
-.nextu .en{font-size:13px;color:var(--mut);letter-spacing:.06em}.nextu span{flex:1;font-weight:700}.nextu em{font-style:normal;font-family:var(--en);color:var(--mut)}
+.nextu .en{font-size:13px;color:var(--mut);letter-spacing:.06em}.nextu span{order:3;flex:1 0 100%;font-weight:700}.nextu em{font-style:normal;font-family:var(--en);color:var(--mut)}
 .nextu.ok{border-color:var(--gold)}.nextu.ok em{color:var(--gold)}
 .shopb{font-style:normal;font:400 12px var(--en);background:var(--red);color:#fff;padding:1px 6px;letter-spacing:.05em;animation:pulse 1.2s infinite}
-.tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}
+.tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}.scg{display:grid;grid-template-columns:1fr 1fr;gap:4px}.scc{background:var(--p2);padding:7px 8px;min-width:0}.scc small{display:block;font:11px/1.2 var(--en);color:var(--mut);letter-spacing:.04em}.scc b{display:block;font-size:13px;line-height:1.25;word-break:keep-all;margin-top:2px}.sce{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.sce .nx{display:inline-block;width:9px;height:9px;background:#3a2a2e}.sce .tog{padding:3px 6px;font-size:11px;min-height:0}
+.tabs{gap:4px}.tabs .tog{flex:1;min-width:0;padding:9px 2px;position:relative;white-space:nowrap;font-size:13px}.tabs .tog .dot{position:absolute;top:4px;right:4px;margin:0}
 .card.sub{border-color:var(--gold)}.card.sub .en{color:var(--gold);font-size:13px;letter-spacing:.06em;margin-right:4px}
 .pk.risk,.slot.f.risk{border-color:#ff4fd8!important}.rk{color:#ff7ae3}.pk .price{font-family:var(--en);color:var(--gold);white-space:nowrap;align-self:center}
 .htro{position:absolute;image-rendering:pixelated;pointer-events:auto;z-index:1}
@@ -686,19 +687,19 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;cons
  const bat=B.extra&&B.extra.baton;B.lastBat=bat?B.extra:null;B.extra=null;const f=target();
  if(s.type){act(m.id,'cast',520);/* 보조 스킬 */
   if(s.type==='healAll'){for(const t of alive()){const v=Math.min(t.max-t.hp,s.pow);t.hp+=v;if(v)pop(t.id,'+'+v,'h')}{const al=[...alive()].sort((a,b)=>a.row-b.row),mid=al[Math.floor(al.length/2)];if(mid)fxPlay('heal',unitSel(mid.id),{foot:true})}say(m.id,'support');log(`${m.c.name}의 ${s.n}: 전원 HP +${s.pow}`);if(s.back)await shift(m,1)}
-  else if(s.type==='command'){log(`${m.c.name}의 ${s.n}: 이번 전투 공격력 +15%`);B.atk+=.15;await shift(m,-1)}
-  else if(s.type==='taunt'){m.taunt=1;log(`${m.c.name}의 ${s.n}: 이번 턴 적의 공격을 끌어모은다`);say(m.id,'protect',alive().find(x=>x!==m)?.id)}
-  else if(s.type==='stance'){m.stance=1;log(`${m.c.name}의 ${s.n}: 반격 자세`)}
-  else if(s.type==='cheer'){for(const t of alive()){t.hp=Math.min(t.max,t.hp+6);t.sp=Math.min(t.msp,t.sp+4)}log(`${m.c.name}의 ${s.n}: 전원 HP +6 · SP +4`);say(m.id,'support')}
-  else if(s.type==='guard'){B.guard=2;log(`${m.c.name}의 ${s.n}: 2턴 동안 받는 피해 -25%`)}
-  else if(s.type==='scan'){for(const x of B.foes)if(x.weak&&x.weak!=='rot'){x.seen=1;SV.weak[x.n]=1}save();log(`${m.c.name}의 ${s.n}: 적 전원의 약점이 드러났다!`);say(m.id,'find')}
-  else if(s.type==='shield'){const t=[...alive()].sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];t.shield=(t.shield||0)+20;log(`${m.c.name}의 ${s.n}: ${t.c.name} 실드 +20`)}
-  else if(s.type==='wall'){B.wall=1;log(`${m.c.name}의 ${s.n}: 다음 적 공격을 되돌린다`)}
-  else if(s.type==='brave'){B.crit=(B.crit||0)+.2;log(`${m.c.name}의 ${s.n}: 이번 전투 크리티컬 +20%`);await shift(m,1)}
+  else if(s.type==='command'){fxPlay('charge',unitSel(m.id),{foot:true});log(`${m.c.name}의 ${s.n}: 이번 전투 공격력 +15%`);B.atk+=.15;await shift(m,-1)}
+  else if(s.type==='taunt'){m.taunt=1;fxPlay('excl',unitSel(m.id),{dy:-4});log(`${m.c.name}의 ${s.n}: 이번 턴 적의 공격을 끌어모은다`);say(m.id,'protect',alive().find(x=>x!==m)?.id)}
+  else if(s.type==='stance'){m.stance=1;fxPlay('parry',unitSel(m.id));log(`${m.c.name}의 ${s.n}: 반격 자세`)}
+  else if(s.type==='cheer'){for(const t of alive()){fxPlay('bless',unitSel(t.id),{foot:true});t.hp=Math.min(t.max,t.hp+6);t.sp=Math.min(t.msp,t.sp+4)}log(`${m.c.name}의 ${s.n}: 전원 HP +6 · SP +4`);say(m.id,'support')}
+  else if(s.type==='guard'){B.guard=2;fxMid('ffield',{foot:true});log(`${m.c.name}의 ${s.n}: 2턴 동안 받는 피해 -25%`)}
+  else if(s.type==='scan'){for(const x of B.foes)if(x.hp>0)fxFoe(x,'scan');for(const x of B.foes)if(x.weak&&x.weak!=='rot'){x.seen=1;SV.weak[x.n]=1}save();log(`${m.c.name}의 ${s.n}: 적 전원의 약점이 드러났다!`);say(m.id,'find')}
+  else if(s.type==='shield'){const t=[...alive()].sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];t.shield=(t.shield||0)+20;fxPlay('dshield',unitSel(t.id));log(`${m.c.name}의 ${s.n}: ${t.c.name} 실드 +20`)}
+  else if(s.type==='wall'){B.wall=1;fxMid('rune',{foot:true});log(`${m.c.name}의 ${s.n}: 다음 적 공격을 되돌린다`)}
+  else if(s.type==='brave'){B.crit=(B.crit||0)+.2;fxPlay('charge',unitSel(m.id),{foot:true});log(`${m.c.name}의 ${s.n}: 이번 전투 크리티컬 +20%`);await shift(m,1)}
   else if((s.type==='sleep'||s.type==='hack')&&f&&f.immune){log(`${f.n}: 상태이상 저항 — ${s.n} 실패`)}
-  else if(s.type==='sleep'&&f){f.sleep=1;log(`${m.c.name}의 ${s.n}: ${jo(f.n,"이","가")} 잠들었다`)}
-  else if(s.type==='hack'&&f){f.stun=1;f.down=true;log(`${m.c.name}의 ${s.n}: ${f.n} 기절 · DOWN!`);say(m.id,'win')}
-  else if(s.type==='debuff'&&f){f.atkM=(f.atkM||1)*.7;log(`${m.c.name}의 ${s.n}: ${f.n} 공격력 -30%`);await shift(m,-1)}
+  else if(s.type==='sleep'&&f){f.sleep=1;fxFoe(f,'sleep');log(`${m.c.name}의 ${s.n}: ${jo(f.n,"이","가")} 잠들었다`)}
+  else if(s.type==='hack'&&f){f.stun=1;f.down=true;fxFoe(f,'stun');log(`${m.c.name}의 ${s.n}: ${f.n} 기절 · DOWN!`);say(m.id,'win')}
+  else if(s.type==='debuff'&&f){f.atkM=(f.atkM||1)*.7;fxFoe(f,'cursed');log(`${m.c.name}의 ${s.n}: ${f.n} 공격력 -30%`);await shift(m,-1)}
   return endAct(m,false)}
  if(s.adv&&m.row>1)await shift(m,-1);
  act(m.id,'lunge',560);await sleep(230);/* 예비 동작이 끝나고 튀어나가 닿는 순간에 맞춘다 */
@@ -710,8 +711,8 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;cons
  if(weak)await sleep(250);
  endAct(m,weak)}
 function hit(m,f,pow,el,sn){const B=G.battle,wasDown=f.down,we=effWeak(f);
- if(chance(f.evade+(f.evUp||0)+(el==='물리'?f.evPhys:0))){log(`${m.c.name}의 ${sn} → ${jo(f.n,"이","가")} 피했다!`);pop('f'+B.foes.indexOf(f),'MISS','h');return false}
- if(f.mirror){f.mirror=0;const rd=Math.round(pow*.8);log(`반사 유리벽! ${jo(sn,"이","가")} ${m.c.name}에게 되돌아왔다`);hurt(m,rd,null);return false}
+ if(chance(f.evade+(f.evUp||0)+(el==='물리'?f.evPhys:0))){log(`${m.c.name}의 ${sn} → ${jo(f.n,"이","가")} 피했다!`);pop('f'+B.foes.indexOf(f),'MISS','h');fxFoe(f,'blink');return false}
+ if(f.mirror){f.mirror=0;fxFoe(f,'ffield',{foot:true,stop:.3});const rd=Math.round(pow*.8);log(`반사 유리벽! ${jo(sn,"이","가")} ${m.c.name}에게 되돌아왔다`);hurt(m,rd,null);return false}
  let d=Math.round(pow*(.85+Math.random()*.3)),w=false,txt='';
  const cr=!we.includes(el)&&chance(.05+(m.crit||0)+(B.crit||0)+(DF().crit||0));if(f.sleep)d=Math.round(d*1.3);
  if(f.reap){d=Math.round(d*.5);txt=' (경감)'}else if(f.def){d=Math.round(d*f.def);txt=' (방어)'}
@@ -778,9 +779,9 @@ function hurt(t,d,f){if(t.dodge){t.dodge=false;log(`잔상 코트: ${t.c.name}�
 function pickT(only){const al=alive().filter(m=>!only||only.includes(m.row));const L=al.length?al:alive();const w=L.map(m=>m.taunt?40:m.row===1?5:m.row===2?3:2),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[0]}
 /* 한 방 때리기: 라이프 월 · 카스미 감싸기 · 자세 잡기 · 도발 반격까지 */
 async function strike(f,t,m=1,label){const B=G.battle,rk=(1+G.risk*.04)*(DF().fatk||1);if(!t)return;let d=Math.round(f.atk*(f.atkM||1)*m*rk*(.85+Math.random()*.3)*(B.guard?.75:1));
- if(B.wall){B.wall=0;f.hp=Math.max(0,f.hp-d);pop('f'+B.foes.indexOf(f),String(d),'w');log(`라이프 월이 ${f.n}의 공격을 되돌렸다! (${d})`);return}
+ if(B.wall){B.wall=0;f.hp=Math.max(0,f.hp-d);fxMid('rune',{foot:true,stop:.3});fxFoe(f,'crit',{stop:.5});pop('f'+B.foes.indexOf(f),String(d),'w');log(`라이프 월이 ${f.n}의 공격을 되돌렸다! (${d})`);return}
  const ks=alive().find(x=>x.id==='kasumi');if(ks&&t!==ks&&t.hp<=t.max*.3&&chance(.5)){log(`카스미가 ${t.c.name} 앞을 가로막았다!`);say('kasumi','protect',t.id);t=ks;d=Math.round(d*.7);f.hp=Math.max(0,f.hp-10);pop('f'+B.foes.indexOf(f),'10','')}
- if(t.stance){t.stance=0;d=Math.round(d/2);f.hp=Math.max(0,f.hp-15);pop('f'+B.foes.indexOf(f),'15','');log(`${t.c.name}의 반격!`)}
+ if(t.stance){t.stance=0;fxPlay('parry',unitSel(t.id));fxFoe(f,'spark');d=Math.round(d/2);f.hp=Math.max(0,f.hp-15);pop('f'+B.foes.indexOf(f),'15','');log(`${t.c.name}의 반격!`)}
  else if(t.taunt){f.hp=Math.max(0,f.hp-10);pop('f'+B.foes.indexOf(f),'10','')}
  log(`${f.n}의 ${label||'공격'} → ${t.c.name} ${d}`);hurt(t,d,f);if(t.hp>0&&chance(.25))say(t.id,'hurt')}
 function setRows(list){list.forEach((m,i)=>m.row=i+1)}
@@ -792,29 +793,29 @@ async function foeAct(f,k){const B=G.battle,al=alive(),i=B.foes.indexOf(f);act('
  if(a==='steal'&&f.stolen)a='throw';
  switch(a){
   case 'claw':return strike(f,pickT([1]),1,'기습 할퀴기');
-  case 'step':f.evUp=.5;log(`${jo(f.n,"이","가")} 옆걸음으로 거리를 벌렸다 (회피↑)`);return;
+  case 'step':f.evUp=.5;fxFoe(f,'blink');log(`${jo(f.n,"이","가")} 옆걸음으로 거리를 벌렸다 (회피↑)`);return;
   case 'rush':log(`${jo(f.n,"이","가")} 일제히 덤벼들었다!`);for(const m of al)await strike(f,m,.6,'덤벼들기');return;
-  case 'call':{B.called=1;const x=mk({n:'섀도 무리',hp:18,atk:5,weak:['빙결','질풍'],p:['rush'],row:3},1+.35*G.fl,1+.25*G.fl,'swarm');B.foes.push(x);log('섀도 무리가 동료를 불러들였다!');return}
+  case 'call':{B.called=1;const x=mk({n:'섀도 무리',hp:18,atk:5,weak:['빙결','질풍'],p:['rush'],row:3},1+.35*G.fl,1+.25*G.fl,'swarm');B.foes.push(x);log('섀도 무리가 동료를 불러들였다!');render();fxFoe(x,'poof',{foot:true});return}
   case 'whistle':{const t=pick(al);t.sp=Math.max(0,t.sp-10);log(`${f.n}의 경고 호루라기! ${t.c.name} SP -10`);return}
   case 'flare':return strike(f,pickT([3]),1.3,'신호탄 사격');
   case 'bash':{const t=pickT([1]);await strike(f,t,1.5,'철갑 강타');if(t.hp>0&&t.row===1){const o=byRow(2);if(o){o.row=1;t.row=2;log(`${jo(t.c.name,"이","가")} 2열로 밀려났다!`)}}return}
-  case 'guard':f.def=.6;f.taunt=1;log(`${jo(f.n,"이","가")} 방패를 굳혔다 (받는 피해↓ · 도발)`);return;
-  case 'steal':{const y=Math.round(G.yen*.1);G.yen-=y;f.stolen=y;log(`${f.n}의 주머니 털기! ¥${y}를 빼앗겼다 (쓰러뜨리면 되찾음 · 3턴 뒤 도주)`);return}
+  case 'guard':f.def=.6;f.taunt=1;fxFoe(f,'dshield');log(`${jo(f.n,"이","가")} 방패를 굳혔다 (받는 피해↓ · 도발)`);return;
+  case 'steal':{const y=Math.round(G.yen*.1);G.yen-=y;f.stolen=y;fxFoe(f,'coins');log(`${f.n}의 주머니 털기! ¥${y}를 빼앗겼다 (쓰러뜨리면 되찾음 · 3턴 뒤 도주)`);return}
   case 'throw':{const t=pick(al);return strike(f,t,1,'보물 던지기')}
-  case 'scream':log(`${f.n}의 원혼의 비명! 전원 SP -6`);for(const m of al)m.sp=Math.max(0,m.sp-6);return;
+  case 'scream':log(`${f.n}의 원혼의 비명! 전원 SP -6`);for(const m of al){m.sp=Math.max(0,m.sp-6);fxPlay('cursed',unitSel(m.id))}return;
   case 'shuffle':{const L=[...al].sort(()=>Math.random()-.5);setRows([...L,...G.party.filter(m=>m.hp<=0)]);log(`${jo(f.n,"이","가")} 진형을 뒤섞었다!`);return}
-  case 'horn':for(const x of foeAlive())x.atkM=(x.atkM||1)*1.25;log(`${f.n}의 호각 명령! 적 전원 공격력 +25%`);return;
+  case 'horn':for(const x of foeAlive()){x.atkM=(x.atkM||1)*1.25;fxFoe(x,'charge',{foot:true})}log(`${f.n}의 호각 명령! 적 전원 공격력 +25%`);return;
   case 'eject':{const t=byRow(1);if(!t||t.hp<=0)return strike(f,pickT(),1);const rest=G.party.filter(m=>m!==t).sort((a,b)=>a.row-b.row);setRows([...rest,t]);log(`${f.n}의 강제 하차! ${jo(t.c.name,"이","가")} 3열로 밀려났다`);return}
   case 'fare':{const t=pick(al);return strike(f,t,G.items.length<3?1.8:1.4,'무임승차 적발')}
   case 'press':{log('검표원의 펀치 압박!');for(const m of al.filter(x=>x.row<=2))await strike(f,m,.9,'펀치');if(chance(.5)){const L=[...alive()].sort(()=>Math.random()-.5);setRows([...L,...G.party.filter(m=>m.hp<=0)]);log('개찰구가 덜컹이며 진형이 흐트러졌다!')}return}
   case 'declare':{f.declared=1;const n=riskN();log(`검표원의 그림자: 「검표 선언!」${n?` — 왜곡된 인지 ${n}개 적발, 전원 HP -${6*n}`:' — 승차권 이상 없음'}`);if(n)for(const m of al)m.hp=Math.max(1,m.hp-6*n);return}
-  case 'seize':{const c=G.items.map((_,x)=>x).filter(x=>!B.sealed.includes(x));if(!c.length)return strike(f,pickT(),1.2);const x=pick(c);B.sealed.push(x);(B.sealT||(B.sealT={}))[x]=2;log(`분실물 보관소의 주인: 「${IT(G.items[x]).n}」 압수! (2턴 봉인 · 약점 DOWN이면 해제)`);return}
-  case 'mirror':f.mirror=1;log(`${f.n} 앞에 반사 유리벽이 섰다 (다음 공격 1번 반사)`);return;
+  case 'seize':{const c=G.items.map((_,x)=>x).filter(x=>!B.sealed.includes(x));if(!c.length)return strike(f,pickT(),1.2);const x=pick(c);B.sealed.push(x);(B.sealT||(B.sealT={}))[x]=2;fxMid('hands',{foot:true});log(`분실물 보관소의 주인: 「${IT(G.items[x]).n}」 압수! (2턴 봉인 · 약점 DOWN이면 해제)`);return}
+  case 'mirror':f.mirror=1;fxFoe(f,'ffield',{foot:true});log(`${f.n} 앞에 반사 유리벽이 섰다 (다음 공격 1번 반사)`);return;
   case 'barrage':log('분실물 폭격!');for(const m of al)await strike(f,m,1.2,'폭격');return;
-  case 'dyne':{const t=pick(al);return strike(f,t,1.8,pick(['아기다인','부흐다인','지오다인','갈다인','사이오다인','프레이다인','코우하','에이가온']))}
+  case 'dyne':{const t=pick(al),[sn,el]=pick([['아기다인','화염'],['부흐다인','빙결'],['지오다인','전격'],['갈다인','질풍'],['사이오다인','염동'],['프레이다인','핵열'],['코우하','축복'],['에이가온','주원']]);fxPlay(EL_FX[el],unitSel(t.id));return strike(f,t,1.8,sn)}
   case 'riot':log('거두는 자의 라이엇 건!');for(const m of al)await strike(f,m,.9,'라이엇 건');return;
-  case 'conc':f.charge=1;log('거두는 자가 힘을 모은다… (컨센트레이트 — 다음 행동에 메기도라온)');return;
-  case 'megido':f.charge=0;flash('MEGIDOLAON');log('메기도라온!');for(const m of al)await strike(f,m,2.2,'메기도라온');return;
+  case 'conc':f.charge=1;fxFoe(f,'charge',{foot:true});log('거두는 자가 힘을 모은다… (컨센트레이트 — 다음 행동에 메기도라온)');return;
+  case 'megido':f.charge=0;flash('MEGIDOLAON');fxPlay('megido','.side.pt',{foot:true});log('메기도라온!');for(const m of al)await strike(f,m,2.2,'메기도라온');return;
   default:return strike(f,pickT(),1)}}
 async function enemyPhase(){const B=G.battle;ui.busy=true;
  if(B.foes.some(f=>f.hp>0&&f.key==='swarm')&&B.round>0){for(const m of alive())m.sp=Math.max(0,m.sp-3)}/* 섀도 무리: 방치하면 매 턴 SP -3 */
@@ -888,11 +889,12 @@ const RMQ=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').m
 /* 두 겹: 작은 이펙트는 1픽셀 = 2 CSS px(캐릭터 도트와 같은 굵기), 원래 큰 이펙트는 1픽셀 = 1 CSS px */
 const FXC={L:[{s:2,cv:null,fr:null,img:null,list:[]},{s:1,cv:null,fr:null,img:null,list:[]}],last:0,run:false,ok:!!window.PXFX&&!RMQ};
 const EL_FX={물리:'slash',화염:'fire',빙결:'ice',전격:'zap',질풍:'wind',염동:'psy',핵열:'nuke',축복:'holy',주원:'curse'};
-const FX_1X={nuke:1,psy:1,curse:1,holy:1,heal:1};
-const FX_PRE={fire:.42,holy:.48,curse:.3,ice:.12,psy:.15,heal:.1};/* 앞부분(예열)을 건너뛰어 맞는 순간에 터지게 */
-const FX_STOP={fire:.4,ice:.75,wind:.2,holy:.45,curse:.45,nuke:.55,psy:.45,heal:.55};/* 건너뛴 뒤 몇 초에 흐려지기 시작 */
-const FX_AT={slash:{dx:-14,dy:18},fire:{foot:1},ice:{foot:1,dy:4},wind:{foot:1},curse:{foot:1,dy:6},holy:{foot:1}};/* 이펙트별 위치 보정(CSS px) */
+const FX_1X={nuke:1,psy:1,curse:1,holy:1,heal:1,bless:1,ffield:1,scan:1,rune:1,parry:1,blink:1,charge:1,megido:1,hands:1,coins:1};
+const FX_PRE={fire:.42,holy:.48,curse:.3,ice:.12,psy:.15,heal:.1,megido:.2};/* 앞부분(예열)을 건너뛰어 맞는 순간에 터지게 */
+const FX_STOP={fire:.4,ice:.75,wind:.2,holy:.45,curse:.45,nuke:.55,psy:.45,heal:.55,sleep:1,stun:.9,cursed:.8,bless:.8,dshield:.9,ffield:.8,scan:1,rune:.8,charge:.9,excl:.9,megido:1.1,hands:1.1,coins:1};/* 건너뛴 뒤 몇 초에 흐려지기 시작 */
+const FX_AT={sleep:{dy:18},stun:{dy:20},dshield:{foot:1,dy:6},scan:{dy:14},slash:{dx:-14,dy:18},fire:{foot:1},ice:{foot:1,dy:4},wind:{foot:1},curse:{foot:1,dy:6},holy:{foot:1}};/* 이펙트별 위치 보정(CSS px) */
 const FX_OPT={slash:{radius:26},fire:{height:60},wind:{height:56},crit:{height:20}};
+const midU=()=>{const al=[...alive()].sort((a,b)=>a.row-b.row);return al[Math.floor(al.length/2)]},fxMid=(k,o)=>fxPlay(k,'.side.pt',{foot:true,...o}),fxFoe=(f,k,o)=>{const B=G.battle;if(B)fxPlay(k,foeSel(B.foes.indexOf(f)),o)};
 const foeSel=i=>`.foe[data-a="sel:${i}"] .bd`,unitSel=id=>`.unit[data-u="${id}"] img`;
 function fxAt(sel){const st=$('.stage');if(!st)return null;const a=st.getBoundingClientRect();if(!sel)return {x:a.width/2,y:a.height/2,b:a.height};const e=st.querySelector(sel);if(!e)return null;const b=e.getBoundingClientRect();return {x:b.left+b.width/2-a.left,y:b.top+b.height/2-a.top,b:b.bottom-a.top}}
 function fxPlay(key,sel,o={}){if(!FXC.ok)return;const P=fxAt(sel),mod=PXFX.fx[key];if(!P||!mod)return;o={...(FX_AT[key]||{}),...o};
@@ -1029,10 +1031,10 @@ function vAttic(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,Math.f
  const spots=Object.entries(ATTIC.spots).map(([k,[x,y,w,h,t,n]])=>`<button class="hspot ${k}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%" data-a="${t==='title'?'title':'ht:'+t}" aria-label="${n}"></button>`).join('');
  const hk=Math.max(1,Math.floor(sc/2))*((devicePixelRatio||1)>=1.5?.72:1);
  const people=cast.map((id,i)=>{const c=CH[id],[x,y]=ATTIC.stand[i],q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-a="htalk:${id}" aria-label="${c.name}">${q?`<span class="hsay${x<30?' l':x>70?' r':''}">${esc(q)}</span>`:''}<i class="hshd" aria-hidden="true"></i><img class="art sprites stand" src="${IMG}sprites/${id}.png" width="${Math.round(c.w*hk)}" alt="" draggable="false"><span class="hcode">${c.code}</span></button>`}).join('');
- return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1} · 지지율 ${supNow()}%</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
+ return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1}</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
  <section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
 function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.yen>=UPG[k].cost[SV.up[k]||0]),canPool=Object.entries(LOCK).some(([k,c])=>!SV.unl.includes(k)&&SV.yen>=c),canBond=Object.keys(SV.bond).some(k=>bondReady(k)&&SV.yen>=BOND.cost[SV.bond[k].lv]);
- const tabs=[['go','출발'],['up','모나 버스',canUp],['pool','템 해금',canPool],['bond','유대',canBond],['scene','장면'],['rec','기록']];
+ const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['scene','장면'],['rec','기록']];
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
@@ -1050,14 +1052,14 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   <div class="pick">${K.length?K.map(k=>{const [a,b]=k.split('|'),x=SV.bond[k],need=BOND.need[x.lv],c=BOND.cost[x.lv];return `<div class="pk"><span class="ic" style="font-size:12px;width:auto">${CH[a].code}<br>${CH[b].code}</span><span style="flex:1"><b>${CH[a].name} · ${CH[b].name}</b> <span class="tg">${x.lv}단계</span><small>${x.lv<3?`바톤 ${Math.min(x.n,need)}/${need}`:'최고 단계'}${BOND.bat[x.lv]?` · 바톤 +${BOND.bat[x.lv]*100}%`:''}</small><div class="bar"><i style="width:${x.lv<3?Math.min(100,x.n/need*100):100}%"></i></div></span>${x.lv?`<button class="tog" data-a="bsee:${k}">장면</button>`:''}${x.lv<3?`<button class="tog" data-a="bond:${k}" ${x.n>=need&&SV.yen>=c?'':'disabled'}>${x.n>=need?`¥${c}`:'더 싸우기'}</button>`:''}</div>`}).join(''):'<p class="tip">아직 쌓인 유대가 없습니다. 전투에서 1 MORE 때 바톤을 넘겨 보세요.</p>'}</div>`}
  if(t==='scene'){const sc=SV.scenes||[],cx=SV.chains||{},C=SCRIPT.combos||[],seen=C.reduce((n,x)=>n+x.ch.filter((_,i)=>sc.includes(x.id+':'+(i+1))).length,0),tot=C.reduce((n,x)=>n+x.ch.length,0);
   const V=ui.sv&&C.find(x=>x.id===ui.sv.id),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
-  body=`<p class="tip">조합 사건 결말 ${seen} / ${tot} · 사슬 ${Object.values(cx).filter(v=>v>=3).length} / ${SCRIPT.chains.length}. 본 장면을 누르면 다시 봅니다.</p>
+  body=`<p class="tip">조합 사건 결말 ${seen} / ${tot} · 사슬 ${Object.values(cx).filter(v=>v>=3).length} / ${SCRIPT.chains.length}</p>
   ${V?(()=>{const c=V.ch[ui.sv.i];return `<div class="dlg"><span class="who">REPLAY</span><p><b>${esc(V.title)} — ${esc(c.label)}</b></p><p>${esc(V.intro)}</p>${Q(V.a,V.qa)}${Q(V.b,V.qb)}<p>${esc(c.n)}</p>${Q(V.a,c.qa)}${Q(V.b,c.qb)}</div>`})():''}
-  <div class="pick">${C.map(x=>`<div class="pk"><span class="ic" style="font-size:12px;width:auto">${CH[x.a].code}<br>${CH[x.b].code}</span><span style="flex:1"><b>${esc(x.title)}</b><span class="els">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i style="background:#3a2a2e;color:var(--mut)">???</i>').join('')}</span></span></div>`).join('')}</div>
-  <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="pick">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="pk"><span class="ic en">${v>=3?'END':v?v+'/3':'?'}</span><span><b>${v?esc(c.name):'???'}</b><small>${['아직 못 봄','발견','전개','결말까지'][v]||''}</small></span></div>`}).join('')}</div>`}
+  <div class="scg">${C.map(x=>`<div class="scc"><small>${CH[x.a].code} · ${CH[x.b].code}</small><b>${esc(x.title)}</b><span class="sce">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i class="nx" title="아직 못 본 결말"></i>').join('')}</span></div>`).join('')}</div>
+  <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="scg">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="scc"><small>${v>=3?'END':v+'/3'}</small><b>${v?esc(c.name):'???'}</b></div>`}).join('')}</div>`}
  if(t==='rec'){const L=slots();body=`<p class="tip">르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 저장해 둡니다. 불러오면 지금 진행이 그 기록으로 바뀌고, 이어하던 판은 사라집니다.</p><div class="pick">${[0,1,2].map(i=>{const x=L[i];return `<div class="pk"><span class="ic">${i+1}</span><span style="flex:1">${x?`<b>${new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</b><small>${x.runs}판 · 지갑 ¥${x.yen}${x.sv&&x.sv.q!=null?` · 지지율 ${[0,35,70,100][x.sv.q]}%`:''}</small>`:'<small>빈 칸</small>'}</span><button class="tog" data-a="ssave:${i}">저장</button>${x?`<button class="tog" data-a="sload:${i}">불러오기</button>`:''}</div>`}).join('')}</div>
   <div class="row2" style="margin-top:8px"><button class="tog ${SV.tutOff?'':'on'}" data-a="tutt">튜토리얼 안내 ${SV.tutOff?'끔':'켬'}</button><button class="tog" data-a="tutr">안내 처음부터</button></div>`}
  return `<main class="hub">${vAttic()}<div class="title" style="padding-top:10px">${vQuest()}${vNext()}
- <div class="row2" style="gap:4px;flex-wrap:wrap">${tabs.map(([k,n,b])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</div>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
+ <div class="row2 tabs">${tabs.map(([k,n,b])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}${b?'<i class="dot" aria-label="살 수 있음"></i>':''}</button>`).join('')}</div>${body}<button class="sm" data-a="title">메인 화면</button></div></main>`}
 /* 유대 장면: 그 두 사람의 쌍대사·케미 대사 (1단계 첫째, 3단계 둘째) */
 function bondScene(k){const [a,b]=k.split('|'),x=SV.bond[k];if(!x||!x.lv)return '';const L=[...(LINES.pairs||[]),...(LINES.chem||[])].filter(p=>(p.a===a&&p.b===b)||(p.a===b&&p.b===a)),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
  const sh=L.slice(0,x.lv>=3?2:1);return `<p><b>르블랑의 밤 — ${jo(CH[a].name,'과','와')} ${CH[b].name}</b></p>${sh.length?sh.map(p=>Q(p.a,p.qa)+Q(p.b,p.qb)).join('<hr>'):'<p>둘은 말없이 커피를 나눠 마셨다. 그걸로 충분했다.</p>'}`}

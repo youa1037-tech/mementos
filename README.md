@@ -29,7 +29,7 @@
 
 비상업 · 비공식 팬 게임입니다. 《페르소나 5》 및 등장인물의 권리는 ATLUS / SEGA에 있으며, 공식 게임의 일러스트·음악·UI 리소스는 사용하지 않았습니다.
 
-전투 이펙트: [pixelfx](https://github.com/patch-gg/pixelfx) (MIT License, © 2026 Patch · Hugo Duprez) 중 15종을 `fx/pixelfx.js`로 묶어 씁니다. 전문은 `fx/LICENSE-pixelfx.txt`.
+전투 이펙트: [pixelfx](https://github.com/patch-gg/pixelfx) (MIT License, © 2026 Patch · Hugo Duprez) 중 30종을 `fx/pixelfx.js`로 묶어 씁니다. 전문은 `fx/LICENSE-pixelfx.txt`.
 
 배경음악:
 - 대기 화면 — "Vibing Over Venus" Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/)

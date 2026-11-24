@@ -34,4 +34,4 @@ https://github.com/rehan-remade/hollow-crown, Copyright (c) 2026 rehan-remade, M
 **Patch Pixel.** The font in `gallery/fonts` is Patch's own and is not covered by this repository's MIT license. See
 `gallery/fonts/NOTICE.md`.
 
-이 게임(오늘도 메멘토스!)은 pixelfx의 효과 15종(hit-spark · crit-hit · blunt-hit · impact-frame · sword-slash · flame-pillar · ice-shatter · zap-hit · tornado · mana-burst · plasma-explosion · smite · dark-explosion · heal-aoe · poof)을 esbuild로 묶어 fx/pixelfx.js로 씁니다. 글꼴(Patch Pixel)은 쓰지 않습니다.
+이 게임(오늘도 메멘토스!)은 pixelfx의 효과 30종(hit-spark · crit-hit · blunt-hit · impact-frame · sword-slash · flame-pillar · ice-shatter · zap-hit · tornado · mana-burst · plasma-explosion · smite · dark-explosion · heal-aoe · poof · sleep · stunned · cursed · blessing · divine-shield · force-field · scanner · rune-circle · parry · exclamation · blink-out · spell-charge · nuke · grasping-hands · coin-drop)을 esbuild로 묶어 fx/pixelfx.js로 씁니다. 글꼴(Patch Pixel)은 쓰지 않습니다.
