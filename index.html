@@ -332,6 +332,8 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 @media (prefers-reduced-motion:reduce){.pk.rv,.pk.rS::after{animation:none}}
 .hud .fl{white-space:nowrap}.hud .dpm{font-size:12px;color:#ff4fd8;margin-left:2px;vertical-align:6px}
 .stage.deepz::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 50% 55%,transparent 45%,rgba(120,0,60,.35));mix-blend-mode:multiply}
+.qgo{margin-top:8px;padding:8px 10px;background:#000;border-left:3px solid var(--gold);font:13px/1.5 var(--kr);color:var(--ink)}.qgo b.en{color:var(--gold);margin-right:4px}.qgo .sm{margin:6px 0 0;display:block}
+.qgo.in{margin-top:6px}.quest .qy{display:block;color:var(--mut);margin-top:4px}.qrw{color:var(--ink)}.qrw b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -417,9 +419,21 @@ const BOSSES=[
  {n:'거두는 자 — 최심부',hp:480,atk:19,weak:'rot',boss:'final',fin:1,d:'의뢰 3 · 약점이 매 턴 바뀜 · 두 번 행동 · 컨센트레이트 → 메기도라온'}];
 /* 의뢰 사다리 (괴도 채널): 관문 보스 = 의뢰 대상. 지지율 0 → 35 → 70 → 100 */
 const QUESTS=[
- {n:'검표원의 그림자 개심',en:"THE TICKET INSPECTOR'S SHADOW",fl:0,sup:35,ctx:'승객들의 기억을 「무임승차」로 몰아 빼앗는 B1의 지배자.',next:'B2 선로 발견 — 모나 버스 Lv.2 개조가 필요하다'},
- {n:'분실물 보관소의 주인 개심',en:'KEEPER OF THE LOST & FOUND',fl:1,sup:70,ctx:'사람들의 소중한 물건을 훔쳐 숨기는 B2의 지배자.',next:'B3 최심부 개방'},
- {n:'최심부의 거두는 자 토벌',en:'THE REAPER OF THE DEPTHS',fl:2,sup:100,ctx:'뒤틀린 선로의 원흉. 처음엔 도망쳐야 했던 존재를 빌드로 역공략하라.',next:'지지율 100% — 엔딩'}];
+ {n:'검표원의 그림자 개심',en:"THE TICKET INSPECTOR'S SHADOW",fl:0,sup:35,ctx:'승객들의 기억을 「무임승차」로 몰아 빼앗는 B1의 지배자.',next:'B2 선로 발견 — 모나 버스 Lv.2 개조가 필요하다',y:3000},
+ {n:'분실물 보관소의 주인 개심',en:'KEEPER OF THE LOST & FOUND',fl:1,sup:70,ctx:'사람들의 소중한 물건을 훔쳐 숨기는 B2의 지배자.',next:'B3 최심부 개방',y:6000},
+ {n:'최심부의 거두는 자 토벌',en:'THE REAPER OF THE DEPTHS',fl:2,sup:100,ctx:'뒤틀린 선로의 원흉. 처음엔 도망쳐야 했던 존재를 빌드로 역공략하라.',next:'지지율 100% — 엔딩',y:10000}];
+/* 의뢰 완료: 보상 엔은 그 자리에서 르블랑 지갑으로 (판 수익 상한과 따로, 전멸해도 받음) */
+function questClear(){const i=G.fl;if(i>=QUESTS.length||(SV.q||0)!==i)return false;const Q=QUESTS[i];SV.q=i+1;G.questHit=true;G.questNew=i+1;G.questY=Q.y;SV.yen+=Q.y;save();
+ log(`의뢰 ${i+1} 완료 — ${Q.n}! 괴도 채널 지지율 ${Q.sup}% · 의뢰 보상 ¥${Q.y.toLocaleString()}이 르블랑 지갑으로 들어왔습니다`);return true}
+/* 지금 해야 할 일 한 줄 (의뢰 진행 · 버스 개조 단계에 맞춰) */
+function questGuide(){const q=SV.q||0,b=SV.up.bus||0,c=UPG.bus.cost;
+ if(q===0)return {t:'B1 관문 「검표원의 그림자」를 쓰러뜨리세요. 지도 맨 위의 관문 칸입니다.'};
+ if(q===1&&b<1)return {t:`르블랑 〈개조〉에서 모나 버스 Lv.2(¥${c[0].toLocaleString()})를 개조하세요. 그러면 B1 관문을 넘은 뒤 GO DEEPER로 B2에 내려갈 수 있습니다.`,a:'ht:up',bn:'개조하러 가기'};
+ if(q===1)return {t:`B1 관문을 넘고 GO DEEPER로 B2에 내려가, 관문 「분실물 보관소의 주인」을 쓰러뜨리세요.${upgOk('warp')&&!(SV.up.warp||0)?` 〈개조〉의 선로 직행(¥${UPG.warp.cost[0].toLocaleString()})을 사면 B2부터 출발할 수 있습니다.`:''}`};
+ if(q===2&&b<2)return {t:`르블랑 〈개조〉에서 모나 버스 Lv.3(¥${c[1].toLocaleString()})를 개조하세요. 그러면 B2 관문 뒤에서 B3 최심부로 내려갈 수 있습니다.`,a:'ht:up',bn:'개조하러 가기'};
+ if(q===2)return {t:'B3 최심부까지 내려가 관문 「최심부의 거두는 자」를 쓰러뜨리세요. 약점이 매 턴 바뀌니 분석 렌즈나 여러 속성을 챙기면 좋습니다.'};
+ return {t:`엔딩을 봤습니다. 이제 B3 관문을 넘은 뒤 ∞ ENDLESS로 심층 최고 기록(지금 B${Math.max(3,SV.deep||0)})에 도전하거나, 각성 · 유대 · 유물 팩을 모아 보세요.`}}
+const vGuide=(cls='')=>{const g=questGuide();return `<div class="qgo ${cls}"><b class="en">NEXT</b> ${esc(g.t)}${g.a&&cls!=='in'?` <button class="sm" data-a="${g.a}">${g.bn}</button>`:''}</div>`};
 const qNow=()=>QUESTS[Math.min(SV.q||0,2)],supNow=()=>[0,35,70,100][SV.q||0];
 const REAPER={n:'거두는 자',hp:300,atk:20,weak:null,reap:1,d:'약점 없음 · 스킬 피해 절반(템 고정 피해는 그대로) · 두 번 행동 · 컨센트레이트 → 메기도라온'};
 const FLOORS=[
@@ -537,8 +551,8 @@ function nextUnlock(){const L=[];
  for(const [k,P] of Object.entries(PACKS))if(!packDone(k))L.push({n:`유물 ${P.n}`,e:'RELIC PACK',c:P.c,t:'pool'});
  if(!L.length)return null;const pr=L[0].t==='up'&&L[0].n.startsWith('모나')?L[0]:L.sort((a,b)=>a.c-b.c)[0];return {...pr,can:L.filter(x=>SV.yen>=x.c).length}}
 function vNext(){const x=nextUnlock();if(!x)return '';return `<button class="nextu ${SV.yen>=x.c?'ok':''}" data-a="ht:${x.t}"><b class="en">NEXT UNLOCK</b><span>${esc(x.n)}</span><em>¥${SV.yen.toLocaleString()} / ¥${x.c.toLocaleString()}</em>${x.can?`<i class="shopb">SHOP ${x.can}</i>`:''}</button>`}
-function vQuest(){const q=SV.q||0;if(q>=3)return `<div class="quest done"><b class="en">PHANTOM CHANNEL · 지지율 100%</b><p>의뢰 셋을 모두 해냈다. 뒤틀린 선로는 제자리로 돌아왔다.</p></div>`;
- const Q=QUESTS[q];return `<div class="quest"><b class="en">MAIN REQUEST ${q+1}/3 · 지지율 ${supNow()}%</b><p><b>${esc(Q.n)}</b> <small>(B${Q.fl+1} 관문)</small></p><div class="qbar"><i style="width:${supNow()}%"></i></div></div>`}
+function vQuest(){const q=SV.q||0;if(q>=3)return `<div class="quest done"><b class="en">PHANTOM CHANNEL · 지지율 100%</b><p>의뢰 셋을 모두 해냈다. 뒤틀린 선로는 제자리로 돌아왔다.</p>${vGuide()}</div>`;
+ const Q=QUESTS[q];return `<div class="quest"><b class="en">MAIN REQUEST ${q+1}/3 · 지지율 ${supNow()}%</b><p><b>${esc(Q.n)}</b> <small>(B${Q.fl+1} 관문)</small></p><div class="qbar"><i style="width:${supNow()}%"></i></div><small class="qy">완료 보상 ¥${Q.y.toLocaleString()}</small>${vGuide()}</div>`}
 /* 서브 의뢰: 판마다 하나. 해내면 귀환할 때 보너스 (전멸하면 없음) */
 const SUBS=[
  {id:'allout',t:'총공격 2번',y:700,ok:()=>G.stats.allout>=2},
@@ -963,7 +977,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
  if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.risk<=10)G.stats.quietGate=true;
-  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1;log(`의뢰 ${G.fl+1} 완료 — ${QUESTS[G.fl].n}! 괴도 채널 지지율 ${QUESTS[G.fl].sup}%`);setTimeout(()=>flash('REQUEST CLEAR','g'),60)}/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
+  if(questClear())setTimeout(()=>flash('REQUEST CLEAR','g'),60);/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
   if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
  if(B.kind==='reaper'){G.reaperKill=1;SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
@@ -1113,7 +1127,7 @@ function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  if(P&&P.clear){G.cleared=true;ui.screen='floor';return render()}/* B3 이후: 무한 모드 갈림길로 */
  if(P&&P.floor){ui.screen='floor';return render()}
  if(!P&&G.map.T[G.at]==='boss'&&G.map.done.has(G.at)){/* 관문을 이긴 직후 멈췄던 판 살리기: 관문 보상 → 층 끝 갈림길 */
-  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1}SV.deep=Math.max(SV.deep,G.fl+1);
+  questClear();SV.deep=Math.max(SV.deep,G.fl+1);
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;save();runSave(true,G.cleared?{clear:1}:{floor:1});log('— 관문을 넘은 자리에서 이어서 —');
   return offer('관문이 떨어뜨린 것 (확정)',1,G.fl>=1?'evo':'boom')}
  render()}
@@ -1302,7 +1316,7 @@ function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
  <div class="dlg"><span class="who">FUSION</span><p>${G.benchUsed?'합성 완료':`위 템 칸에서 <b>2개</b>를 골라 넣으면 <b>진화 템</b> 3개 중 하나`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
-function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
+function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% · 보상 <b>+¥${QUESTS[n-1].y.toLocaleString()}</b> (르블랑 지갑으로)</p><p class="tip">${esc(questGuide().t)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
  ${n>=3?`<p class="tip">∞ <b>무한 모드</b> — 심층은 한 층마다 적이 세지고, 관문마다 <b>심층 보너스</b>(상한과 따로)가 쌓입니다. 전멸하면 심층 보너스는 사라집니다.${G.deepBonus?` 지금 <b>+¥${G.deepBonus}</b>`:''} · 최고 기록 B${Math.max(SV.deep||0,n)}</p>`:''}<div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">${n>=3?'ALL CLEAR':'RETURN'}</button>${ok?`<button class="go" data-a="down">${n>=3?'∞ ENDLESS ↓':'GO DEEPER ↓'}</button>`:''}</div>`}
 function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  const lk=m.edges.filter(([a,b])=>known(a)&&known(b)&&(m.vis.has(a)||m.vis.has(b))).map(([a,b])=>{const [r1,c1,r2,c2]=[a>>2,a%4,b>>2,b%4],h=r1===r2;
@@ -1313,7 +1327,7 @@ function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  <div class="row2">${G.curry>0?`<button class="go sub" data-a="curry">CURRY ×${G.curry}</button>`:''}<button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">서브 의뢰 · ${esc(subNow().t)}${subNow().ok()?' ✔':''}</p>`}
 function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 ▴':'로그 펼치기 ▾'}</button>${ui.log?`<div class="log">${G.log.map(l=>`<p>${l.who?`<b>${CH[l.who].name}</b> 「${esc(l.t)}」`:esc(l.t)}</p>`).join('')}</div>`:''}`}
 function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?(G.fl>=3?'ENDLESS CLEAR':'ALL CLEAR'):'RETURNED';
- return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?(G.fl>=3?`무한 모드로 심층 B${G.fl+1}까지 내려갔다가 무사히 돌아왔습니다.`:'세 관문을 모두 넘고 무사히 르블랑으로 돌아왔습니다.'):`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
+ return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?(G.fl>=3?`무한 모드로 심층 B${G.fl+1}까지 내려갔다가 무사히 돌아왔습니다.`:'세 관문을 모두 넘고 무사히 르블랑으로 돌아왔습니다.'):`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><p class="qrw">의뢰 보상 <b>+¥${QUESTS[G.questNew-1].y.toLocaleString()}</b> <small>(르블랑 지갑으로 · 판 수익과 따로)</small></p>${vGuide('in')}</div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
  <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd>${e.dy?`<dt>심층 보너스</dt><dd>+¥${e.dy}</dd>`:''}<dt>도달</dt><dd>B${G.fl+1}${G.fl>=3?' ∞':''}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
  <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${tierI(id,'sl')}${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
  ${(G.afters||[]).length?`<div class="card"><b class="en" style="color:var(--gold)">AFTER</b>${G.afters.map(a=>`<div style="margin-top:8px">${a.chain?`<small class="tg">사슬 · ${esc(a.chain)}</small>`:''}${a.lines.map(l=>l.who&&CH[l.who]?`<p style="margin:4px 0"><b style="color:${CH[l.who].col}">${CH[l.who].name}</b> 「${esc(fillT(l.t))}」</p>`:`<p style="margin:4px 0;color:var(--mut)">${esc(fillT(l.t))}</p>`).join('')}</div>`).join('')}</div>`:''}
