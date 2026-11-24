@@ -330,6 +330,8 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .pk.up{outline:2px solid #ff4fd8;outline-offset:-2px}.pk .tg.upg{background:#ff4fd8;color:#141012}
 @keyframes shine{0%{transform:translateX(-100%)}45%,100%{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.pk.rv,.pk.rS::after{animation:none}}
+.hud .fl{white-space:nowrap}.hud .dpm{font-size:12px;color:#ff4fd8;margin-left:2px;vertical-align:6px}
+.stage.deepz::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 50% 55%,transparent 45%,rgba(120,0,60,.35));mix-blend-mode:multiply}
 </style>
 </head>
 <body>
@@ -422,6 +424,10 @@ const FLOORS=[
  {n:'환승 구역',en:'TRANSFER ZONE',rooms:8,types:['battle','battle','battle','chest','curio','bench']},
  {n:'유실물 보관실',en:'LOST PROPERTY',rooms:8,types:['battle','battle','battle','chest','curio','bench']},
  {n:'버려진 플랫폼',en:'ABANDONED PLATFORM',rooms:9,types:['battle','battle','battle','battle','chest','curio','bench']}];
+/* 무한 모드: B3 관문을 넘으면 B4부터 심층. 깊이 d = 층-2. 구역 이름·색은 세 구역을 돌고, 적·관문은 깊이마다 세진다 */
+const DEEP=()=>Math.max(0,G.fl-2),zoneOf=f=>f<3?f:(f-3)%3,
+ FLR=f=>f<3?FLOORS[f]:{...FLOORS[2],n:`심층 · ${FLOORS[zoneOf(f)].n}`,en:`DEEP ${f+1}`,rooms:10,types:[...FLOORS[2].types,'battle']},
+ bossOf=f=>{if(f<3)return BOSSES[f];const b=BOSSES[(f-3)%3];return {...b,n:`심층의 ${b.n.replace(' — 최심부','')}`,hp:BOSSES[2].hp,atk:BOSSES[2].atk,d:b.d+' · 심층 보정'}};/* 패턴은 세 관문을 돌고, 체력·공격은 B3 관문 기준에서 시작 */
 /* 템: 세 축(스위칭 · 약점 · 왜곡) × 발동기 · 증폭기 · 폭발기. 같은 템은 겹쳐 쌓이고, 가방 칸 제한은 없다. 거울 파편은 발동기 효과를 한 번 더.
    왜곡 축 = HP가 낮을수록 세지는 템 + 대가가 붙은 '왜곡된 인지'(risk) */
 const ITEMS={
@@ -562,7 +568,7 @@ function rollDay(){const L=DAYS.filter(d=>d.id!==SV.today);SV.today=L.length?pic
 if(!SV.today)rollDay();
 const SET_START=1000,SET_BET=1500,BET_WIN=4500;
 /* 수입 다이어트 (검증 2차: 판당 평균 ¥9,883 · 최대 ¥42,279 → 목표 ¥2,500~3,800 · 최대 ¥15,000) */
-const YEN_K=.6,RUN_CAP=15000;const yk=v=>Math.round(v*YEN_K);
+const YEN_K=.6,RUN_CAP=15000,DEEP_Y=600;const yk=v=>Math.round(v*YEN_K);
 /* ============ 대사 (시트 그대로, tools/proto_lines.py) ============ */
 const KEYS=new Set(['find','chat','reply','support','protect','hurt','argue','back','enemy','win','trap','treasure','decide','gambit']);
 function line(who,k,tg){const L=((LINES.lines||{})[who]||{})[k]||[];const inP=id=>!!(G.party&&G.party.some(m=>m.id===id)),c=L.filter(x=>!Array.isArray(x)||((tg?x[1]===tg:!x[1]||inP(x[1]))&&(x[2]||[]).every(inP)))/* 대상·필요 캐릭터가 파티에 있을 때만 (시트 '필요 캐릭터' 칸) */,x=pick(c.length?c:L);if(!x)return '';
@@ -596,11 +602,11 @@ function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH
  newFloor(f0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.${f0?` (선로 직행 — B${f0+1})`:''}`);
  log(`의뢰: ${qNow().n} · 서브 의뢰: ${subNow().t} (+¥${subNow().y})`);
  if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600,true),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save()}
-function floorPlan(f){const F=FLOORS[f],ty=[...F.types];let rooms=F.rooms;
+function floorPlan(f){const F=FLR(f),ty=[...F.types];let rooms=F.rooms;
  const d=DF(),swap=(a,b)=>{const i=ty.indexOf(a);if(i>=0)ty[i]=b};if(d.curio||d.quiet)swap('battle','curio');if(d.battle){ty.push('battle');rooms++}
  return {rooms,types:ty.sort(()=>Math.random()-.5)}}
 function newFloor(f){G.fl=f;G.map=genMap(floorPlan(f));G.at=G.map.start;G.map.vis=new Set([G.at]);G.map.done=new Set([G.at]);G.flBattles=0;G.reaperMet=false;ui.screen='map';
- if(f){log(`B${f+1} ${FLOORS[f].n} — 선로가 더 깊이 이어진다.`)}render()}
+ if(f){log(`B${f+1} ${FLR(f).n} — 선로가 더 깊이 이어진다.${f>=3?` (심층 ${f-2} · 적이 더 세다)`:''}`)}render()}
 function genMap(F){const N=[],nb=i=>[i-4,i+4,i%4?i-1:-1,i%4<3?i+1:-1].filter(x=>x>=0&&x<16);
  const start=12+R(0,3),S=[start];while(S.length<F.rooms){const a=pick(S),b=pick(nb(a));if(!S.includes(b)){S.push(b);N.push([a,b])}}
  if(chance(.6)){const c=[];for(const a of S)for(const b of nb(a))if(a<b&&S.includes(b)&&!N.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a)))c.push([a,b]);if(c.length)N.push(pick(c))}
@@ -688,7 +694,7 @@ function openChest(){openVault('잠긴 금고 차량이 선로 끝에 멈춰 있
 function openVault(n){G.ev={kind:'plain',t:'금고 차량',n};say(pick(alive()).id,'find');ui.screen='event';render()}
 const flY=()=>1+G.fl*.6;
 const chestN=()=>cnt('chain')+(cnt('gate')?1:0)+(DF().chest2?1:0);
-const chestPool=()=>G.fl===2&&chance(.35)?'evo':'base';/* B3 상자는 가끔 진화 템 */
+const chestPool=()=>G.fl>=2&&chance(G.fl>=3?.5:.35)?'evo':'base';/* B3 상자는 가끔 진화 템 */
 function resolveEv(mode){const e=G.ev;if(!e)return;if((mode==='stop'||mode==='boost')&&G.cmd<=0)return;if(mode==='stop'||mode==='boost')G.cmd--;G.ev=null;
  if(e.kind==='plain'){if(chance(.15)){log('금고가 이빨을 드러냈다! 섀도가 숨어 있었다!');say(pick(alive()).id,'trap');return startBattle('ambush')}G.stats.vault++;G.yen+=yk(R(150,300)*flY());return offer('금고 안에서 쓸 만한 것이 나왔다',1+chestN(),chestPool())}
  const who=e.who,m=G.party.find(x=>x.id===who),ch=e.kind==='chest'?chestN():0;
@@ -734,7 +740,6 @@ function offer(why,n=1,pool='base',ax=null){const P=pool==='evo'?EVO:ITEMS,keys=
 function reroll(){const P=G.pick;if(!P||G.reroll<=0)return;G.reroll--;log('3지선다를 다시 뽑았다');offer(P.why,P.left,P.pool,P.ax)}
 function takeItem(id){G.items.push(id);/* 가방 칸 제한 없음 */log(`템 획득: ${IT(id).n}`);if(EVO[id])flash('EVOLVED','g');afterPick()}
 function afterPick(){const P=G.pick;P.left--;if(P.left>0)return offer(P.why,P.left,P.pool,P.ax);G.pick=null;
- if(G.cleared)return endRun('clear');
  if(G.floorDone){G.floorDone=false;ui.screen='floor';return render()}
  ui.screen='map';render()}
 /* 슬롯 봉인(분실물 보관소의 주인)은 그 전투 동안만 */
@@ -742,11 +747,11 @@ const cnt=id=>G.items.filter((x,i)=>x===id&&!(G.battle&&G.battle.sealed&&G.battl
 const mul=()=>1+cnt('mirror');
 /* ============ 전투 ============ */
 function startBattle(kind,k=1){if(kind!=='reaper')G.stats.battles++;if(kind==='normal'||kind==='ambush')G.flBattles++;
- const n=G.flBattles,hs=(1+.35*G.fl)*(1+.12*Math.max(0,n-1)),as=1+.25*G.fl;let foes;
- if(kind==='boss')foes=[mk(BOSSES[G.fl],1,1)];else if(kind==='reaper')foes=[mk(REAPER,1+.25*G.fl,1+.15*G.fl)];
- else{const c=kind==='ambush'?(k>1?3:2):n<=1&&G.fl===0?2:3,ok=Object.keys(FOES).filter(x=>FOES[x].fl.includes(G.fl)),nn=ok.filter(x=>FOES[x].tier==='n'),ee=ok.filter(x=>FOES[x].tier==='e');
-  const fl0=G.fl===0&&!DF().elite;const ks=Array.from({length:c},(_,i)=>fl0?pick(nn):G.fl===0?(i===0?pick(ee.length?ee:nn):pick(nn)):G.fl===1?(i===0?pick(ee):pick(chance(.5)?ee:nn)):(i<2?pick(ee):pick(nn)));/* B1 일반만 · B2 정예 1 이상 · B3 정예 위주 */
-  if(G.fl===2&&!ks.includes('conductor')&&chance(.6))ks[0]='conductor';
+ const n=G.flBattles,dp=DEEP(),hs=(1+.35*G.fl)*(1+.12*Math.max(0,n-1))*Math.pow(1.15,dp),as=(1+.25*G.fl)*Math.pow(1.08,dp);let foes;/* 심층은 한 층마다 HP ×1.15 · 공격 ×1.08 더 */
+ if(kind==='boss')foes=[mk(bossOf(G.fl),1+.3*dp,1+.1*dp)];else if(kind==='reaper')foes=[mk(REAPER,1+.25*G.fl,1+.15*G.fl)];
+ else{const c=kind==='ambush'?(k>1?3:2):n<=1&&G.fl===0?2:3,ok=Object.keys(FOES).filter(x=>FOES[x].fl.includes(Math.min(2,G.fl))),nn=ok.filter(x=>FOES[x].tier==='n'),ee=ok.filter(x=>FOES[x].tier==='e');
+  const fl0=G.fl===0&&!DF().elite;const ks=Array.from({length:c},(_,i)=>fl0?pick(nn):G.fl===0?(i===0?pick(ee.length?ee:nn):pick(nn)):G.fl===1?(i===0?pick(ee):pick(chance(.5)?ee:nn)):G.fl>=3?pick(chance(.85)?ee:nn):(i<2?pick(ee):pick(nn)));/* 심층은 거의 정예 *//* B1 일반만 · B2 정예 1 이상 · B3 정예 위주 */
+  if(G.fl>=2&&!ks.includes('conductor')&&chance(.6))ks[0]='conductor';
   foes=ks.map(x=>mk(FOES[x],hs,as,x)).sort((a,b)=>a.row-b.row)}/* 선호 열 순서로 선다 */
  G.battle={crit:G.buff==='dart'&&!G.dartUsed&&(G.dartUsed=1)?.2:0,kind,foes,round:0,acted:new Set(),moreT:0,relay:0,atk:0,vuln:0,free:0,combo:0,env:false,extra:null,sel:0,showtime:false,sealed:[],rotEl:pick(ELS),unify:null};
  ui.screen='battle';
@@ -756,7 +761,7 @@ function startBattle(kind,k=1){if(kind!=='reaper')G.stats.battles++;if(kind==='n
  if(cnt('crack')){for(const m of alive())m.hp=Math.max(1,m.hp-8*cnt('crack'));log('깨진 정기권: 개찰구 경보음 — 전원 HP -8');glow('crack')}
  if(cnt('navi')){for(const f of foes)if(f.weak&&f.weak!=='rot'){f.seen=1;SV.weak[f.n]=1}save();log('내비의 코어: 적 전원의 약점이 드러났다!');glow('navi')}
  const ln=cnt('lens')*mul();for(let i=0;i<ln;i++){const f=foes.find(x=>x.weak&&x.weak!=='rot'&&!SV.weak[x.n]&&!x.seen);if(f){f.seen=1;SV.weak[f.n]=1;save();log(`분석 렌즈: ${f.n}의 약점은 ${[].concat(f.weak).join('·')}!`);glow('lens')}}
- log(kind==='boss'?`관문 — ${foes[0].n}! (${BOSSES[G.fl].d})`:kind==='reaper'?`쇠사슬 소리와 함께 거두는 자가 나타났다! (${REAPER.d}) 이길 자신이 없으면 귀환하십시오.`:kind==='ambush'?'기습이다! 섀도들이 먼저 덮쳤다!':'섀도가 앞을 가로막았다!');
+ log(kind==='boss'?`관문 — ${foes[0].n}! (${bossOf(G.fl).d})`:kind==='reaper'?`쇠사슬 소리와 함께 거두는 자가 나타났다! (${REAPER.d}) 이길 자신이 없으면 귀환하십시오.`:kind==='ambush'?'기습이다! 섀도들이 먼저 덮쳤다!':'섀도가 앞을 가로막았다!');
  say(pick(alive()).id,'enemy');newRound(kind==='ambush')}
 function mk(F,hs,as,key){hs*=DF().fhp||1;return {key,fin:F.fin,n:F.n,hp:Math.round(F.hp*hs),max:Math.round(F.hp*hs),atk:Math.round(F.atk*as),weak:F.weak,res:F.res,boss:F.boss,reap:F.reap,immune:F.immune,tier:F.tier,row:F.row||1,evade:F.evade||0,evPhys:F.evPhys||0,p:F.p||[],pi:0,turns:0,down:false}}
 const foeRow=f=>foeAlive().indexOf(f)+1;/* 살아 있는 적 중 앞에서 몇 번째 */
@@ -950,18 +955,19 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  G.kills+=B.foes.filter(f=>!f.fled).length;G.stats.wins++;
  const back=B.foes.reduce((t,f)=>t+(!f.fled&&f.stolen||0),0);if(back){G.yen+=back;log(`되찾은 엔 ¥${back}`)}
  const fy=f=>f.fled?0:yk(f.tier==='e'?R(600,950):f.tier==='n'?R(350,420):0);
- const bossY={ticket:yk(2200),lost:yk(3500),final:yk(6000)},cm=1+.6*Math.min(1,cnt('crack'));/* 정기권은 겹쳐도 한 번만 */
+ const bossY={ticket:yk(2200),lost:yk(3500),final:yk(6000)},bossK=1+.5*DEEP(),cm=1+.6*Math.min(1,cnt('crack'));/* 정기권은 겹쳐도 한 번만 */
  if(B.kind==='boss')G.stats.gates=(G.stats.gates||0)+1;
- const y=Math.round((B.kind==='boss'?bossY[B.foes[0].boss]||2200:B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
+ const y=Math.round((B.kind==='boss'?Math.round((bossY[B.foes[0].boss]||2200)*bossK):B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
  if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.risk<=10)G.stats.quietGate=true;
-  if((SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1;log(`의뢰 ${G.fl+1} 완료 — ${QUESTS[G.fl].n}! 괴도 채널 지지율 ${QUESTS[G.fl].sup}%`);flash('REQUEST CLEAR','g')}
-  if(G.fl>=2){G.cleared=true;SV.wins++}else G.floorDone=true;save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${B.foes[0].n}가 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
+  if(G.fl<QUESTS.length&&(SV.q||0)===G.fl){SV.q=G.fl+1;G.questHit=true;G.questNew=G.fl+1;log(`의뢰 ${G.fl+1} 완료 — ${QUESTS[G.fl].n}! 괴도 채널 지지율 ${QUESTS[G.fl].sup}%`);flash('REQUEST CLEAR','g')}
+  if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
+  if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
  if(B.kind==='reaper'){G.reaperKill=1;SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
  const el=B.foes.some(f=>f.tier==='e');offer(el?'정예 섀도가 남긴 것 (증폭기)':'섀도가 남긴 것 (발동기)',1,el?'amp':'trig');return true}
 /* 층 끝: 르블랑 귀환(엔 전부) vs 다음 층 하강(경계도 -6 · HP 30% · SP 50% 회복). B1 → B2는 모나 버스 Lv.2가 있어야 선로가 뚫린다 */
-const canDescend=()=>(SV.up.bus||0)>=G.fl+1;/* B1→B2 버스 Lv.2, B2→B3 버스 Lv.3 */
+const canDescend=()=>G.fl>=2?!!G.cleared:(SV.up.bus||0)>=G.fl+1;/* B3 이후는 무한 모드 *//* B1→B2 버스 Lv.2, B2→B3 버스 Lv.3 */
 function eatCurry(){if(G.curry<=0||G.battle)return;G.curry--;for(const m of G.party){if(m.hp<=0)continue;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.35));m.sp=Math.min(m.msp,m.sp+8)}log('르블랑 카레 도시락! 전원 HP 35% · SP +8');say(pick(alive()).id,'chat');render()}
 function descendWalk(){ui.walk=Date.now();setTimeout(render,1000)}
 function descend(){if(!canDescend())return;descendWalk();for(const m of G.party){if(m.hp<=0)m.hp=Math.round(m.max*.25);m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*.5))}
@@ -992,11 +998,11 @@ function pickAfters(kind){const res=kind==='wipe'?'forced':G.cleared?'complete':
 function pickCut(kind){const by=k=>(SCRIPT.cuts||[]).filter(x=>x.k===k),ids=G.party.map(m=>m.id),
  k=kind==='wipe'?'긴급 구출·전멸':G.reaperKill?'히든':G.reaperMet?'거두는 자 탈출':G.chain&&G.chain.done?'사슬 결말':G.stats.cover?'감싸기':(G.combos||[]).length?'조합 이벤트':G.stats.ko>=2?'대실패':G.yen>=8000?'유물 대박':'평범한 날';
  const L=by(k).length?by(k):by('평범한 날');if(!L.length)return '';const x=pick(L),who=k==='감싸기'&&G.party.find(m=>m.id==='kasumi')?'kasumi':pick(ids),tg=k==='감싸기'&&G.coverT?G.coverT:pick(ids.filter(i=>i!==who))||who;
- return x.t.replace(/\{이름\}/g,CH[who].name).replace(/\{대상\}/g,CH[tg].name).replace(/\{엔\}/g,'¥'+G.yen).replace(/\{역\}/g,FLOORS[G.fl].n).replace(/\{[^}]*\}/g,'')
+ return x.t.replace(/\{이름\}/g,CH[who].name).replace(/\{대상\}/g,CH[tg].name).replace(/\{엔\}/g,'¥'+G.yen).replace(/\{역\}/g,FLR(G.fl).n).replace(/\{[^}]*\}/g,'')
   .replace(/([가-힣A-Za-z0-9¥]+)\((이|과|을|은)\)(가|와|를|는)/g,(_,w,a,b)=>jo(w,a,b))}
 function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
  const sb=subNow(),subOk=kind!=='wipe'&&G.sub===sb.id&&sb.ok(),sy=subOk?Math.max(0,Math.min(sb.y,RUN_CAP-y-bet)):0;
- G.end={kind,y,bet,sub:sb,subOk,sy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy;
+ const dy=kind==='wipe'?0:(G.deepBonus||0);G.end={kind,y,bet,sub:sb,subOk,sy,dy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy+dy;
  {const ids=G.party.map(m=>m.id);for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const k=bkey(ids[i],ids[j]),x=SV.bond[k]||(SV.bond[k]={n:0,lv:0});x.n+=(G.stats.bat[k]||0)+(kind==='wipe'?0:1)}}/* 유대: 바톤 횟수 + 함께 살아 돌아오면 +1 */
  rollSub();
  if(G.reaperMet&&!G.reaperKill)reaperTalk(kind==='wipe'&&G.battle&&G.battle.kind==='reaper'?'caught':'escape','red');/* 거두는 자에게서 도망쳤거나 붙잡혔을 때 */
@@ -1070,7 +1076,7 @@ const PAL=[/* 층별: 벽 위·아래, 기둥, 타일 둘, 줄눈, 바닥 둘, �
  {w:['#17211a','#111a13','#0b100c'],pil:'#050805',t:['#22301f','#1c281a'],seam:'#0a0e09',f:['#1d251c','#131912'],rail:'#55624f',lamp:'#c8ff9e'}];
 function pxDraw(t){const g=PX.g,W=PX.W,H=PX.H,dt=Math.min(.1,(t-(PX.last||t))/1000);PX.last=t;
  if(!PX.cv.isConnected||!G.map){return requestAnimationFrame(pxDraw)}
- const now=Date.now(),bat=!!G.battle,walk=ui.walk&&now-ui.walk<900,P=PAL[G.fl]||PAL[0],k=walk?6:bat?0:1;/* 속도: 평소 1 · 걷기 6 · 전투 0 */
+ const now=Date.now(),bat=!!G.battle,walk=ui.walk&&now-ui.walk<900,P=PAL[zoneOf(G.fl)]||PAL[0],k=walk?6:bat?0:1;/* 속도: 평소 1 · 걷기 6 · 전투 0 */
  PX.o.far+=dt*6*k;PX.o.tile+=dt*14*k;PX.o.flr+=dt*30*k;PX.o.lamp+=dt*10*k;
  const fy=62;/* 바닥 시작 줄 */
  for(let y=0;y<fy;y++){g.fillStyle=P.w[y<20?0:y<40?1:2];g.fillRect(0,y,W,1)}
@@ -1094,15 +1100,15 @@ requestAnimationFrame(pxDraw);
 function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='map')))return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
  party:G.party.map(x=>({id:x.id,hp:x.hp,max:x.max,sp:x.sp,msp:x.msp,row:x.row})),map:{cells:m.cells,edges:m.edges,start:m.start,boss:m.boss,T:m.T,vis:[...m.vis],done:[...m.done]},
  at:G.at,fl:G.fl,risk:G.risk,yen:G.yen,items:G.items,kills:G.kills,qk:G.qk,sub:G.sub,questHit:G.questHit,cmd:G.cmd,stats:G.stats,reroll:G.reroll,curry:G.curry,setup:G.setup,combos:G.combos,
- day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
+ day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,cleared:!!G.cleared,deepBonus:G.deepBonus||0,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:chOf(x.id)})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
-  day:DAYS.find(x=>x.id===d.day)||null,chain:d.chain?{...d.chain,c:SCRIPT.chains.find(c=>c.id===d.chain.id)}:null,bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,floorDone:false,auto:false});
+  day:DAYS.find(x=>x.id===d.day)||null,chain:d.chain?{...d.chain,c:SCRIPT.chains.find(c=>c.id===d.chain.id)}:null,bub:{},battle:null,ev:null,pick:null,end:null,cleared:!!d.cleared,floorDone:false,auto:false});
  if(G.chain&&!G.chain.c)G.chain=null;ui.screen='map';log('— 이어서 탐사한다 —');delete G.pend;const P=d.pend;
  if(P&&P.reaper)return startBattle('reaper');/* 새로고침해도 들어선 방은 다시 열린다 */
  if(P&&P.room)return enterRoom(P.room);
- if(P&&P.clear){G.cleared=true;return endRun('clear')}
+ if(P&&P.clear){G.cleared=true;ui.screen='floor';return render()}/* B3 이후: 무한 모드 갈림길로 */
  if(P&&P.floor){ui.screen='floor';return render()}
  render()}
 /* 기록 슬롯: 르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 3칸에 */
@@ -1134,7 +1140,7 @@ function tutDraw(){const id=tutCur||tutWant();if(!id){tutEl.innerHTML='';return}
 function tutOk(){const L=tutLines(tutCur);if((ui.tk||0)<L.length-1){ui.tk=(ui.tk||0)+1;return tutDraw()}(SV.tut||(SV.tut=[])).push(tutCur);save();tutCur=null;ui.tk=0;tutDraw()}
 /* 배경음악: 메인·르블랑 = idle, 탐사 = battle, B3 = deep. 첫 터치 뒤에 재생(브라우저 정책) */
 const BGMF={idle:'audio/idle.mp3',battle:'audio/battle.mp3',deep:'audio/deep.mp3'},BGMV={idle:.32,battle:.28,deep:.3},BG_={el:{},cur:null,ok:false};
-function bgmSync(){const want=!BG_.ok||SV.mute||document.hidden?null:['title','manual','hub','party','result'].includes(ui.screen)?'idle':G.fl===2?'deep':'battle';
+function bgmSync(){const want=!BG_.ok||SV.mute||document.hidden?null:['title','manual','hub','party','result'].includes(ui.screen)?'idle':G.fl>=2?'deep':'battle';
  if(want===BG_.cur)return;for(const [k,a] of Object.entries(BG_.el))if(k!==want){a.pause()}BG_.cur=want;if(!want)return;
  const a=BG_.el[want]||(BG_.el[want]=Object.assign(new Audio(BGMF[want]),{loop:true}));a.volume=BGMV[want];a.play().catch(()=>{BG_.cur=null})}
 document.addEventListener('pointerdown',()=>{if(!BG_.ok){BG_.ok=true;bgmSync()}},{capture:true});document.addEventListener('visibilitychange',()=>bgmSync());
@@ -1247,7 +1253,7 @@ function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO 
  <div class="card"><b>돈은 어디에</b><br>· 귀환하면 번 엔이 <b>르블랑 지갑</b>으로(전멸하면 절반). 서브 의뢰를 해내면 보너스.<br>· ① <b>모나 버스</b>: B2 선로 개방 · 리롤 · 출발 자금 · 선로 직행 ② <b>템 해금</b>: 3지선다에 나올 템을 늘림 ③ <b>유대</b>: 바톤을 주고받은 두 사람의 장면과 바톤 보너스</div>
  <div class="row2"><button class="go sub" data-a="tutr">튜토리얼 처음부터</button><button class="go" data-a="title">BACK</button></div></div>`}
 function vHud(){if(!G.map)return '';const m=G.map,cells=Array.from({length:16},(_,i)=>{const c=m.cells.includes(i);return `<i class="${!c?'':i===G.at?'at':m.vis.has(i)?'v':known(i)?'k':''} ${c&&known(i)&&m.T[i]==='boss'?'b':''}"></i>`}).join('');
- return `<header class="hud"><div class="mini" aria-label="미니맵">${cells}</div><div class="fl en">B${G.fl+1}</div><div class="sp"></div><span class="risk ${G.risk>=RISK_HOT?'hot':''}" title="경계도">경계 ${G.risk}/${RISK_MAX}</span><span class="yen">¥${G.yen}</span></header>`}
+ return `<header class="hud"><div class="mini" aria-label="미니맵">${cells}</div><div class="fl en">B${G.fl+1}${G.fl>=3?'<small class="dpm">∞</small>':''}</div><div class="sp"></div><span class="risk ${G.risk>=RISK_HOT?'hot':''}" title="경계도">경계 ${G.risk}/${RISK_MAX}</span><span class="yen">¥${G.yen}</span></header>`}
 function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=>p.id===id).map(p=>`<span class="dmg ${p.c} ${p.tier||''}" style="--k:${p.k||0};animation-delay:${(p.k||0)*80-(now-p.at)}ms">${esc(p.t)}</span>`).join('')+(id[0]==='f'&&ui.spk&&now-(ui.spk[id]||0)<260?'<i class="spark" aria-hidden="true"></i>':'');
  const party=[...G.party].sort((a,b)=>b.row-a.row).map(m=>{const b=G.bub[m.id],act=B&&actor()===m,sh=ui.sh&&now-(ui.sh[m.id]||0)<400;
   const mv=mvOf(m.id),i=G.party.indexOf(m);
@@ -1256,7 +1262,7 @@ function vStage(){const B=G.battle,now=Date.now(),pp=id=>(ui.pops||[]).filter(p=
  if(B){right=B.foes.map((f,i)=>{const we=effWeak(f),fm=mvOf('f'+i),fh=ui.fh&&now-(ui.fh['f'+i]||0)<160,dd=f.hp<=0&&(f.dt||(f.dt=now));return `<div class="foe ${f.boss?'boss':''} ${f.reap||f.fin?'reap':''} ${f.hp<=0?(now-dd>600?'gone':'dead'):''} ${fm?fm.k:''} ${fh?'fhit':''}" style="${fm?`animation-delay:-${now-fm.at}ms`:f.hp<=0?`animation-delay:-${now-dd}ms`:''} ${f.down?'down':''} ${B.sel===i?'sel':''}" data-a="sel:${i}" role="button" aria-label="${esc(f.n)} 선택">${f.down?'<span class="dn">DOWN</span>':''}${pp('f'+i)}<div class="bd" style="${phase(f.boss?2400:1700,i*530)}"></div><div class="nm">${esc(f.n)}</div><div class="hb"><i style="width:${f.hp/f.max*100}%"></i></div><div class="wks">${!we.length?'<span class="wk">무약점</span>':wkKnown(f)?`<span class="wg" title="약점">${we.map(x=>`<span class="wk k" style="--c:${EL[x]}">${x[0]}</span>`).join('')}</span>`:'<span class="wg" title="약점"><span class="wk q">?</span></span>'}${f.sleep?'<span class="wk st">수면</span>':''}${f.taunt?'<span class="wk st">도발</span>':''}${f.mirror?'<span class="wk st">반사벽</span>':''}${f.charge?'<span class="wk st hot">힘 모음!</span>':''}${f.stun?'<span class="wk st">기절</span>':''}${f.dot?'<span class="wk st">화상</span>':''}</div></div>`}).join('');
   top=`<div class="rt"><b>${B.kind==='boss'?((SV.q||0)===G.fl?'REQUEST TARGET':'GATE'):B.kind==='reaper'?'THE REAPER':'SHADOW'}</b>${B.round}턴</div>`}
  else{const t=G.map.T[G.at];top=`<div class="rt"><b>${ui.screen==='event'&&G.ev?esc(G.ev.t):ui.screen==='floor'?'GATE CLEARED':ROOM[t].n}</b></div>`}
- const walk=ui.walk&&now-ui.walk<900&&now>=ui.walk,cls=`f${G.fl} ${B?'bat':''} ${walk?'walk':''} ${ui.quake&&now-ui.quake<400?'quake':''} ${ui.hs&&now-ui.hs<80?'hstop':''} ${ui.ao&&now-ui.ao<700?'aoflash':''}`;
+ const walk=ui.walk&&now-ui.walk<900&&now>=ui.walk,cls=`f${zoneOf(G.fl)} ${G.fl>=3?'deepz':''} ${B?'bat':''} ${walk?'walk':''} ${ui.quake&&now-ui.quake<400?'quake':''} ${ui.hs&&now-ui.hs<80?'hstop':''} ${ui.ao&&now-ui.ao<700?'aoflash':''}`;
  return `<section class="stage ${cls}">${top}<div class="side pt">${party}</div><div class="side en">${right}</div>${ui.fx?`<div class="fx"><b class="${ui.fx.c} ${['1 MORE','WEAK','CRITICAL','ALL-OUT ATTACK','SHOWTIME'].includes(ui.fx.t)?'slash':''}">${esc(ui.fx.t)}</b></div>`:''}${ui.cut&&now-ui.cut.at<300&&!ui.fx?`<div class="fx"><b class="slash cut">${esc(ui.cut.t)}</b></div>`:''}${ui.total&&now-ui.total.at<1300?`<div class="total"><small>TOTAL</small>${ui.total.v}</div>`:''}</section>`}
 function vParty(){return `<div class="party">${G.party.map(m=>`<div class="pc" style="--c:${m.c.col}"><b>${m.c.code}</b><div class="bar"><i class="${m.hp<m.max*.35?'lo':''}" style="width:${m.hp/m.max*100}%"></i></div><div class="bar s"><i style="width:${m.sp/m.msp*100}%"></i></div><div class="nu">HP ${m.hp} · SP ${m.sp}</div></div>`).join('')}</div>`}
 function vSlots(){const now=Date.now(),B=G.battle,bench=ui.screen==='bench'&&!G.benchUsed,n=Math.max(6,G.items.length);
@@ -1290,8 +1296,8 @@ function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
  <div class="dlg"><span class="who">FUSION</span><p>${G.benchUsed?'합성 완료':`위 템 칸에서 <b>2개</b>를 골라 넣으면 <b>진화 템</b> 3개 중 하나`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
-function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLOORS[n].n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
- <div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">RETURN</button>${ok?'<button class="go" data-a="down">GO DEEPER ↓</button>':''}</div>`}
+function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
+ ${n>=3?`<p class="tip">∞ <b>무한 모드</b> — 심층은 한 층마다 적이 세지고, 관문마다 <b>심층 보너스</b>(상한과 따로)가 쌓입니다. 전멸하면 심층 보너스는 사라집니다.${G.deepBonus?` 지금 <b>+¥${G.deepBonus}</b>`:''} · 최고 기록 B${Math.max(SV.deep||0,n)}</p>`:''}<div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">${n>=3?'ALL CLEAR':'RETURN'}</button>${ok?`<button class="go" data-a="down">${n>=3?'∞ ENDLESS ↓':'GO DEEPER ↓'}</button>`:''}</div>`}
 function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  const lk=m.edges.filter(([a,b])=>known(a)&&known(b)&&(m.vis.has(a)||m.vis.has(b))).map(([a,b])=>{const [r1,c1,r2,c2]=[a>>2,a%4,b>>2,b%4],h=r1===r2;
   return `<i class="lk" style="${h?`left:${(Math.min(c1,c2)+.5)*sz}%;top:calc(${(r1+.5)*sz}% - 2px);width:${sz}%;height:4px`:`left:calc(${(c1+.5)*sz}% - 2px);top:${(Math.min(r1,r2)+.5)*sz}%;height:${sz}%;width:4px`}"></i>`}).join('');
@@ -1300,9 +1306,9 @@ function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  return `<div class="map line">${lk}${cells}</div>
  <div class="row2">${G.curry>0?`<button class="go sub" data-a="curry">CURRY ×${G.curry}</button>`:''}<button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">서브 의뢰 · ${esc(subNow().t)}${subNow().ok()?' ✔':''}</p>`}
 function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 ▴':'로그 펼치기 ▾'}</button>${ui.log?`<div class="log">${G.log.map(l=>`<p>${l.who?`<b>${CH[l.who].name}</b> 「${esc(l.t)}」`:esc(l.t)}</p>`).join('')}</div>`:''}`}
-function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?'ALL CLEAR':'RETURNED';
- return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?'최심부의 거두는 자를 쓰러뜨리고 메멘토스 끝까지 내려갔습니다.':`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
- <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd><dt>도달</dt><dd>B${G.fl+1}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
+function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?(G.fl>=3?'ENDLESS CLEAR':'ALL CLEAR'):'RETURNED';
+ return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?(G.fl>=3?`무한 모드로 심층 B${G.fl+1}까지 내려갔다가 무사히 돌아왔습니다.`:'세 관문을 모두 넘고 무사히 르블랑으로 돌아왔습니다.'):`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
+ <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd>${e.dy?`<dt>심층 보너스</dt><dd>+¥${e.dy}</dd>`:''}<dt>도달</dt><dd>B${G.fl+1}${G.fl>=3?' ∞':''}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
  <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${tierI(id,'sl')}${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
  ${(G.afters||[]).length?`<div class="card"><b class="en" style="color:var(--gold)">AFTER</b>${G.afters.map(a=>`<div style="margin-top:8px">${a.chain?`<small class="tg">사슬 · ${esc(a.chain)}</small>`:''}${a.lines.map(l=>l.who&&CH[l.who]?`<p style="margin:4px 0"><b style="color:${CH[l.who].col}">${CH[l.who].name}</b> 「${esc(fillT(l.t))}」</p>`:`<p style="margin:4px 0;color:var(--mut)">${esc(fillT(l.t))}</p>`).join('')}</div>`).join('')}</div>`:''}
  ${vNext()}
@@ -1331,7 +1337,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='reroll')return reroll();if(a==='curry')return eatCurry();
  if(a==='ps'){const p=ui.ps,j=p.indexOf(v);if(j>=0)p.splice(j,1);else if(p.length<3)p.push(v);return render()}
  if(a==='go'){if(ui.screen==='title'){ui.screen='hub';ui.ht='go';ui.ps=null;return render()}if(ui.ps&&ui.ps.length===3)return newRun(ui.ps);return}if(a==='title'){ui.screen='title';return render()}
- if(a==='mv')return move(+v);if(a==='ret')return endRun('return');if(a==='down')return descend();
+ if(a==='mv')return move(+v);if(a==='ret')return endRun(G.cleared?'clear':'return');if(a==='down')return descend();
  if(a==='ev')return resolveEv(v==='open'?'leave':v);
   if(a==='deal')return dealPick(v);
  if(a==='storyok')return storyOk();
