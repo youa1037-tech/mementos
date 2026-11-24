@@ -113,6 +113,7 @@ button:disabled{opacity:.35;cursor:default}
 #tut{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;pointer-events:none}
 .tutbox{pointer-events:auto;max-width:440px;width:calc(100% - 16px);margin:0 8px 10px;background:#000;border:3px solid var(--c);box-shadow:6px 6px 0 rgba(0,0,0,.6);padding:10px 12px}
 .tutbox>b{color:var(--c);font-size:18px}.tutbox small{color:var(--mut)}.tutbox p{margin:6px 0 10px;font-size:14px;line-height:1.55}.tutbox .tui{color:var(--gold)}.tutbox .go{padding:10px 14px;font-size:18px}
+.pxi{width:28px;height:28px;image-rendering:pixelated;vertical-align:middle}.slot .pxi{width:28px;height:28px}.pk .pxi{width:36px;height:36px}.neg .pxi,.tog .pxi,.tip .pxi,.card .pxi{width:20px;height:20px;vertical-align:-5px}
 .tip{font-size:12px;color:var(--mut);min-height:18px}
 .acts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .ab{background:var(--p2);padding:9px 10px;text-align:left;border-left:4px solid var(--c,#777);min-height:54px}
@@ -266,6 +267,8 @@ const EVO={
  gold:{n:'골드 쇼타임',ic:'🏆',r:'진화',ax:'약점',d:'한 턴에 1 MORE 2번이면 적 전체 60 피해 + 전원 DOWN'},
  choker:{n:'광전사의 초커',ic:'⛓',r:'진화',ax:'폭주',d:'스트레스 60 이상이면 매 턴 시작에 적 1체 20 피해 + 자기 HP 10 회복'}};
 const IT=id=>ITEMS[id]||EVO[id];
+/* 도트 아이콘 (img/items/<id>.png, tools/item_icons.py). 그림이 없으면 원래 이모지 */
+for(const [T,o] of [[ITEMS,0],[EVO,0],[NEG,0]])for(const [k,v] of Object.entries(T)){const e=v.ic;v.ic=`<img class="pxi" src="${IMG}items/${k}.png" alt="" onerror="this.replaceWith(document.createTextNode('${e}'))">`}
 const ROOM={start:{ic:'🚪',n:'입구'},battle:{ic:'⚔️',n:'전투'},chest:{ic:'📦',n:'보물 상자'},curio:{ic:'❓',n:'기물'},bench:{ic:'🔧',n:'작업대'},boss:{ic:'💀',n:'관문 보스'}};
 const RISK_MAX=16,RISK_HOT=12;/* 거두는 자: 위험도 16에서 (예전 10은 B2 초입에 나와서 늦춤) */;
 /* ============ 저장 (mm-core · 시제품 때 저장 mm-proto는 처음 한 번 이어받음) ============ */

@@ -22,6 +22,7 @@
 - `DESIGN.md` — 색·글꼴·컴포넌트·모션 규칙
 - `content/script.xlsx` — 대사·스크립트 시트 원본
 - `tools/import_script.py` — 시트를 게임 데이터로 바꿔 `index.html`의 SCRIPT 블록에 넣는 도구. 결과 보고는 `docs/script-import.md`
+- `tools/item_icons.py` — 템·진화 템·부정 기물 16×16 도트 아이콘(`img/items/`)을 글자 격자로 그려 만드는 도구. 직접 그린 PNG로 같은 이름 덮어써도 됨
 - `tools/sim.py` 등 — 예전 버전(`legacy.html`)용 개발 도구
 
 ## 안내
