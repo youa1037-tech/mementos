@@ -175,7 +175,7 @@ button:disabled{opacity:.35;cursor:default}
 @keyframes boil{0%{transform:rotate(var(--r,0deg))}33%{transform:rotate(calc(var(--r,0deg) + .7deg)) translate(1px,-1px)}66%{transform:rotate(calc(var(--r,0deg) - .6deg)) translate(-1px,0)}}
 .mstage{position:relative;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--red)}
 .mstage::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(rgba(0,0,0,.22) 1.3px,transparent 1.8px) 0 0/8px 8px}
-.msky{position:relative;z-index:1;padding:calc(26px + env(safe-area-inset-top)) max(5vw,14px) 0;max-width:1240px;width:100%;margin:0 auto}
+.msky{position:relative;z-index:1;padding:14px max(5vw,14px) 0;max-width:1240px;width:100%;margin:0 auto}
 .mtitle{font-size:clamp(40px,11vw,96px);line-height:1.1;margin:0}
 .mground{position:relative;flex:1;display:flex;flex-direction:column;margin-top:clamp(70px,13vw,150px);padding:calc(30px + 6vw) max(5vw,14px) calc(22px + env(safe-area-inset-bottom))}
 .mground>*:not(.mbg){position:relative;z-index:1;width:100%;max-width:1240px;margin-left:auto;margin-right:auto}
@@ -212,12 +212,12 @@ button:disabled{opacity:.35;cursor:default}
 .scr-in .mmenu li{animation:rise .38s var(--land) both;animation-delay:calc(260ms + var(--n)*70ms)}
 .scr-in .mpass{animation:rise .38s var(--land) .6s both}
 @media(min-width:760px){.mmenu{--off:34px;--rh:92px;--ang:20.3deg;--len:98px}.mtun{width:min(70vw,900px)}.mground{padding-top:calc(30px + 5vw)}}
-@media(min-width:900px) and (min-aspect-ratio:5/4){.msky{padding-top:22px}.mtitle{font-size:clamp(40px,5.3vw,80px)}.mground{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;margin-top:clamp(70px,7.5vw,120px);padding-top:calc(10px + 3vw)}.mcity{height:clamp(64px,7.5vw,120px)}.mmenu{margin:0;--rh:86px;--ang:21.6deg;--len:92px}.mpass{justify-self:end;margin:0 0 6px!important;width:min(460px,100%)}.mground>*:not(.mbg){max-width:none}}
+@media(min-width:900px) and (min-aspect-ratio:5/4){.msky{padding-top:10px}.mgoal{flex:0 1 auto}.mtop{margin-left:auto}.mtitle{font-size:clamp(40px,5.3vw,80px)}.mground{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;margin-top:clamp(70px,7.5vw,120px);padding-top:calc(10px + 3vw)}.mcity{height:clamp(64px,7.5vw,120px)}.mmenu{margin:0;--rh:86px;--ang:21.6deg;--len:92px}.mpass{justify-self:end;margin:0 0 6px!important;width:min(460px,100%)}.mground>*:not(.mbg){max-width:none}}
 @media(max-width:600px){.mtun{opacity:.8;top:clamp(120px,calc(100dvh - 640px),230px);width:108vw;right:calc(30vw - 14vw)}}
 .mmenu .lbl *{white-space:nowrap}.mmenu .lbl wbr{display:none}
 @media(max-height:720px) and (max-width:600px){.mtitle{font-size:clamp(36px,10vw,60px)}.mcity{height:56px}.mground{margin-top:56px;padding-top:calc(22px + 5vw)}.mmenu{--rh:74px;--len:75px;--ang:12.2deg;margin-bottom:14px}}
 @media(prefers-reduced-motion:reduce){.tlight{animation:none;opacity:.5}}
-.mtop{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:3;display:flex;gap:6px}.mtop .msnd{position:static}
+.mhead{position:relative;z-index:3;display:flex;align-items:flex-start;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 10px 0}.mtop{display:flex;gap:6px;flex:none}.mtop .msnd{position:static}
 .msave{min-height:44px;padding:4px 10px;background:var(--red);color:#fff;font:400 13px var(--en);letter-spacing:.06em;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
 .hhr{display:flex;align-items:center;gap:10px}.hsv{min-height:36px;padding:2px 10px;background:#141012;color:var(--ink);border:1px solid var(--line);font:400 13px var(--en);letter-spacing:.06em}
 .msnd{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:3;min-height:36px;padding:4px 10px;background:#141012;color:var(--ink);font:400 13px var(--en);letter-spacing:.06em}
@@ -280,7 +280,7 @@ button:disabled{opacity:.35;cursor:default}
 .map.line .cell.k .st{opacity:.6;border-style:dashed}.map.line .cell.v .st{opacity:.75}
 .map.line .cell.at .st{background:var(--red);border-color:#fff;color:#fff}
 .map.line .cell.nx{animation:none}.map.line .cell.nx .st{box-shadow:0 0 0 3px var(--gold);animation:pulse 1.2s infinite}
-.mgoal{position:absolute;left:10px;right:150px;top:calc(10px + env(safe-area-inset-top));z-index:3;margin:0;padding:6px 9px;background:#141012;border-left:4px solid var(--gold);font-size:13px;line-height:1.35;color:var(--ink)}.mgoal b{color:var(--gold)}.mgoal small{color:var(--mut);font-size:12px}
+.mgoal{flex:1;min-width:0;margin:0;padding:6px 9px;background:#141012;border-left:4px solid var(--gold);font:400 14px/1.3 var(--en);letter-spacing:.04em;color:var(--ink)}.mgoal b{color:var(--gold);font-weight:400}.mgoal small{display:block;color:var(--mut);font-size:12px}
 .quest{background:#1a1013;border:1px solid var(--gold);border-left:5px solid var(--gold);padding:9px 11px;margin:0 0 8px}.quest .en{color:var(--gold);font-size:13px;letter-spacing:.06em}.quest p{margin:4px 0}.quest small{color:var(--mut)}
 .qbar{height:6px;background:#2a2023;margin-top:6px}.qbar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--gold))}
 .nextu{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;width:100%;margin:0 0 8px;padding:8px 11px;background:#141012;border:1px solid var(--line);color:var(--ink);text-align:left;min-height:44px}
@@ -381,9 +381,9 @@ const BOSSES=[
  {n:'거두는 자 — 최심부',hp:480,atk:19,weak:'rot',boss:'final',fin:1,d:'의뢰 3 · 약점이 매 턴 바뀜 · 두 번 행동 · 컨센트레이트 → 메기도라온'}];
 /* 의뢰 사다리 (괴도 채널): 관문 보스 = 의뢰 대상. 지지율 0 → 35 → 70 → 100 */
 const QUESTS=[
- {n:'검표원의 그림자 개심',fl:0,sup:35,ctx:'승객들의 기억을 「무임승차」로 몰아 빼앗는 B1의 지배자.',next:'B2 선로 발견 — 모나 버스 Lv.2 개조가 필요하다'},
- {n:'분실물 보관소의 주인 개심',fl:1,sup:70,ctx:'사람들의 소중한 물건을 훔쳐 숨기는 B2의 지배자.',next:'B3 최심부 개방'},
- {n:'최심부의 거두는 자 토벌',fl:2,sup:100,ctx:'뒤틀린 선로의 원흉. 처음엔 도망쳐야 했던 존재를 빌드로 역공략하라.',next:'지지율 100% — 엔딩'}];
+ {n:'검표원의 그림자 개심',en:"THE TICKET INSPECTOR'S SHADOW",fl:0,sup:35,ctx:'승객들의 기억을 「무임승차」로 몰아 빼앗는 B1의 지배자.',next:'B2 선로 발견 — 모나 버스 Lv.2 개조가 필요하다'},
+ {n:'분실물 보관소의 주인 개심',en:'KEEPER OF THE LOST & FOUND',fl:1,sup:70,ctx:'사람들의 소중한 물건을 훔쳐 숨기는 B2의 지배자.',next:'B3 최심부 개방'},
+ {n:'최심부의 거두는 자 토벌',en:'THE REAPER OF THE DEPTHS',fl:2,sup:100,ctx:'뒤틀린 선로의 원흉. 처음엔 도망쳐야 했던 존재를 빌드로 역공략하라.',next:'지지율 100% — 엔딩'}];
 const qNow=()=>QUESTS[Math.min(SV.q||0,2)],supNow=()=>[0,35,70,100][SV.q||0];
 const REAPER={n:'거두는 자',hp:300,atk:20,weak:null,reap:1,d:'약점 없음 · 스킬 피해 절반(템 고정 피해는 그대로) · 두 번 행동 · 컨센트레이트 → 메기도라온'};
 const FLOORS=[
@@ -447,9 +447,9 @@ svFix();
 const LOCK={oil:3000,coat:3000,chip:3000,battery:3000,clock:3000,crack:3000,badge:4000,fuse:4000,express:5000,contra:5000,radio:5000,envelope:6000,dice:6000,mask:7000,seal:7000};/* 처음엔 잠긴 템과 해금 값 */
 const unlocked=id=>!(id in LOCK)||SV.unl.includes(id);
 const UPG={bus:{n:'모나 버스 개조',d:'Lv.2: B2로 가는 막힌 선로를 뚫는다 · Lv.3: B3 최심부로 내려가는 선로를 뚫는다',cost:[5500,12000]},
- reroll:{n:'3지선다 리롤',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000]},
- fund:{n:'출발 자금',d:'판마다 ¥400을 들고 출발 (출장소에서 쓸 돈)',cost:[2000,4000]},
- warp:{n:'선로 직행',d:'Lv1: B2부터 출발 (의뢰 1 완료) · Lv2: B3부터 출발 (의뢰 2 완료)',cost:[6000,10000],need:[1,2]}};
+ reroll:{n:'3지선다 리롤',en:'REROLL',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000]},
+ fund:{n:'출발 자금',en:'STARTING FUNDS',d:'판마다 ¥400을 들고 출발 (출장소에서 쓸 돈)',cost:[2000,4000]},
+ warp:{n:'선로 직행',en:'EXPRESS LINE',d:'Lv1: B2부터 출발 (의뢰 1 완료) · Lv2: B3부터 출발 (의뢰 2 완료)',cost:[6000,10000],need:[1,2]}};
 const upgOk=k=>{const U=UPG[k],lv=SV.up[k]||0;return U.cost[lv]!=null&&(!U.need||(SV.q||0)>=U.need[lv])};
 /* 유대: 전투에서 두 사람 사이에 바톤을 넘긴 횟수가 쌓이고, 르블랑에서 엔을 써서 함께 시간을 보내면 단계가 오른다.
    1단계 = 다락방 장면 · 2단계 = 둘 사이 바톤 +10% · 3단계 = 바톤 +25% + 둘째 장면. (새 전투 규칙 없이 바톤 배율만) */
@@ -459,10 +459,10 @@ const bondOf=(a,b)=>SV.bond[bkey(a,b)]||{n:0,lv:0};
 const bondReady=k=>{const x=SV.bond[k]||{n:0,lv:0};return x.lv<3&&x.n>=BOND.need[x.lv]};
 /* 다음 해금 한 줄: 지금 의뢰에 가장 필요한 것부터 */
 function nextUnlock(){const L=[];
- {const b=SV.up.bus||0;if((SV.q||0)>b&&b<2)L.push({n:`모나 버스 Lv.${b+2} — B${b+2} 선로 개방`,c:UPG.bus.cost[b],t:'up'})}
- for(const k of Object.keys(SV.bond))if(bondReady(k)){const [a,b]=k.split('|'),x=SV.bond[k];L.push({n:`유대 ${CH[a].name}·${CH[b].name} ${x.lv+1}단계`,c:BOND.cost[x.lv],t:'bond'})}
- for(const k of ['reroll','fund','warp'])if(upgOk(k))L.push({n:`${UPG[k].n} ${(SV.up[k]||0)+1}`,c:UPG[k].cost[SV.up[k]||0],t:'up'});
- for(const [k,c] of Object.entries(LOCK))if(!SV.unl.includes(k))L.push({n:`템 해금 「${ITEMS[k].n}」`,c,t:'pool'});
+ {const b=SV.up.bus||0;if((SV.q||0)>b&&b<2)L.push({n:`모나 버스 Lv.${b+2} — B${b+2} 선로 개방`,e:`MONA BUS LV.${b+2}`,c:UPG.bus.cost[b],t:'up'})}
+ for(const k of Object.keys(SV.bond))if(bondReady(k)){const [a,b]=k.split('|'),x=SV.bond[k];L.push({n:`유대 ${CH[a].name}·${CH[b].name} ${x.lv+1}단계`,e:`BOND ${CH[a].code}·${CH[b].code} LV.${x.lv+1}`,c:BOND.cost[x.lv],t:'bond'})}
+ for(const k of ['reroll','fund','warp'])if(upgOk(k))L.push({n:`${UPG[k].n} ${(SV.up[k]||0)+1}`,e:`${UPG[k].en} LV.${(SV.up[k]||0)+1}`,c:UPG[k].cost[SV.up[k]||0],t:'up'});
+ for(const [k,c] of Object.entries(LOCK))if(!SV.unl.includes(k))L.push({n:`템 해금 「${ITEMS[k].n}」`,e:'NEW ITEM',c,t:'pool'});
  if(!L.length)return null;const pr=L[0].t==='up'&&L[0].n.startsWith('모나')?L[0]:L.sort((a,b)=>a.c-b.c)[0];return {...pr,can:L.filter(x=>SV.yen>=x.c).length}}
 function vNext(){const x=nextUnlock();if(!x)return '';return `<button class="nextu ${SV.yen>=x.c?'ok':''}" data-a="ht:${x.t}"><b class="en">NEXT UNLOCK</b><span>${esc(x.n)}</span><em>¥${SV.yen.toLocaleString()} / ¥${x.c.toLocaleString()}</em>${x.can?`<i class="shopb">SHOP ${x.can}</i>`:''}</button>`}
 function vQuest(){const q=SV.q||0;if(q>=3)return `<div class="quest done"><b class="en">PHANTOM CHANNEL · 지지율 100%</b><p>의뢰 셋을 모두 해냈다. 뒤틀린 선로는 제자리로 돌아왔다.</p></div>`;
@@ -480,18 +480,18 @@ function rollSub(){SV.sub=pick(SUBS.filter(x=>x.id!==SV.sub)).id}
 if(!SV.sub)rollSub();
 /* 오늘의 메멘토스 (시트 12종) → 새 코어 규칙. 시트의 '규칙(말로)'는 예전 버전 기준이라 여기 글이 화면에 나온다 */
 const DAYRULE={
- 'M-01':{t:'수상한 역 +1 · 금고 차량에서 템 한 번 더 고르기',f:{curio:1,chest2:1}},
- 'M-02':{t:'섀도 역 +1 · 전투 엔 ×1.5',f:{battle:1,byen:1.5}},
- 'M-03':{t:'섀도가 25% 확률로 잠든 채 시작',f:{sleep:.25}},
- 'M-04':{t:'금고 차량에서 템 한 번 더 · 사슬 이야기가 꼭 나옴',f:{chest2:1,chain:1}},
- 'M-05':{t:'모든 엔 ×1.4 · 적 공격력 ×1.2',f:{yen:1.4,fatk:1.2}},
- 'M-06':{t:'수상한 역 +1 · 전투마다 적 1체 약점 자동 공개',f:{curio:1,lens:1}},
- 'M-07':{t:'이동마다 HP -2 · SP +3',f:{hurt:2,spup:3}},
- 'M-08':{t:'모든 엔 ×1.5 · 적 체력 ×1.15',f:{yen:1.5,fhp:1.15}},
- 'M-09':{t:'아군 공격력 +20% · 이동마다 HP -2',f:{patk:1.2,hurt:2}},
- 'M-10':{t:'B1부터 정예 섀도 등장',f:{elite:1}},
- 'M-11':{t:'섀도 역 -1(→ 수상한 역) · 적 공격력 ×0.9',f:{quiet:1,fatk:.9}},
- 'M-12':{t:'크리티컬 +15% · 3지선다 리롤 +1',f:{crit:.15,reroll:1}}};
+ 'M-01':{e:'+1 SUSPICIOUS STATION · EXTRA PICK IN VAULT CARS',t:'수상한 역 +1 · 금고 차량에서 템 한 번 더 고르기',f:{curio:1,chest2:1}},
+ 'M-02':{e:'+1 SHADOW STATION · BATTLE ¥ ×1.5',t:'섀도 역 +1 · 전투 엔 ×1.5',f:{battle:1,byen:1.5}},
+ 'M-03':{e:'SHADOWS 25% LIKELY TO START ASLEEP',t:'섀도가 25% 확률로 잠든 채 시작',f:{sleep:.25}},
+ 'M-04':{e:'EXTRA PICK IN VAULT CARS · CHAIN STORY GUARANTEED',t:'금고 차량에서 템 한 번 더 · 사슬 이야기가 꼭 나옴',f:{chest2:1,chain:1}},
+ 'M-05':{e:'ALL ¥ ×1.4 · ENEMY ATK ×1.2',t:'모든 엔 ×1.4 · 적 공격력 ×1.2',f:{yen:1.4,fatk:1.2}},
+ 'M-06':{e:'+1 SUSPICIOUS STATION · 1 WEAKNESS REVEALED PER BATTLE',t:'수상한 역 +1 · 전투마다 적 1체 약점 자동 공개',f:{curio:1,lens:1}},
+ 'M-07':{e:'HP -2 PER MOVE · SP +3',t:'이동마다 HP -2 · SP +3',f:{hurt:2,spup:3}},
+ 'M-08':{e:'ALL ¥ ×1.5 · ENEMY HP ×1.15',t:'모든 엔 ×1.5 · 적 체력 ×1.15',f:{yen:1.5,fhp:1.15}},
+ 'M-09':{e:'PARTY ATK +20% · HP -2 PER MOVE',t:'아군 공격력 +20% · 이동마다 HP -2',f:{patk:1.2,hurt:2}},
+ 'M-10':{e:'ELITE SHADOWS FROM B1',t:'B1부터 정예 섀도 등장',f:{elite:1}},
+ 'M-11':{e:'-1 SHADOW STATION (→ SUSPICIOUS) · ENEMY ATK ×0.9',t:'섀도 역 -1(→ 수상한 역) · 적 공격력 ×0.9',f:{quiet:1,fatk:.9}},
+ 'M-12':{e:'CRIT +15% · REROLL +1',t:'크리티컬 +15% · 3지선다 리롤 +1',f:{crit:.15,reroll:1}}};
 const DAYS=(SCRIPT.days||[]).filter(d=>DAYRULE[d.id]);
 const DF=()=>(G.day&&DAYRULE[G.day.id]||{f:{}}).f;
 function rollDay(){const L=DAYS.filter(d=>d.id!==SV.today);SV.today=L.length?pick(L).id:null;save()}
@@ -1071,15 +1071,15 @@ const MAIN_ART=(()=>{let sd=11;const rnd=()=>(sd=sd*16807%2147483647)/2147483647
   tun:`<svg class="mtun" viewBox="0 0 600 420" aria-hidden="true"><defs><radialGradient id="mglow"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#ffe8c2" stop-opacity=".8"/><stop offset="1" stop-color="#ffe8c2" stop-opacity="0"/></radialGradient></defs>${tun}</svg>`}})();
 function vTitle(){const sv=runSaved(),dy=DAYS.find(d=>d.id===SV.today),sc=SV.scenes||[],tot=(SCRIPT.combos||[]).reduce((n,x)=>n+x.ch.length,0);
  const M=[...(sv?[['cont','CONTINUE',`B${sv.fl+1} · ¥${sv.yen} · ${sv.party.map(x=>CH[x.id].name).join(' · ')}`]]:[]),
-  ['go','INFILTRATE',sv?'새로 시작하면 진행 중인 판은 사라집니다':!SV.runs?'첫 출동 · 모르가나가 안내합니다':dy?`TODAY · ${esc(dy.en||dy.name)}`:'메멘토스로 출발'],
-  ['hubgo','LEBLANC',(()=>{const x=nextUnlock();return x?`NEXT ${x.n} · ¥${SV.yen}/${x.c}${x.can?' · SHOP '+x.can:''}`:`지갑 ¥${SV.yen}`})()],
+  ['go','INFILTRATE',sv?'NEW RUN ERASES THE ONE IN PROGRESS':!SV.runs?'FIRST RUN · MORGANA LEADS THE WAY':dy?`TODAY · ${esc(dy.en||dy.name)}`:'DEPART FOR MEMENTOS'],
+  ['hubgo','LEBLANC',(()=>{const x=nextUnlock();return x?`NEXT ${x.e} · ¥${SV.yen}/${x.c}${x.can?' · SHOP '+x.can:''}`:`WALLET ¥${SV.yen}`})()],
   ['codex','CODEX',`SCENES ${sc.length}/${tot} · STORIES ${Object.values(SV.chains||{}).filter(v=>v>=3).length}/${SCRIPT.chains.length}`],
-  ['manual','HOW TO PLAY','MANUAL · 튜토리얼 다시 보기']];
- return `<main class="mstage"><div class="mtop"><button class="msave" data-a="saveload">SAVE / LOAD</button><button class="msnd" data-a="mute" aria-pressed="${!SV.mute}">${SV.mute?'SOUND OFF':'SOUND ON'}</button></div><p class="mgoal">${(SV.q||0)>=3?'<b>ALL REQUESTS CLEAR</b> · 지지율 100% — 심층을 더 즐겨 보세요':`<b>목표</b> ${esc(qNow().n)} <small>(B${qNow().fl+1} · ${SV.q||0}/3 · 지지율 ${supNow()}%)</small>`}</p><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
+  ['manual','HOW TO PLAY','MANUAL · REPLAY TUTORIAL']];
+ return `<main class="mstage"><header class="mhead"><p class="mgoal">${(SV.q||0)>=3?'<b>ALL REQUESTS CLEAR</b> <small>SUPPORT 100% · ENJOY THE DEPTHS</small>':`<b>TARGET</b> ${esc(qNow().en)} <small>B${qNow().fl+1} · ${SV.q||0}/3 · SUPPORT ${supNow()}%</small>`}</p><div class="mtop"><button class="msave" data-a="saveload">SAVE / LOAD</button><button class="msnd" data-a="mute" aria-pressed="${!SV.mute}">${SV.mute?'SOUND OFF':'SOUND ON'}</button></div></header><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
  <section class="mground"><div class="mbg" aria-hidden="true"><div class="mslab"></div>${MAIN_ART.city}${MAIN_ART.tun}</div>
  <ul class="mmenu ${M.length>4?'m5':''}">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-a="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
- <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${SV.yen}</b><span>출전 ${SV.runs} · 최고 B${SV.deep||1} · 의뢰 ${SV.q||0}/3 · 지지율 ${supNow()}%</span></p><p class="pg">${dy?`TODAY · <b>${esc(dy.name)}</b> — ${esc(DAYRULE[dy.id].t)}`:'르블랑에서 출발 준비'}</p></div></div>
- <a class="mlegacy" href="legacy.html">예전 버전(관찰형) 하기</a></section></main>`}
+ <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${SV.yen}</b><span>RUNS ${SV.runs} · BEST B${SV.deep||1} · REQUESTS ${SV.q||0}/3 · SUPPORT ${supNow()}%</span></p><p class="pg">${dy?`TODAY · <b>${esc(dy.en||dy.name)}</b> — ${esc(DAYRULE[dy.id].e)}`:'GET READY AT LEBLANC'}</p></div></div>
+ <a class="mlegacy" href="legacy.html">PLAY THE OLD VERSION (OBSERVATION)</a></section></main>`}
 function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO PLAY</h1>
  <div class="card"><b>왜 메멘토스에 들어가나</b><br>메멘토스 최심부에 <b>왜곡된 선로</b>가 생겨 도쿄의 인지가 뒤틀렸다. 괴도 채널에 올라온 의뢰 대상 셋을 개심시켜 <b>지지율 100%</b>를 만들어라.<br>· 의뢰 1: B1 관문 「검표원의 그림자」 · 의뢰 2: B2 관문 「분실물 보관소의 주인」 · 의뢰 3: B3 최심부 「거두는 자」</div>
  <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
