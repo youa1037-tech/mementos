@@ -725,6 +725,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .pchip.on{background:var(--ink);color:#141012;border-color:var(--ink)}
 .polx{margin:4px 0 10px;font-size:13px;color:var(--mut);line-height:1.5}.polx b{color:var(--ink);font-weight:700}
 /* ===== 르블랑 다락방 허브 ===== */
+.tut .credit{margin:6px 0 0;font-size:11px;line-height:1.5;color:var(--faint);text-align:center}
 .hub{max-width:600px;margin:0 auto;padding:12px 12px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;min-height:100svh;box-sizing:border-box}/* 넘치면 잘리지 않고 스크롤 */
 .hhd{display:flex;align-items:baseline;justify-content:space-between;padding:2px 6px}
 .hhd b{font-family:var(--en);font-weight:400;font-size:24px;letter-spacing:.04em}.hhd span{font-family:var(--en);font-size:15px;color:var(--mut);letter-spacing:.04em}
@@ -1827,6 +1828,22 @@ const x=pick(L),m=mem(x.who);if(hasR('R-11')){alive().forEach(y=>y.sp=clamp(y.sp
 
 /* ============ 효과음: 음원 파일 없이 WebAudio로 합성 (S.mute로 끔) ============ */
 let AC=null,sfxLast={};
+/* ============ 배경음악 (audio/): 대기 화면 = idle, 탐사 = battle ============
+   첫 터치·키 입력 뒤에 재생 (브라우저 자동재생 제한). 소리 끔(S.mute) 또는 BGM 끔(S.bgmOff)이면 멈춤.
+   볼륨은 iOS에서도 먹도록 WebAudio 게인으로 조절하고, 화면이 바뀌면 0.6초 교차 페이드 */
+const BGM_SRC={idle:'audio/idle.mp3',battle:'audio/battle.mp3'},BGM_VOL={idle:.34,battle:.3};
+const BGM={el:{},g:{},cur:null,ok:false};
+function bgmEl(k){if(BGM.el[k])return BGM.el[k];const a=new Audio(BGM_SRC[k]);a.loop=true;a.preload='auto';BGM.el[k]=a;
+ try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const g=AC.createGain();g.gain.value=0;AC.createMediaElementSource(a).connect(g);g.connect(AC.destination);BGM.g[k]=g}catch(e){a.volume=0}return a}
+function bgmVol(k,v,sec){const g=BGM.g[k],a=BGM.el[k];if(g&&AC){const t=AC.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(v,t+sec)}else if(a)a.volume=v}
+function bgmSync(){const want=!BGM.ok||S.mute||S.bgmOff||document.hidden?null:ui.screen==='explore'?'battle':'idle';if(want===BGM.cur)return;
+ const prev=BGM.cur;BGM.cur=want;
+ if(prev&&BGM.el[prev]){const a=BGM.el[prev];bgmVol(prev,0,.6);clearTimeout(a._st);a._st=setTimeout(()=>{if(BGM.cur!==prev)a.pause()},650)}
+ if(!want)return;const a=bgmEl(want);clearTimeout(a._st);if(AC&&AC.state==='suspended')AC.resume();
+ const p=a.play();if(p&&p.catch)p.catch(()=>{if(BGM.cur===want)BGM.cur=null});bgmVol(want,BGM_VOL[want],.6)}
+function bgmUnlock(){if(BGM.ok)return;BGM.ok=true;bgmSync()}
+addEventListener('pointerdown',bgmUnlock,{capture:true});addEventListener('keydown',bgmUnlock,{capture:true});
+document.addEventListener('visibilitychange',()=>bgmSync());
 function sfx(k){if(S.mute)return;const now=performance.now();if(now-(sfxLast[k]||0)<70)return;sfxLast[k]=now;
  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){return}
  const t=AC.currentTime+.01,M=AC.createGain();M.gain.value=.9;M.connect(AC.destination);
@@ -2214,7 +2231,7 @@ function vMain(){
   ...(S.tut&&S.hub?[]:[['go:shop','LEBLANC',`PROPS ${S.props.length}/${PROPS.length} · MONA BUS LV.${S.bus}`]]),
   ['go:codex','CODEX',`COMBOS ${cx.combos.length}/120 · STORIES ${Object.values(cx.chains||{}).filter(v=>v==='end').length}/${SCRIPT.chains.length}`],
   ['howto','HOW TO PLAY','MANUAL · REPLAY TUTORIAL']];
- return `<main class="mstage"><button class="msnd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'SFX OFF':'SFX ON'}</button><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
+ return `<main class="mstage"><button class="msnd" data-act="mute" aria-pressed="${!S.mute}" aria-label="소리 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'SOUND OFF':'SOUND ON'}</button><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
  <section class="mground"><div class="mbg" aria-hidden="true"><div class="mslab"></div>${MAIN_ART.city}${MAIN_ART.tun}</div>
  <ul class="mmenu ${M.length>4?'m5':''}">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
  <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${fmt(S.yen)}</b><span>RUNS ${cx.reports} · BEST ${cx.best?'★'.repeat(cx.best):'—'}${S.rec&&S.rec.streak>1?` · STREAK ${S.rec.streak}`:''}${S.depthMax?` · DEPTH ${S.depthMax}`:''}</span></p><p class="pg">${mainGoal()}</p></div></div>
@@ -2378,7 +2395,7 @@ function vExplore(){
  <section class="party">${tiles}</section>
  <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox ${r.hold&&!r.manual?'holding':''}" ${r.hold&&!r.manual?'data-act="next"':''}><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
  ${r.phase==='event'?vEvent():(r.evIn=false,'')}
- ${vStamp()}${vTip()}${vCmd()}${vSk()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}" title="P">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}" title="F">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry&&!lvOk(4)?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" title="Esc" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&r.hold&&!r.manual&&!r.paused?'<div class="stepper hold"><button class="next" data-act="next">TAP ▶</button></div>':''}${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
+ ${vStamp()}${vTip()}${vCmd()}${vSk()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}" title="P">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}" title="F">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="소리 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry&&!lvOk(4)?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" title="Esc" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&r.hold&&!r.manual&&!r.paused?'<div class="stepper hold"><button class="next" data-act="next">TAP ▶</button></div>':''}${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
  return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})${x.cut?`\n결정적 1컷: ${x.cut.t}`:''}\n정산 수익: ¥${fmt(x.inc)}${x.bonus?` (위험 수당 +¥${fmt(x.bonus)})`:''}${x.team?` (팀워크 수당 +¥${fmt(x.team)})`:''} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
@@ -2535,7 +2552,7 @@ function vTut(){
  const k=ui.tstep,st=TUT[k],last=k===TUT.length-1;
  return `<main class="tut"><header class="sky tsky"><div class="tbar"><div class="prog" aria-label="${k+1} / ${TUT.length}">${TUT.map((_,i)=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div><button class="skip" data-act="tutskip">SKIP</button></div><h2>${rn(st.t)}</h2></header>
  <section class="tcard"><div class="tvis">${st.vis()}</div><p class="tbody">${st.body}</p></section>
- ${ui.tafter==='main'?`<div class="topts"><button class="btn ghost sm" data-act="tutreplay">REPLAY TUTORIAL</button><button class="btn ghost sm" data-act="hints" aria-pressed="${!S.hintsOff}">TIPS ${S.hintsOff?'OFF':'ON'}</button><button class="btn ghost sm" data-act="mute" aria-pressed="${!S.mute}">SFX ${S.mute?'OFF':'ON'}</button></div>`:''}
+ ${ui.tafter==='main'?`<div class="topts"><button class="btn ghost sm" data-act="tutreplay">REPLAY TUTORIAL</button><button class="btn ghost sm" data-act="hints" aria-pressed="${!S.hintsOff}">TIPS ${S.hintsOff?'OFF':'ON'}</button><button class="btn ghost sm" data-act="mute" aria-pressed="${!S.mute}">SOUND ${S.mute?'OFF':'ON'}</button><button class="btn ghost sm" data-act="bgm" aria-pressed="${!S.bgmOff}">BGM ${S.bgmOff?'OFF':'ON'}</button></div><p class="credit">BGM · "Vibing Over Venus" Kevin MacLeod (incompetech.com), CC BY 4.0 · "Hopstep Battle" PeriTune (peritune.com)</p>`:''}
  <footer class="tnav"><button class="btn ghost sm" data-act="tutprev" ${k?'':'disabled'}>← BACK</button><button class="btn" data-act="tutnext">${last?'START':'NEXT →'}</button></footer></main>`;
 }
 function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;save();ui.screen=ui.tafter;ui.enter=true;render();window.scrollTo(0,0);return}ui.tstep=n;ui.enter=true;render();window.scrollTo(0,0)}
@@ -2549,7 +2566,7 @@ function render(){
  if(ui.screen==='explore'&&run){countYen();if(run.banner){showBanner(run.banner);run.banner=null}}
  const inc=$('#inc');if(inc&&inc.dataset.to)countTo(inc,0,+inc.dataset.to,1100,500);
  const hs=$('#hscene');if(hs){const mx=hs.scrollWidth-hs.clientWidth;hs.scrollLeft=ui.hubX!=null?Math.min(ui.hubX,mx):mx/2;hs.onscroll=()=>{ui.hubX=hs.scrollLeft}}/* 다락방 둘러보기 */
- tutCheck();tutSpot();armAuto();
+ tutCheck();tutSpot();armAuto();bgmSync();
 }
 /* 파티 출발 (편성 화면 DEPLOY · 다락방 · 보고 책상의 GO AGAIN 공통) */
 function startSel(){const rv=ui.resv&&S.tut&&S.yen>=RESV_COST?ui.resv:null;if(rv){S.yen-=RESV_COST;save()}ui.resv=null;newRun([...ui.sel]);if(rv){run.resv=rv;log({sys:1,relic:1,text:`◆ 예약해 둔 ${relicOf(rv).name}의 기척이 느껴진다.`,res:`-¥${fmt(RESV_COST)}`})}ui.screen='explore';ui.enter=true;ui.tip=null;window.scrollTo(0,0);step();tip('start');render();schedule();}
@@ -2723,6 +2740,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='tutreplay'){S.tut=false;S.tutorialStep=[];save();ui.screen='main';ui.enter=true;render();window.scrollTo(0,0);return}
  if(a==='hints'){S.hintsOff=!S.hintsOff;save();render();return}
  if(a==='mute'){S.mute=!S.mute;save();if(!S.mute)sfx('select');render();return}
+ if(a==='bgm'){S.bgmOff=!S.bgmOff;save();render();return}
  if(a==='continue'){if(!resumeRun()){ui.msg='';render()}return}
  if(a==='tutnext'){tutGo(1);return}
  if(a==='tutprev'){tutGo(-1);return}
