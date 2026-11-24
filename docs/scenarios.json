@@ -50,7 +50,7 @@
   "note": "¥12345"
  },
  {
-  "name": "위험도 최대에서 거두는 자 전투",
+  "name": "경계도 최대에서 거두는 자 전투",
   "ok": true,
   "note": "reaper"
  },
@@ -63,6 +63,76 @@
   "name": "RETURN NOW → 결과 화면",
   "ok": true,
   "note": "result:return"
+ },
+ {
+  "name": "새로고침 뒤 같은 방에서 전투가 다시 열린다",
+  "ok": true,
+  "note": "{'at': 9, 'risk': 1, 'scr': 'battle', 'kind': 'normal'}"
+ },
+ {
+  "name": "경계도가 되돌아가지 않는다",
+  "ok": true,
+  "note": "1 → 1"
+ },
+ {
+  "name": "B1 관문 → 층 끝 화면",
+  "ok": true,
+  "note": "floor"
+ },
+ {
+  "name": "의뢰 1 완료(SV.q=1)",
+  "ok": true,
+  "note": "1"
+ },
+ {
+  "name": "모나 버스 없으면 하강 버튼 없음",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "모나 버스 Lv.2면 하강 버튼",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "하강하면 B2",
+  "ok": true,
+  "note": "B2"
+ },
+ {
+  "name": "출장소에 살 수 있는 템",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "사면 엔이 줄고 템이 하나 는다",
+  "ok": true,
+  "note": "{'y': 5000, 'n': 1} → {'y': 4200, 'n': 2}"
+ },
+ {
+  "name": "휴식하면 HP가 오른다",
+  "ok": true,
+  "note": "[24, 20, 17]"
+ },
+ {
+  "name": "판 끝에 바톤 3 + 생환 1 = 유대 4",
+  "ok": true,
+  "note": "{'n': 4, 'lv': 0}"
+ },
+ {
+  "name": "유대 단계 올리기 버튼",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "단계 1로 오름",
+  "ok": true,
+  "note": "1"
+ },
+ {
+  "name": "유대 장면이 보인다",
+  "ok": true,
+  "note": ""
  },
  {
   "name": "페이지 에러 없음",
