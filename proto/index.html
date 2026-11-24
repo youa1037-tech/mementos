@@ -100,6 +100,7 @@ button:disabled{opacity:.35;cursor:default}
 .psc small{display:block;font-size:10px;color:var(--mut)}.psc .po{position:absolute;top:4px;right:6px;font:16px/1 var(--en);font-style:normal;color:var(--c)}
 .els{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}.els i{font-style:normal;font-size:9px;color:#141012;padding:0 3px}
 .wk+.wk{margin-left:2px}.foe .wk{display:inline-block}.foe .wks{display:flex;flex-wrap:wrap;justify-content:center}
+.pk.lock{opacity:.7}.pk.lock .ic{filter:grayscale(1)}
 .tip{font-size:12px;color:var(--mut);min-height:18px}
 .acts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .ab{background:var(--p2);padding:9px 10px;text-align:left;border-left:4px solid var(--c,#777);min-height:54px}
@@ -250,8 +251,16 @@ const IT=id=>ITEMS[id]||EVO[id];
 const ROOM={start:{ic:'🚪',n:'입구'},battle:{ic:'⚔️',n:'전투'},chest:{ic:'📦',n:'보물 상자'},curio:{ic:'❓',n:'기물'},bench:{ic:'🔧',n:'작업대'},boss:{ic:'💀',n:'관문 보스'}};
 const RISK_MAX=10;
 /* ============ 저장 (시제품 기록만) ============ */
-let SV={runs:0,wins:0,best:0,deep:0,weak:{}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-proto')||'{}'))}catch(e){}
+let SV={runs:0,wins:0,best:0,deep:0,weak:{},yen:0,unl:[],up:{reroll:0,bench:0,curry:0},st:{},set:{start:null,neg:false,bet:false}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-proto')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('mm-proto',JSON.stringify(SV))}catch(e){}};
+SV.up=Object.assign({reroll:0,bench:0,curry:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false},SV.set);SV.st=SV.st||{};SV.unl=SV.unl||[];
+/* ============ 르블랑 메타 (제안서 7장): 번 엔은 르블랑 지갑으로. 템 풀 해금 · 개조 · 스트레스 케어 · 판 세팅 ============ */
+const LOCK={oil:3000,coat:3000,chip:3000,battery:3000,clock:3000,badge:4000,fuse:4000,express:5000,contra:5000,envelope:6000,dice:6000,mask:7000,seal:7000};/* 처음엔 잠긴 템과 해금 값 */
+const unlocked=id=>!(id in LOCK)||SV.unl.includes(id);
+const UPG={reroll:{n:'3지선다 리롤',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000,12000]},
+ bench:{n:'B1 작업대',d:'B1에도 작업대 방이 하나 생긴다',cost:[5000]},
+ curry:{n:'카레 도시락',d:'판마다 카레 +1개 (지도에서 먹으면 전원 HP 35% · 스트레스 -10)',cost:[4000,8000]}};
+const CARE=1000,SET_START=2000,SET_BET=3000,BET_WIN=12000;
 /* ============ 대사 (시트 그대로, tools/proto_lines.py) ============ */
 const KEYS=new Set(['find','chat','reply','support','protect','hurt','argue','back','enemy','win','trap','treasure','decide','gambit']);
 function line(who,k,tg){const L=((LINES.lines||{})[who]||{})[k]||[];const inP=id=>!!(G.party&&G.party.some(m=>m.id===id)),c=L.filter(x=>!Array.isArray(x)||((tg?x[1]===tg:!x[1]||inP(x[1]))&&(x[2]||[]).every(inP)))/* 대상·필요 캐릭터가 파티에 있을 때만 (시트 '필요 캐릭터' 칸) */,x=pick(c.length?c:L);if(!x)return '';
@@ -261,11 +270,14 @@ function log(t,who){G.log.push({t,who});if(G.log.length>120)G.log.shift()}
 function say(id,k,tg,ms=2200){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키면 시트 대사에서 고르고, 아니면 받은 문장 그대로 */if(!t)return;G.bub[id]={t,until:Date.now()+ms};log(t,id);setTimeout(render,ms+30)}
 /* ============ 판 시작 · 층 ============ */
 function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH[a].hp);/* 선호 열 순서로 1~3열 */
- Object.assign(G,{party:ids.map((id,i)=>({id,c:CH[id],hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1,st:0,mode:null})),
+ Object.assign(G,{party:ids.map((id,i)=>({id,c:CH[id],hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1,st:Math.min(99,SV.st[id]||0),mode:null})),
  fl:0,risk:0,yen:0,items:[],neg:[],kills:0,cmd:3,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,
- stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0},auto:false});
- newFloor(0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.`);say(G.party[0].id,'chat');SV.last=ids;save()}
-function newFloor(f){G.fl=f;G.map=genMap(FLOORS[f]);G.at=G.map.start;G.map.vis=new Set([G.at]);G.map.done=new Set([G.at]);G.flBattles=0;G.reaperMet=false;ui.screen='map';
+ stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0},auto:false,reroll:SV.up.reroll,curry:SV.up.curry,setup:{...SV.set}});
+ if(SV.set.start&&SV.yen>=SET_START){SV.yen-=SET_START;G.items.push(SV.set.start)}else G.setup.start=null;
+ if(SV.set.bet&&SV.yen>=SET_BET){SV.yen-=SET_BET}else G.setup.bet=false;
+ if(SV.set.neg){const k=pick(Object.keys(NEG));G.neg.push({id:k,p:0,k0:0})}
+ newFloor(0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.`);if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.neg.length)log(`판 세팅: 부정 기물 「${NEG[G.neg[0].id].n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — B3를 돌파하면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save()}
+function newFloor(f){G.fl=f;G.map=genMap(f===0&&SV.up.bench?{rooms:8,types:[...FLOORS[0].types,'bench']}:FLOORS[f]);G.at=G.map.start;G.map.vis=new Set([G.at]);G.map.done=new Set([G.at]);G.flBattles=0;G.reaperMet=false;ui.screen='map';
  if(f){log(`B${f+1} ${FLOORS[f].n} — 선로가 더 깊이 이어진다.`)}render()}
 function genMap(F){const N=[],nb=i=>[i-4,i+4,i%4?i-1:-1,i%4<3?i+1:-1].filter(x=>x>=0&&x<16);
  const start=12+R(0,3),S=[start];while(S.length<F.rooms){const a=pick(S),b=pick(nb(a));if(!S.includes(b)){S.push(b);N.push([a,b])}}
@@ -349,10 +361,11 @@ function unCuff(){if(!hasNeg('cuffs'))return;G.neg=G.neg.filter(x=>x.id!=='cuffs
 function synth(){const s=ui.bsel;if(s.length!==2||G.benchUsed)return;const ax=s.map(i=>IT(G.items[i]).ax);log(`작업대: ${s.map(i=>IT(G.items[i]).n).join(' + ')} → ?`);
  G.items=G.items.filter((_,i)=>!s.includes(i));G.benchUsed=true;ui.bsel=[];G.stats.evo++;offer('작업대에서 새로 짜 맞춘 것',1,'evo',ax)}
 /* ============ 템 3지선다 (시너지 가중 드롭: 가진 템과 맞물리는 템 ×2.5) ============ */
-function offer(why,n=1,pool='base',ax=null){const P=pool==='evo'?EVO:ITEMS,keys=Object.keys(P).filter(k=>!(pool==='evo'&&G.items.includes(k))&&(pool!=='boom'||P[k].r==='폭발')&&(pool!=='trig'||P[k].r==='발동')&&(pool!=='amp'||P[k].r==='증폭'));if(!keys.length)return offer(why,n,'base');
+function offer(why,n=1,pool='base',ax=null){const P=pool==='evo'?EVO:ITEMS,keys=Object.keys(P).filter(k=>(pool==='evo'||unlocked(k))&&!(pool==='evo'&&G.items.includes(k))&&(pool!=='boom'||P[k].r==='폭발')&&(pool!=='trig'||P[k].r==='발동')&&(pool!=='amp'||P[k].r==='증폭'));if(!keys.length)return offer(why,n,'base');
  const syn=id=>{const I=IT(id);if(ax)return ax.includes(I.ax);if(G.party.some(m=>m.c.rec.includes(id)))return true;if(id==='mirror')return G.items.some(i=>IT(i).r==='발동');if(id==='contra')return G.neg.length>0;return G.items.some(i=>IT(i).ax===I.ax)||(I.r==='발동'&&G.items.includes('mirror'))},w=id=>syn(id)?(ax?3:2.5):1;
  const ch=[];while(ch.length<Math.min(3,keys.length)){const c=keys.filter(x=>!ch.includes(x)),tot=c.reduce((t,x)=>t+w(x),0);let r=Math.random()*tot;for(const x of c){r-=w(x);if(r<=0){ch.push(x);break}}}
  G.pick={why,ch,left:n,pool,ax,syn:ch.map(syn)};ui.screen='pick';ui.drop=null;render()}
+function reroll(){const P=G.pick;if(!P||G.reroll<=0)return;G.reroll--;log('3지선다를 다시 뽑았다');offer(P.why,P.left,P.pool,P.ax)}
 function takeItem(id){if(G.items.length>=6){ui.drop=id;return render()}G.items.push(id);log(`템 획득: ${IT(id).n}`);if(EVO[id])flash('EVOLVED','g');afterPick()}
 function swapItem(slot){const id=ui.drop;log(`${IT(G.items[slot]).n} 대신 ${IT(id).n}`);G.items[slot]=id;ui.drop=null;afterPick()}
 function afterPick(){const P=G.pick;P.left--;if(P.left>0)return offer(P.why,P.left,P.pool,P.ax);G.pick=null;
@@ -559,6 +572,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  if(brk.some(x=>x.id==='crack')){offer('깨진 정기권 속에서 나온 것',1,'boom');return true}
  const el=B.foes.some(f=>f.tier==='e');offer(el?'정예 섀도가 남긴 것 (증폭기)':'섀도가 남긴 것 (발동기)',1,el?'amp':'trig');return true}
 /* 층 끝: 르블랑 귀환(엔 전부) vs 다음 층 하강(위험도 -4 · HP 30% · SP 50% 회복) */
+function eatCurry(){if(G.curry<=0||G.battle)return;G.curry--;for(const m of G.party){if(m.hp<=0)continue;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.35));m.st=Math.max(0,m.st-10)}log('르블랑 카레 도시락! 전원 HP 35% · 스트레스 -10');say(pick(alive()).id,'chat');render()}
 function descendWalk(){ui.walk=Date.now();setTimeout(render,1000)}
 function descend(){descendWalk();for(const m of G.party){m.st=Math.max(0,m.st-25);if(m.hp<=0)m.hp=Math.round(m.max*.25);m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*.5))}
  G.risk=Math.max(0,G.risk-4);say('joker','gambit');newFloor(G.fl+1)}
@@ -581,7 +595,10 @@ function autoGo(){if(!G.battle||ui.busy)return;{const m=actor();if(m&&m.mode==='
  if(ix('shield')>=0)return useSkill(ix('shield'));
  const d=m.row>CH[m.id].pref?-1:1;if((d<0?m.row>1:m.row<3)&&!cuffed(m,d))return doSwap(d);if(!cuffed(m,-d)&&(-d<0?m.row>1:m.row<3))return doSwap(-d);B.acted.add(m.id);render();if(!actor())return enemyPhase();autoGo()},450)}
 /* ============ 판 끝 ============ */
-function endRun(kind){const keep=kind==='wipe'?.5:1,y=Math.round(G.yen*keep);G.end={kind,y};SV.runs++;SV.best=Math.max(SV.best,y);save();
+function endRun(kind){const keep=kind==='wipe'?.5:1,y=Math.round(G.yen*keep*(G.setup.neg?1.5:1)),bet=G.setup.bet&&G.cleared?BET_WIN:0;
+ G.end={kind,y,bet};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet;
+ for(const id of IDS){const m=G.party.find(x=>x.id===id);SV.st[id]=m?Math.min(99,m.st):Math.max(0,(SV.st[id]||0)-20)}/* 같이 간 사람은 스트레스가 남고, 쉰 사람은 -20 */
+ save();
  if(kind!=='wipe'){const m=pick(alive());if(m)log(line(m.id,'back'),m.id)}ui.screen='result';G.battle=null;render()}
 /* ============ 연출 도우미 ============ */
 function flash(t,c=''){ui.fx={t,c};if(c==='g'||t==='BREAK')ui.quake=Date.now();render();setTimeout(()=>{ui.fx=null;render()},700)}
@@ -621,21 +638,31 @@ function pxDraw(t){const g=PX.g,W=PX.W,H=PX.H,dt=Math.min(.1,(t-(PX.last||t))/10
  g.fillStyle='rgba(0,0,0,.45)';for(let i=0;i<6;i++){g.fillRect(i,0,1,H);g.fillRect(W-1-i,0,1,H)}g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,0,W,3);/* 가장자리 그늘 */
  requestAnimationFrame(pxDraw)}
 requestAnimationFrame(pxDraw);
-function render(){const A=$('#app');if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='party')return A.innerHTML=vPartySel();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
+function render(){const A=$('#app');if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
  const body=ui.screen==='battle'?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
  A.innerHTML=vHud()+vStage()+`<div class="panel">${vParty()}${vSlots()}${body}${vLog()}</div>`;
  {const st=$('.stage');if(st)st.prepend(PX.cv)}
  const l=$('.log');if(l)l.scrollTop=l.scrollHeight}
-function vPartySel(){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice());
+function vPartyGrid(sel){
  const els=[...new Set(sel.flatMap(id=>CH[id].sk.filter(s=>!s.type).map(s=>s.el)))],rec=[...new Set(sel.flatMap(id=>CH[id].rec))];
- const card=id=>{const c=CH[id],o=sel.indexOf(id);return `<button class="psc ${o>=0?'on':''}" style="--c:${c.col}" data-a="ps:${id}">${o>=0?`<i class="po">${o+1}</i>`:''}<img src="${IMG}sprites/${id}.png" width="${Math.round(c.w/2)}" alt=""><span><b>${c.code}</b> ${c.name}<small>${c.ax} · ${c.pref===1?'1열':c.pref<2?'1~2열':c.pref<3?'2~3열':'3열'}</small><span class="els">${c.sk.filter(s=>!s.type).map(s=>`<i style="background:${EL[s.el]}">${s.el}</i>`).join('')}${id==='futaba'?'<i style="background:#c9b8ff">지원</i>':''}</span></span></button>`};
- return `<div class="title"><h1 style="font-size:38px">PARTY</h1><p>함께 갈 세 명을 고르십시오. 선호 열 순서대로 1~3열에 섭니다.</p>
- <div class="psg">${IDS.map(card).join('')}</div>
- <div class="card"><b>찌를 수 있는 속성</b> ${els.length?els.map(e=>`<span class="wk k" style="background:${EL[e]}">${e}</span>`).join(' '):'—'}<br><small style="color:var(--mut)">추천 템(잘 뜸): ${rec.map(i=>IT(i).ic+' '+IT(i).n).join(' · ')||'—'}</small></div>
- <button class="go" data-a="go" ${sel.length===3?'':'disabled'}>${sel.length===3?'START →':`${3-sel.length}명 더`}</button><button class="sm" data-a="title">처음 화면</button></div>`}
-function vTitle(){return `<div class="title"><h1>TODAY'S<br><span>MEMENTOS!</span></h1><p class="en" style="font-size:18px;color:var(--gold)">CORE PROTOTYPE · PHASE 2C</p>
+ const card=id=>{const c=CH[id],o=sel.indexOf(id);return `<button class="psc ${o>=0?'on':''}" style="--c:${c.col}" data-a="ps:${id}">${o>=0?`<i class="po">${o+1}</i>`:''}<img src="${IMG}sprites/${id}.png" width="${Math.round(c.w/2)}" alt=""><span><b>${c.code}</b> ${c.name}<small>${c.ax} · ${c.pref===1?'1열':c.pref<2?'1~2열':c.pref<3?'2~3열':'3열'}</small>${(SV.st[id]||0)>=50?`<small style="color:#ff4fd8">스트레스 ${SV.st[id]}</small>`:''}<span class="els">${c.sk.filter(s=>!s.type).map(s=>`<i style="background:${EL[s.el]}">${s.el}</i>`).join('')}${id==='futaba'?'<i style="background:#c9b8ff">지원</i>':''}</span></span></button>`};
+ return `<p class="tip">함께 갈 세 명을 고르십시오. 선호 열 순서대로 1~3열에 섭니다.</p><div class="psg">${IDS.map(card).join('')}</div>
+ <div class="card"><b>찌를 수 있는 속성</b> ${els.length?els.map(e=>`<span class="wk k" style="background:${EL[e]}">${e}</span>`).join(' '):'—'}<br><small style="color:var(--mut)">추천 템(잘 뜸): ${rec.map(i=>IT(i).ic+' '+IT(i).n).join(' · ')||'—'}</small></div>`}
+function vHub(){const t=ui.ht||'go',tabs=[['go','출발 준비'],['pool','템 풀'],['up','개조'],['care','케어']];
+ let body='';
+ if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0);
+  body=vPartyGrid(sel)+`<div class="card"><b>판 세팅</b> <small style="color:var(--mut)">(이번 판에만)</small>
+  <div class="row2" style="flex-wrap:wrap;gap:6px;margin-top:6px"><button class="tog ${SV.set.neg?'on':''}" data-a="setneg">부정 기물 안고 출발 · 수익 ×1.5</button><button class="tog ${SV.set.bet?'on':''}" data-a="setbet">판돈 ¥${SET_BET} → B3 돌파 시 ¥${BET_WIN}</button></div>
+  <p class="tip" style="margin:8px 0 4px">시작 발동기 (¥${SET_START}) — 누르면 고름</p><div class="negs">${Object.keys(ITEMS).filter(k=>ITEMS[k].r==='발동'&&unlocked(k)).map(k=>`<button class="tog ${SV.set.start===k?'on':''}" data-a="setstart:${k}">${ITEMS[k].ic} ${ITEMS[k].n}</button>`).join('')}</div></div>
+  <button class="go" data-a="go" ${sel.length===3&&SV.yen>=cost?'':'disabled'}>${sel.length!==3?`${3-sel.length}명 더`:SV.yen<cost?`엔 부족 (¥${cost})`:`START →${cost?` (¥${cost})`:''}`}</button>`}
+ if(t==='pool')body=`<p class="tip">잠긴 템은 3지선다에 나오지 않습니다. 해금하면 다음 판부터 드롭 풀에 들어갑니다.</p><div class="pick">${Object.keys(ITEMS).map(k=>{const I=ITEMS[k],u=unlocked(k);return `<div class="pk ${u?'':'lock'}"><span class="ic">${u?I.ic:'🔒'}</span><span style="flex:1"><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span><small>${I.d}</small></span>${u?'':`<button class="tog" data-a="unl:${k}" ${SV.yen>=LOCK[k]?'':'disabled'}>¥${LOCK[k]}</button>`}</div>`}).join('')}</div>`;
+ if(t==='up')body=`<div class="pick">${Object.entries(UPG).map(([k,U])=>{const lv=SV.up[k]||0,c=U.cost[lv];return `<div class="pk"><span class="ic">${k==='reroll'?'↻':k==='bench'?'🔧':'🍛'}</span><span style="flex:1"><b>${U.n}</b> <span class="tg">LV ${lv}/${U.cost.length}</span><small>${U.d}</small></span>${c?`<button class="tog" data-a="upg:${k}" ${SV.yen>=c?'':'disabled'}>¥${c}</button>`:'<span class="tg">MAX</span>'}</div>`}).join('')}</div>`;
+ if(t==='care')body=`<p class="tip">스트레스는 판을 넘어 남습니다. 함께 간 사람은 그대로, 쉰 사람은 판마다 -20. 특제 카레와 커피를 대접하면 0이 됩니다 (¥${CARE}).</p><div class="psg">${IDS.map(id=>{const c=CH[id],st=SV.st[id]||0;return `<div class="psc" style="--c:${c.col}"><img src="${IMG}sprites/${id}.png" width="${Math.round(c.w/2)}" alt=""><span style="flex:1"><b>${c.code}</b><div class="bar t"><i class="${st>=70?'hi':''}" style="width:${st}%"></i></div><small>스트레스 ${st}</small></span>${st?`<button class="tog" data-a="care:${id}" ${SV.yen>=CARE?'':'disabled'}>☕</button>`:''}</div>`}).join('')}</div>`;
+ return `<div class="title"><h1 style="font-size:38px">LEBLANC</h1><p>르블랑 다락방. 지갑 <b class="en" style="color:var(--gold);font-size:20px">¥${SV.yen}</b></p>
+ <div class="row2" style="gap:4px">${tabs.map(([k,n])=>`<button class="tog ${t===k?'on':''}" data-a="ht:${k}">${n}</button>`).join('')}</div>${body}<button class="sm" data-a="title">처음 화면</button></div>`}
+function vTitle(){return `<div class="title"><h1>TODAY'S<br><span>MEMENTOS!</span></h1><p class="en" style="font-size:18px;color:var(--gold)">CORE PROTOTYPE · LEBLANC</p>
  <div class="card">코어 개편 제안서(v2.2)를 떼어 낸 시제품입니다. 본 게임과 저장이 섞이지 않습니다.</div>
- <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발합니다. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· 4×4 지도에서 이웃 방을 눌러 이동합니다. 한 칸마다 <b>위험도 +1</b>, 10이 되면 거두는 자가 옵니다.<br>· 전투는 <b>약점</b>을 찌르면 적이 쓰러지고 <b>1 MORE</b>(한 번 더). 바톤 터치로 동료에게 넘길 수 있습니다. 적이 전부 쓰러지면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 6칸으로 <b>스위칭</b>(자리 이동) 빌드나 <b>약점</b>(1 MORE 연쇄) 빌드를 만드십시오.<br>· B2부터 <b>작업대</b>에서 템 2개를 넣어 진화 템으로 바꿉니다.<br>· 층 보스를 잡으면 <b>르블랑 귀환</b>(엔 전부)과 <b>다음 층 하강</b> 중 고릅니다. B3 관문은 분실물 보관소의 주인입니다. 위험도 10이면 어느 층이든 <b>거두는 자</b>가 옵니다 — 약점이 없고 스킬 피해를 절반만 받으니, 템 조합이 완성되기 전엔 도망치십시오.<br>· <b>스트레스</b>가 100이 되면 75% 붕괴(제멋대로) · 25% 각성. 폭주 템을 모으면 붕괴가 무기가 됩니다.<br>· 기물 방의 <b>비밀 거래</b>에서 부정 기물을 떠안으면 폭발기를 고릅니다. 버티거나 깨뜨리면 보상이 있습니다.</div>
+ <div class="card"><b>이렇게 놉니다</b><br>· 번 엔은 <b>르블랑 지갑</b>에 쌓입니다. 템 풀 해금 · 리롤 · 카레 · 스트레스 케어 · 판 세팅에 씁니다. 스트레스는 판을 넘어 남습니다.<br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발합니다. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· 4×4 지도에서 이웃 방을 눌러 이동합니다. 한 칸마다 <b>위험도 +1</b>, 10이 되면 거두는 자가 옵니다.<br>· 전투는 <b>약점</b>을 찌르면 적이 쓰러지고 <b>1 MORE</b>(한 번 더). 바톤 터치로 동료에게 넘길 수 있습니다. 적이 전부 쓰러지면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 6칸으로 <b>스위칭</b>(자리 이동) 빌드나 <b>약점</b>(1 MORE 연쇄) 빌드를 만드십시오.<br>· B2부터 <b>작업대</b>에서 템 2개를 넣어 진화 템으로 바꿉니다.<br>· 층 보스를 잡으면 <b>르블랑 귀환</b>(엔 전부)과 <b>다음 층 하강</b> 중 고릅니다. B3 관문은 분실물 보관소의 주인입니다. 위험도 10이면 어느 층이든 <b>거두는 자</b>가 옵니다 — 약점이 없고 스킬 피해를 절반만 받으니, 템 조합이 완성되기 전엔 도망치십시오.<br>· <b>스트레스</b>가 100이 되면 75% 붕괴(제멋대로) · 25% 각성. 폭주 템을 모으면 붕괴가 무기가 됩니다.<br>· 기물 방의 <b>비밀 거래</b>에서 부정 기물을 떠안으면 폭발기를 고릅니다. 버티거나 깨뜨리면 보상이 있습니다.</div>
  <div class="card">확인하고 싶은 것: <b>B3에서 "사기 조합이 완성됐다"는 손맛</b>이 나는지.<br><small style="color:var(--mut)">지금까지 ${SV.runs}판 · 최고 도달 B${SV.deep||1} · B3 돌파 ${SV.wins}번 · 거두는 자 격파 ${SV.reaper||0}번 · 최고 ¥${SV.best}</small></div>
  <button class="go" data-a="start">START →</button></div>`}
 function vHud(){if(!G.map)return '';const m=G.map,cells=Array.from({length:16},(_,i)=>{const c=m.cells.includes(i);return `<i class="${!c?'':i===G.at?'at':m.vis.has(i)?'v':known(i)?'k':''} ${c&&known(i)&&m.T[i]==='boss'?'b':''}"></i>`}).join('');
@@ -673,7 +700,7 @@ function vEvent(){const e=G.ev;if(e.kind==='deal'){const N=e.neg&&NEG[e.neg];ret
  const m=CH[e.who];return `<div class="cmd"><h3>COMMAND <span>지휘 ${G.cmd}/3</span></h3><p style="margin:8px 0 2px">${esc(e.n)}</p><p class="tip">${esc(e.odds)}</p>
  <div class="acts"><button class="ab" data-a="ev:stop" ${G.cmd?'':'disabled'}><b>1. 말린다</b><small>사고 없음 · 지휘 -1${e.kind==='chest'?' · 조심히 열기':''}</small></button><button class="ab" data-a="ev:boost" ${G.cmd?'':'disabled'}><b>2. 부추긴다</b><small>보상·위험 2배 · 지휘 -1</small></button><button class="ab wide" data-a="ev:leave"><b>3. 그냥 둔다</b><small>${esc(m.name)} 마음대로</small></button></div></div>`}
 function vPick(){const P=G.pick;if(!P)return '';return `<div class="tip"><b>${esc(P.why)}</b> — 하나를 고르십시오.${P.left>1?` (${P.left}번)`:''}</div><div class="pick">${P.ch.map((id,i)=>{const I=IT(id),n=cnt(id);
- return `<button class="pk ${P.syn[i]?'syn':''} ${EVO[id]?'evo':''}" data-a="take:${id}"><span class="ic">${I.ic}</span><span><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${P.syn[i]?'<span class="tg">시너지</span>':''}${n?`<span class="tg">×${n+1}</span>`:''}<small>${I.d}</small></span></button>`}).join('')}</div>`}
+   return `<button class="pk ${P.syn[i]?'syn':''} ${EVO[id]?'evo':''}" data-a="take:${id}"><span class="ic">${I.ic}</span><span><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${P.syn[i]?'<span class="tg">시너지</span>':''}${n?`<span class="tg">×${n+1}</span>`:''}<small>${I.d}</small></span></button>`}).join('')}</div>${G.reroll>0?`<button class="sm" data-a="reroll">↻ 다시 뽑기 (${G.reroll}번 남음)</button>`:''}`}
 function vBench(){const s=ui.bsel;return `<div class="dlg"><span class="who">WORKBENCH</span><p>${G.benchUsed?'오늘 작업대는 다 썼습니다.':`위 템 칸에서 <b>아무 템 2개</b>를 골라 넣으면, 넣은 템 계열 위주로 <b>진화 템 3개</b> 중 하나가 나옵니다. 넣은 2개는 사라집니다.`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>SYNTHESIZE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>${hasNeg('cuffs')?'<button class="ab wide" data-a="uncuff"><b>⛓️ 녹슨 수갑 해체</b><small>수갑을 없애고 템 3지선다 하나</small></button>':''}`}
 function vFloor(){const n=G.fl+1;return `<div class="dlg"><span class="who">B${n} CLEAR</span><p>관문을 넘었습니다. 지금 돌아가면 <b>¥${G.yen}</b>를 전부 챙깁니다.<br>내려가면 B${n+1} ${FLOORS[n].n} — 적이 단단해지고, 보상과 진화 템이 늘어납니다. 전멸하면 엔의 절반을 잃습니다.<br><small>하강하면 위험도 -4 · HP 30% · SP 50% 회복</small></p></div>
@@ -684,17 +711,25 @@ function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  const cells=Array.from({length:16},(_,i)=>{if(!m.cells.includes(i)||!known(i))return `<div class="cell" style="opacity:.45"></div>`;const t=m.T[i],can=nb.includes(i),cl=i===G.at?'at':can?'nx':m.vis.has(i)?'v':'k';
   return can?`<button class="cell ${cl}" data-a="mv:${i}" aria-label="${ROOM[t].n} 방으로">${ROOM[t].ic}<small>${m.done.has(i)?'지나옴':ROOM[t].n}</small></button>`:`<div class="cell ${cl}" style="z-index:1">${ROOM[t].ic}<small>${i===G.at?'지금':m.done.has(i)?'지나옴':ROOM[t].n}</small></div>`}).join('');
  return `<div class="tip">반짝이는 방을 눌러 이동합니다. 한 칸마다 위험도 +1.</div><div class="map">${lk}${cells}</div>
- <div class="row2"><button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">지금 돌아가면 ¥${G.yen}를 전부 챙깁니다.</p>`}
+ <div class="row2">${G.curry>0?`<button class="go sub" data-a="curry">CURRY ×${G.curry}</button>`:''}<button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">지금 돌아가면 ¥${G.yen}를 전부 챙깁니다.</p>`}
 function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 ▴':'로그 펼치기 ▾'}</button>${ui.log?`<div class="log">${G.log.map(l=>`<p>${l.who?`<b>${CH[l.who].name}</b> 「${esc(l.t)}」`:esc(l.t)}</p>`).join('')}</div>`:''}`}
 function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?'ALL CLEAR':'RETURNED';
  return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1><p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?'분실물 보관소의 주인을 쓰러뜨리고 메멘토스 끝까지 내려갔습니다.':`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>
- <div class="card"><dl><dt>수익</dt><dd>¥${e.y}</dd><dt>도달</dt><dd>B${G.fl+1}</dd><dt>지나온 방 · 전투</dt><dd>${s.rooms} · ${s.battles}</dd><dt>1 MORE (한 턴 최다)</dt><dd>${s.moreT} (${s.maxMore})</dd><dt>총공격 · SHOWTIME</dt><dd>${s.allout} · ${s.showtime}</dd><dt>최고 한 방</dt><dd>${s.best}</dd><dt>합성</dt><dd>${s.evo}</dd></dl>
+ <div class="card"><dl><dt>수익${G.setup.neg?' (×1.5)':''}</dt><dd>¥${e.y}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd><dt>도달</dt><dd>B${G.fl+1}</dd><dt>지나온 방 · 전투</dt><dd>${s.rooms} · ${s.battles}</dd><dt>1 MORE (한 턴 최다)</dt><dd>${s.moreT} (${s.maxMore})</dd><dt>총공격 · SHOWTIME</dt><dd>${s.allout} · ${s.showtime}</dd><dt>최고 한 방</dt><dd>${s.best}</dd><dt>합성</dt><dd>${s.evo}</dd></dl>
  <div class="slots">${Array.from({length:6},(_,i)=>{const I=IT(G.items[i]||'');return I?`<div class="slot f ${EVO[G.items[i]]?'evo':''}" data-r="${I.r}">${I.ic}<small>${I.r}</small></div>`:'<div class="slot"></div>'}).join('')}</div></div>
- <div class="card">이 판의 조합, <b>한 번 더 해 보고 싶습니까?</b> 그 느낌이 이 시제품의 합격 기준입니다.</div>
- <button class="go" data-a="start">ONE MORE RUN →</button><button class="sm" data-a="title">처음 화면</button></div>`}
+ <div class="card">남은 스트레스: ${G.party.map(m=>`${m.c.name} ${SV.st[m.id]}`).join(' · ')} — 다음 판까지 이어집니다. 르블랑에서 케어할 수 있습니다.</div>
+ <button class="go" data-a="start">BACK TO LEBLANC →</button><button class="sm" data-a="title">처음 화면</button></div>`}
 /* ============ 입력 ============ */
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const [a,v]=b.dataset.a.split(':');
- if(a==='start'){ui.screen='party';ui.ps=null;return render()}
+ if(a==='start'){ui.screen='hub';ui.ht='go';ui.ps=null;return render()}
+ if(a==='ht'){ui.ht=v;return render()}
+ if(a==='setneg'){SV.set.neg=!SV.set.neg;save();return render()}
+ if(a==='setbet'){SV.set.bet=!SV.set.bet;save();return render()}
+ if(a==='setstart'){SV.set.start=SV.set.start===v?null:v;save();return render()}
+ if(a==='unl'){if(SV.yen>=LOCK[v]&&!SV.unl.includes(v)){SV.yen-=LOCK[v];SV.unl.push(v);save()}return render()}
+ if(a==='upg'){const c=UPG[v].cost[SV.up[v]||0];if(c&&SV.yen>=c){SV.yen-=c;SV.up[v]=(SV.up[v]||0)+1;save()}return render()}
+ if(a==='care'){if(SV.yen>=CARE){SV.yen-=CARE;SV.st[v]=0;save()}return render()}
+ if(a==='reroll')return reroll();if(a==='curry')return eatCurry();
  if(a==='ps'){const p=ui.ps,j=p.indexOf(v);if(j>=0)p.splice(j,1);else if(p.length<3)p.push(v);return render()}
  if(a==='go'){if(ui.ps&&ui.ps.length===3)return newRun(ui.ps);return}if(a==='title'){ui.screen='title';return render()}
  if(a==='mv')return move(+v);if(a==='ret')return endRun('return');if(a==='down')return descend();
