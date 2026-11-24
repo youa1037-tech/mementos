@@ -794,6 +794,26 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 #doors.shut{pointer-events:auto}#doors.shut i{transform:none}#doors.shut b{opacity:1;transform:translate(-50%,0) rotate(-3deg)}
 #doors.open i{transition-duration:.35s}
 @media(prefers-reduced-motion:reduce){#doors{display:none}.hman .hmark{animation:none}}
+/* 탐사 화면 한눈에 (휴대폰): 화면 높이에 고정하고 로그만 안에서 스크롤. 머리띠·동료 칸은 한 줄씩 줄임 */
+@media(max-width:600px){
+ .ex{height:100svh;height:100dvh;display:flex;flex-direction:column;padding-bottom:calc(66px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:hidden}
+ .ex:has(.stepper){padding-bottom:calc(122px + env(safe-area-inset-bottom))}
+ .xbar{flex:none;padding-top:6px;padding-bottom:6px;align-items:center}
+ .tn{font-size:30px}
+ .zn{min-width:0}
+ .zn b{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .zn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+ .money{font-size:18px}
+ .xr{gap:3px}
+ .chipbar,.party,.mapbox{flex:none}
+ .party{margin-top:12px}
+ .bub{font-size:12px;padding:5px 7px;margin-bottom:9px}
+ .bub span{-webkit-line-clamp:2;min-height:2.7em}
+ .grid{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:8px}
+ .mapbox.big .map,.mapbox.big .map.tall{height:min(290px,36dvh)}
+ .logbox{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+ #log{flex:1 1 auto;height:auto;min-height:0}
+}
 /* 375px 폴리시 패스: 터치 영역 44px */
 .msnd,.btn.sm[data-act="copy"],.lnk[data-act="random"],.lnk.sm.more,[data-act="cashout"]{min-height:44px}
 .hudt{position:relative}.hudt::after{content:'';position:absolute;inset:-9px}
