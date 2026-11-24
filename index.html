@@ -662,6 +662,8 @@ const achRw=a=>[a.rw?`${IT(a.rw).g||tier(a.rw)}급 「${IT(a.rw).n}」 해금${I
 function achGet(k){if(achDone(k))return;const a=ACH.find(x=>x.id===k);if(!a)return;SV.ach=SV.ach||{};SV.ach[k]=Date.now();if(a.rw&&(a.rw in LOCK)&&!SV.unl.includes(a.rw))SV.unl.push(a.rw);if(a.y)SV.yen+=a.y;save();setTimeout(sbFlush,200);(G.achNew||(G.achNew=[])).push(k);
  log(`업적 달성 — ${a.n} · 해금: ${achRw(a)}`);band(`<b>ACHIEVEMENT · ${a.r}</b> ${esc(a.n)} <small>해금: ${esc(achRw(a))}</small>`,'chain',5200)}
 /* 익명 업적 통계 (Supabase): 무작위 ID + 업적 이름만 보낸다. 실패하면 조용히 등급 표시로 */
+{const q=new URLSearchParams(location.search).get('dev');if(q==='1')SV.dev=1;else if(q==='0')SV.dev=0;}/* 개발자 판은 dev=true로 따로 */
+const VER=(()=>{const d=new Date(document.lastModified);return isNaN(d)?'dev':d.toISOString().slice(0,16).replace(/\D/g,'')})();/* 배포 시각 = 버전 */
 const SB={url:'https://cdybxxphrwjgcidrhyib.supabase.co',key:'sb_publishable_I0HHy_jV6Rnk2_n4qBvhOA_nAfhUpYC',min:20,ttl:600000};
 const sbOn=()=>!SV.sbOff&&typeof fetch==='function';
 async function sbPost(path,body){const r=await fetch(`${SB.url}/rest/v1/${path}`,{method:'POST',headers:{apikey:SB.key,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(body)});
@@ -670,6 +672,7 @@ let sbBusy=false;
 async function sbFlush(){if(!sbOn()||sbBusy||!(SV.runs>0))return;sbBusy=true;try{
   if(!SV.pid){SV.pid=(crypto.randomUUID&&crypto.randomUUID())||'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16));save()}
   if(!SV.sbReg){await sbPost('players',{id:SV.pid});SV.sbReg=1;save()}
+  const RQ=SV.sbRuns||[];while(RQ.length){await sbPost('runs',{...RQ[0],player_id:SV.pid});RQ.shift();SV.sbRuns=RQ;save()}
   const sent=new Set(SV.sbSent||[]);for(const k of Object.keys(SV.ach||{})){if(sent.has(k))continue;await sbPost('unlocks',{player_id:SV.pid,ach:k});sent.add(k);SV.sbSent=[...sent];save()}
  }catch(e){}finally{sbBusy=false}}
 async function sbStats(force){if(!sbOn())return;const c=ui.sbS;if(!force&&c&&Date.now()-c.at<SB.ttl)return;ui.sbS={at:Date.now(),map:c&&c.map||{},total:c&&c.total||0};
@@ -756,7 +759,7 @@ function newRun(ids){ui.tip=null;ui.tagi=null;ui.autoHold=0;ui.total=null;ids=[.
  const fw=SV.freeWarp&&(SV.q||0)>=SV.freeWarp?SV.freeWarp:0,f0=Math.max(fw,Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0));if(SV.freeWarp){SV.freeWarp=0;save()}/* 개통 기념 직행은 1번 */
  Object.assign(G,{deal:null,party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
  fl:0,risk:0,yen:400*(SV.up.fund||0)+(achDone('first')?200:0)+(achDone('runaway')?300:0),items:[],shopSpent:0,chk:0,kills:0,cmd:3,qk:0,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,questHit:false,
- stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,questNew:0,questY:0,questHit:false,cut:null,autoHeld:0,grd:0,smoke:achDone('stare')?1:0,freeRr:achDone('artist')?1:0,fuseN:0,rkGate:0,glass:0,miserSh:0,rift:0,benchSp0:0,reroll:SV.up.reroll+(achDone('tag4')?1:0),achNew:[],devil:0,curry:1+(achDone('close')?1:0),setup:{...SV.set},
+ stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,t0:Date.now(),startFl:0,bossLog:[],reaperN:0,reaperFl:[],reaperRes:null,wipeAt:null,questNew:0,questY:0,questHit:false,cut:null,autoHeld:0,grd:0,smoke:achDone('stare')?1:0,freeRr:achDone('artist')?1:0,fuseN:0,rkGate:0,glass:0,miserSh:0,rift:0,benchSp0:0,reroll:SV.up.reroll+(achDone('tag4')?1:0),achNew:[],devil:0,curry:1+(achDone('close')?1:0),setup:{...SV.set},
  day:DAYS.find(d=>d.id===SV.today)||null,chain:null,combos:[],sub:subNow().id});
  if(DF().reroll)G.reroll+=DF().reroll;
  if(SV.nextBuff){const k=SV.nextBuff;G.buff=k;SV.nextBuff=null;save();if(k==='coffee')for(const m of G.party)m.sp=Math.min(m.msp,m.sp+10);if(k==='cushion')G.yen+=300;log(`다락방에서 받은 힘: ${HBUFF[k].n} — ${HBUFF[k].d}`)}
@@ -764,7 +767,7 @@ function newRun(ids){ui.tip=null;ui.tagi=null;ui.autoHold=0;ui.total=null;ids=[.
  if(SV.set.start&&SV.yen>=SET_START){SV.yen-=SET_START;G.items.push(SV.set.start)}else G.setup.start=null;
  if(SV.set.bet&&SV.yen>=SET_BET){SV.yen-=SET_BET}else G.setup.bet=false;
  if(SV.set.neg){const k=pick(Object.keys(ITEMS).filter(x=>ITEMS[x].risk&&unlocked(x)));if(k)G.items.push(k);G.setup.negItem=k}/* 왜곡된 인지를 안고 출발 · 수익 ×1.5 */
- newFloor(f0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.${f0?` (선로 직행 — B${f0+1})`:''}`);
+ G.startFl=f0;newFloor(f0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.${f0?` (선로 직행 — B${f0+1})`:''}`);
  log(`의뢰: ${qNow().n} · 서브 의뢰: ${subNow().t} (+¥${subNow().y})`);
  if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600,true),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save();
  if(f0){G.grd=Math.min(.4,.05*f0);for(const m of G.party){m.max=Math.round(m.max*Math.pow(1.1,f0));m.hp=m.max}log(`직행 보급: 건너뛴 ${f0}층만큼 단련(최대 HP +${Math.round((Math.pow(1.1,f0)-1)*100)}% · 받는 피해 -${f0*5}%) + 템 ${f0}개`);offer('직행 보급 — 건너뛴 층의 몫',f0,'base')}}/* 직행해도 빈손으로 정예를 만나지 않게 */
@@ -804,7 +807,7 @@ function addRisk(d,why){const b=G.risk;G.risk=Math.max(0,Math.min(RISK_MAX,G.ris
 function move(to){if(ui.busy||!G.map.adj(G.at).includes(to))return;ui.walk=Date.now();setTimeout(render,1000);const back=G.map.vis.has(to);G.at=to;{const st=riskStep(),why=[back?'왔던 역':'',cnt('chain')?'쇠사슬 파편':'',cnt('gate')?'2배 템':''].filter(Boolean).join(' · ');addRisk(st,st>1||back?why:'')}G.map.vis.add(to);G.stats.rooms++;
  for(const m of G.party)if(m.hp>0){m.sp=Math.min(m.msp,m.sp+4);if(DF().hurt)m.hp=Math.max(1,m.hp-DF().hurt);if(DF().spup)m.sp=Math.min(m.msp,m.sp+DF().spup)}
  const t=G.map.T[to],fresh=!G.map.done.has(to);log(`B${G.fl+1} · ${ROOM[t].n}에 내렸다. (경계도 ${G.risk})`);
- if(G.risk>=RISK_MAX&&!G.reaperMet){G.reaperMet=true;reaperTalk('appear','red');
+ if(G.risk>=RISK_MAX&&!G.reaperMet){G.reaperMet=true;G.reaperN=(G.reaperN||0)+1;(G.reaperFl||(G.reaperFl=[])).push(G.fl+1);reaperTalk('appear','red');
   runSave(true,{reaper:1});return startBattle('reaper')}
  if(G.risk===RISK_HOT){reaperTalk('warn1');log(`(경계도 ${RISK_MAX}에서 거두는 자 출현)`)}else if(G.risk===RISK_MAX-2&&!G.reaperMet)reaperTalk('warn2','red');
  if(!fresh){march();return render()}
@@ -1145,7 +1148,7 @@ async function enemyPhase(){const B=G.battle;ui.busy=true;
   let n=f.boss||f.reap?2:1;if(f.boss==='ticket'&&f.hp<f.max/2&&!f.p2){f.p2=1;log('검표원의 그림자: 「전원 하차 조치합니다.」 — 2페이즈!')}
   for(let k=0;k<n;k++){await sleep(420);if(!alive().length||f.hp<=0)break;await foeAct(f,k);render()}}
  await sleep(300);ui.busy=false;for(const m of G.party)m.taunt=0;if(B.guard)B.guard--;
- if(!alive().length)return endRun('wipe');
+ if(!alive().length){G.wipeAt={fl:G.fl+1,kind:B.kind,foes:B.foes.map(f=>f.key||f.boss||f.n),r:B.round};return endRun('wipe')}
  if(!foeAlive().length){checkWin();return}
  newRound(false)}
 function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.busy=false;
@@ -1158,7 +1161,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  const y=Math.round((T2('탐욕')?1.3:1)*(B.kind==='boss'?Math.round((bossY[B.foes[0].boss]||2200)*bossK):B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
- if(B.kind==='boss'){{const al=G.party.filter(m=>m.hp>0);if(G.fl===0)achGet('first');if(G.fl===1)achGet('lostfound');if(G.fl===2){achGet('deepest');achGet('reaper3')}
+ if(B.kind==='boss'){(G.bossLog||(G.bossLog=[])).push({fl:G.fl+1,r:B.round,hp:Math.round(G.party.reduce((t,m)=>t+Math.max(0,m.hp)/m.max,0)/3*100),ko:G.party.filter(m=>m.hp<=0).length});{const al=G.party.filter(m=>m.hp>0);if(G.fl===0)achGet('first');if(G.fl===1)achGet('lostfound');if(G.fl===2){achGet('deepest');achGet('reaper3')}
   if(B.round<=1)achGet('oneturn');if(G.fl>=1&&!(G.shopSpent>0))achGet('nospend');if(G.party.every(m=>m.hp>=m.max))achGet('scratch');
   if(al.length===1&&hpR(al[0])<=.15)achGet('last1');if(G.fl>=1&&cnt('bloodoath')&&cnt('steelheart'))achGet('brink');if(G.yen>=10000)achGet('capital');
   if(G.map.cells.every(c=>G.map.vis.has(c)))achGet('route')}
@@ -1166,7 +1169,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
   if(questClear())setTimeout(()=>flash('REQUEST CLEAR','g'),60);/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
   if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
- if(B.kind==='reaper'){G.reaperKill=1;addRisk(-Math.ceil(G.risk/2),'거두는 자 격퇴 — 추적이 끊겼다');SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
+ if(B.kind==='reaper'){G.reaperKill=1;G.reaperRes='kill';addRisk(-Math.ceil(G.risk/2),'거두는 자 격퇴 — 추적이 끊겼다');SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
  const el=B.foes.some(f=>f.tier==='e');offer(el?'정예 섀도가 남긴 것 (증폭기)':'섀도가 남긴 것 (발동기)',cnt('blank')?2:1,el?'amp':'trig');return true}
 /* 층 끝: 르블랑 귀환(엔 전부) vs 다음 층 하강(경계도 -6 · HP 30% · SP 50% 회복). B1 → B2는 모나 버스 Lv.2가 있어야 선로가 뚫린다 */
 const canDescend=()=>G.fl>=2?!!G.cleared:(SV.up.bus||0)>=G.fl+1;/* B3 이후는 무한 모드 *//* B1→B2 버스 Lv.2, B2→B3 버스 Lv.3 */
@@ -1208,7 +1211,13 @@ function endRun(kind){setTimeout(sbFlush,600);
   if((G.stats.gates||0)>0){const k=[...G.party.map(m=>m.id)].sort().join('|'),T=SV.trio||(SV.trio={});T[k]=(T[k]||0)+1;if(T[k]>=3)achGet('trio');
    const C=new Set(SV.crew||[]);for(const m of G.party)C.add(m.id);SV.crew=[...C];if(IDS.every(id=>C.has(id)))achGet('crew');save()}}if(kind!=='wipe'&&G.cleared&&G.devil)achGet('devil');try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
  const sb=subNow(),subOk=kind!=='wipe'&&G.sub===sb.id&&sb.ok(),sy=subOk?Math.max(0,Math.min(sb.y,RUN_CAP-y-bet)):0;
- const dy=kind==='wipe'?0:(G.deepBonus||0);G.end={kind,y,bet,sub:sb,subOk,sy,dy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy+dy;
+ const dy=kind==='wipe'?0:(G.deepBonus||0);G.end={kind,y,bet,sub:sb,subOk,sy,dy};
+ if(sbOn()){try{const tc=tagCnt(),R={dev:!!SV.dev,ver:VER,kind:kind==='clear'?'clear':kind==='wipe'?'wipe':'return',start_fl:(G.startFl||0)+1,end_fl:G.fl+1,party:G.party.map(m=>m.id),dur_s:Math.min(86400,Math.round((Date.now()-(G.t0||Date.now()))/1000)),yen:y,
+  data:{run:SV.runs+1,cleared:!!G.cleared,deep:Math.max(0,G.fl-2),risk:G.risk,rooms:G.stats.rooms||0,battles:G.stats.battles||0,ko:G.stats.ko||0,best:G.stats.best||0,allout:G.stats.allout||0,spent:G.shopSpent||0,raw:G.yen,
+   items:G.items.map(id=>id+':'+tier(id)),sets:Object.keys(tc).filter(t=>tc[t]>=2).map(t=>t+(tc[t]>=4?4:2)),bosses:G.bossLog||[],wipe:G.wipeAt||null,
+   reaper:{n:G.reaperN||0,fl:G.reaperFl||[],res:G.reaperRes||(G.reaperN?(kind==='wipe'&&G.battle&&G.battle.kind==='reaper'?'caught':'escape'):null)},
+   quest:G.questNew||0,sub:!!subOk,day:G.day&&G.day.id||null,setup:{start:!!G.setup.start,neg:!!G.setup.negItem,bet:!!G.setup.bet},grd:G.grd||0,rift:G.devil?'blood':G.rift?'seen':null,ach:G.achNew||[]}};
+  SV.sbRuns=(SV.sbRuns||[]).concat([R]).slice(-20)}catch(e){}}SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy+dy;
  {const ids=G.party.map(m=>m.id);for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const k=bkey(ids[i],ids[j]),x=SV.bond[k]||(SV.bond[k]={n:0,lv:0});x.n+=(G.stats.bat[k]||0)+(kind==='wipe'?0:1)}}/* 유대: 바톤 횟수 + 함께 살아 돌아오면 +1 */
  rollSub();
  if(G.reaperMet&&!G.reaperKill)reaperTalk(kind==='wipe'&&G.battle&&G.battle.kind==='reaper'?'caught':'escape','red');/* 거두는 자에게서 도망쳤거나 붙잡혔을 때 */
@@ -1310,7 +1319,7 @@ requestAnimationFrame(pxDraw);
 function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='map')))return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
  party:G.party.map(x=>({id:x.id,hp:x.hp,max:x.max,sp:x.sp,msp:x.msp,row:x.row})),map:{cells:m.cells,edges:m.edges,start:m.start,boss:m.boss,T:m.T,vis:[...m.vis],done:[...m.done]},
  at:G.at,fl:G.fl,risk:G.risk,yen:G.yen,items:G.items,kills:G.kills,qk:G.qk,sub:G.sub,questHit:G.questHit,cmd:G.cmd,stats:G.stats,reroll:G.reroll,curry:G.curry,setup:G.setup,combos:G.combos,
- day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,cleared:!!G.cleared,deepBonus:G.deepBonus||0,grd:G.grd||0,devil:G.devil||0,smoke:G.smoke||0,freeRr:G.freeRr||0,fuseN:G.fuseN||0,rkGate:G.rkGate||0,glass:G.glass||0,miserSh:G.miserSh||0,rift:G.rift||0,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
+ day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,cleared:!!G.cleared,deepBonus:G.deepBonus||0,grd:G.grd||0,devil:G.devil||0,t0:G.t0||0,startFl:G.startFl||0,bossLog:G.bossLog||[],reaperN:G.reaperN||0,reaperFl:G.reaperFl||[],reaperRes:G.reaperRes||null,smoke:G.smoke||0,freeRr:G.freeRr||0,fuseN:G.fuseN||0,rkGate:G.rkGate||0,glass:G.glass||0,miserSh:G.miserSh||0,rift:G.rift||0,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:chOf(x.id)})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
@@ -1465,7 +1474,7 @@ function vTitle(){const sv=runSaved(),dy=DAYS.find(d=>d.id===SV.today),sc=SV.sce
  <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${SV.yen}</b><span>RUNS ${SV.runs} · BEST B${SV.deep||1} · REQUESTS ${SV.q||0}/3 · SUPPORT ${supNow()}%</span></p><p class="pg">${dy?`TODAY · <b>${esc(dy.en||dy.name)}</b> — ${esc(DAYRULE[dy.id].e)}`:'GET READY AT LEBLANC'}</p></div></div></section></main>`}
 function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO PLAY</h1>
  <div class="card"><b>왜 메멘토스에 들어가나</b><br>메멘토스 최심부에 <b>왜곡된 선로</b>가 생겨 도쿄의 인지가 뒤틀렸다. 괴도 채널에 올라온 의뢰 대상 셋을 개심시켜 <b>지지율 100%</b>를 만들어라.<br>· 의뢰 1: B1 관문 「검표원의 그림자」 · 의뢰 2: B2 관문 「분실물 보관소의 주인」 · 의뢰 3: B3 최심부 「거두는 자」</div>
- <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를. S급은 전부 <b>업적</b>으로 풀리고, 하나라도 풀려야 균열이 나타납니다.<br>· <b>업적</b>(르블랑 〈업적〉 탭, 25종): 원 턴 킬 · 스크래치 제로 같은 도전을 깨면 새 템이 풀리거나 영구 보너스를 받습니다. HIDDEN 업적은 조건이 가려져 있습니다. 달성 비율은 무작위 익명 ID와 업적 이름만 모아 계산합니다(업적 탭에서 끌 수 있음).<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
+ <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를. S급은 전부 <b>업적</b>으로 풀리고, 하나라도 풀려야 균열이 나타납니다.<br>· <b>업적</b>(르블랑 〈업적〉 탭, 25종): 원 턴 킬 · 스크래치 제로 같은 도전을 깨면 새 템이 풀리거나 영구 보너스를 받습니다. HIDDEN 업적은 조건이 가려져 있습니다. 달성 비율과 밸런스 조정을 위해 무작위 익명 ID로 업적과 판 요약(도달 층 · 전멸 위치 · 고른 템 등)을 모읍니다. 이름 같은 개인정보는 보내지 않고, 업적 탭에서 끌 수 있습니다.<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
  <div class="card"><b>돈은 어디에</b><br>· 귀환하면 번 엔이 <b>르블랑 지갑</b>으로(전멸하면 절반). 서브 의뢰를 해내면 보너스.<br>· ① <b>모나 버스</b>: B2 선로 개방 · 리롤 · 출발 자금 · 선로 직행 ② <b>템 해금</b>: 3지선다에 나올 템을 늘림 ③ <b>유대</b>: 바톤을 주고받은 두 사람의 장면과 바톤 보너스</div>
  <div class="row2"><button class="go sub" data-a="tutr">튜토리얼 처음부터</button><button class="go" data-a="title">BACK</button></div>
  <p class="mold"><a href="legacy.html">예전 관찰 버전으로 플레이하기</a> <small>(지금은 업데이트하지 않는 옛 게임입니다)</small></p></div>`}
