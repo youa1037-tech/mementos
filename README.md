@@ -30,5 +30,6 @@
 배경음악:
 - 대기 화면 — "Vibing Over Venus" Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/)
 - 탐사 — "Hopstep Battle" PeriTune (https://peritune.com)
+- 심층(버려진 플랫폼 단계) — "Deep Sea" PeriTune (https://peritune.com)
 
 제작: [@nyamaker](https://x.com/nyamaker)
