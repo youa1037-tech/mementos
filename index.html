@@ -537,12 +537,12 @@ const save=()=>{try{localStorage.setItem('mm-core',JSON.stringify(SV))}catch(e){
 function svFix(){SV.awk=SV.awk||[];SV.up=Object.assign({bus:0,reroll:0,fund:0,disc:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
 svFix();
 /* ============ 르블랑 메타: 판 밖의 돈은 세 군데에 쓴다 — ① 모나 버스 개조 ② 벨벳 룸 템 해금 ③ 유대(동료 둘) ============ */
-const LOCK={oil:3000,coat:3000,chip:3000,battery:3000,clock:3000,crack:3000,badge:4000,fuse:4000,express:5000,contra:5000,radio:5000,envelope:6000,dice:6000,mask:7000,seal:7000};/* 처음엔 잠긴 템과 해금 값 */
+const LOCK={oil:2500,coat:2500,chip:2500,battery:2500,clock:2500,crack:2500,badge:3500,fuse:3500,express:4500,contra:4500,radio:4500,envelope:5000,dice:5000,mask:6000,seal:6000};/* 처음엔 잠긴 템과 해금 값 */
 const PACKS={
- brink:{n:'배수진 팩',ids:['knuckle','vampmask','brink'],c:7000},spmad:{n:'SP 폭주 팩',ids:['cell','oclock','infbat'],c:7000},
- crit:{n:'연타 팩',ids:['tdice','trigger','revolver'],c:7000},warp:{n:'왜곡된 인지 팩',ids:['gate','oneway','contract'],c:6000},
- money:{n:'자본주의 팩',ids:['wallet','card','checks'],c:7000},guard:{n:'수비 반격 팩',ids:['spshield','censer','hourglass'],c:7000},
- team:{n:'팀워크 팩',ids:['rbaton','flag'],c:5000}};
+ brink:{n:'배수진 팩',ids:['knuckle','vampmask','brink'],c:6000},spmad:{n:'SP 폭주 팩',ids:['cell','oclock','infbat'],c:6000},
+ crit:{n:'연타 팩',ids:['tdice','trigger','revolver'],c:6000},warp:{n:'왜곡된 인지 팩',ids:['gate','oneway','contract'],c:5000},
+ money:{n:'자본주의 팩',ids:['wallet','card','checks'],c:6000},guard:{n:'수비 반격 팩',ids:['spshield','censer','hourglass'],c:6000},
+ team:{n:'팀워크 팩',ids:['rbaton','flag'],c:4500}};
 const PACK_OF={};for(const [k,P] of Object.entries(PACKS))for(const id of P.ids){PACK_OF[id]=k;LOCK[id]=P.c}
 const packDone=k=>PACKS[k].ids.every(id=>SV.unl.includes(id));
 const unlocked=id=>!(id in LOCK)||SV.unl.includes(id);
