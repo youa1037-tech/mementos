@@ -475,6 +475,8 @@ function questClear(){const i=G.fl;if(i>=QUESTS.length||(SV.q||0)!==i)return fal
 function questGuide(){const q=SV.q||0,b=SV.up.bus||0,c=UPG.bus.cost;
  if(q===0)return {t:'B1 관문 「검표원의 그림자」를 쓰러뜨리세요. 지도 맨 위의 관문 칸입니다.'};
  if(q===1&&b<1)return {t:`르블랑 〈버스〉 탭에서 모나 버스 Lv.2(¥${c[0].toLocaleString()})를 개조하세요. 그러면 B1 관문을 넘은 뒤 GO DEEPER로 B2에 내려갈 수 있습니다.`,a:'ht:up',bn:'버스 탭으로'};
+ if(q===1&&SV.freeWarp)return {t:'선로 개통 기념으로 이번 판은 B2에서 바로 출발합니다. B2 관문 「분실물 보관소의 주인」을 쓰러뜨리세요.'};
+ if(q===2&&SV.freeWarp)return {t:'선로 개통 기념으로 이번 판은 B3에서 바로 출발합니다. 최심부의 거두는 자를 쓰러뜨리세요.'};
  if(q===1)return {t:`B1 관문을 넘고 GO DEEPER로 B2에 내려가, 관문 「분실물 보관소의 주인」을 쓰러뜨리세요.${upgOk('warp')&&!(SV.up.warp||0)?` 〈버스〉 탭의 선로 직행(¥${UPG.warp.cost[0].toLocaleString()})을 사면 B2부터 출발할 수 있습니다.`:''}`};
  if(q===2&&b<2)return {t:`르블랑 〈버스〉 탭에서 모나 버스 Lv.3(¥${c[1].toLocaleString()})를 개조하세요. 그러면 B2 관문 뒤에서 B3 최심부로 내려갈 수 있습니다.`,a:'ht:up',bn:'버스 탭으로'};
  if(q===2)return {t:'B3 최심부까지 내려가 관문 「최심부의 거두는 자」를 쓰러뜨리세요. 약점이 매 턴 바뀌니 분석 렌즈나 여러 속성을 챙기면 좋습니다.'};
@@ -751,7 +753,7 @@ function reaperTalk(st,cls='warn'){const L=(SCRIPT.reaper||[]).filter(x=>x.st===
 function pairTalk(al=alive(),gap=900){const P=(LINES.pairs||[]).filter(x=>al.some(m=>m.id===x.a)&&al.some(m=>m.id===x.b));if(!P.length)return false;const p=pick(P);say(p.a,p.qa,null,2400,true);setTimeout(()=>say(p.b,p.qb,null,2400,true),gap);return true}
 /* ============ 판 시작 · 층 ============ */
 function newRun(ids){ui.tip=null;ui.tagi=null;ui.autoHold=0;ui.total=null;ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH[a].hp);/* 선호 열 순서로 1~3열 */
- const f0=Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0);
+ const fw=SV.freeWarp&&(SV.q||0)>=SV.freeWarp?SV.freeWarp:0,f0=Math.max(fw,Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0));if(SV.freeWarp){SV.freeWarp=0;save()}/* 개통 기념 직행은 1번 */
  Object.assign(G,{deal:null,party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
  fl:0,risk:0,yen:400*(SV.up.fund||0)+(achDone('first')?200:0)+(achDone('runaway')?300:0),items:[],shopSpent:0,chk:0,kills:0,cmd:3,qk:0,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,questHit:false,
  stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,questNew:0,questY:0,questHit:false,cut:null,autoHeld:0,grd:0,smoke:achDone('stare')?1:0,freeRr:achDone('artist')?1:0,fuseN:0,rkGate:0,glass:0,miserSh:0,rift:0,benchSp0:0,reroll:SV.up.reroll+(achDone('tag4')?1:0),achNew:[],devil:0,curry:1+(achDone('close')?1:0),setup:{...SV.set},
@@ -764,7 +766,8 @@ function newRun(ids){ui.tip=null;ui.tagi=null;ui.autoHold=0;ui.total=null;ids=[.
  if(SV.set.neg){const k=pick(Object.keys(ITEMS).filter(x=>ITEMS[x].risk&&unlocked(x)));if(k)G.items.push(k);G.setup.negItem=k}/* 왜곡된 인지를 안고 출발 · 수익 ×1.5 */
  newFloor(f0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.${f0?` (선로 직행 — B${f0+1})`:''}`);
  log(`의뢰: ${qNow().n} · 서브 의뢰: ${subNow().t} (+¥${subNow().y})`);
- if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600,true),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save()}
+ if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600,true),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save();
+ if(f0){G.grd=Math.min(.4,.05*f0);for(const m of G.party){m.max=Math.round(m.max*Math.pow(1.1,f0));m.hp=m.max}log(`직행 보급: 건너뛴 ${f0}층만큼 단련(최대 HP +${Math.round((Math.pow(1.1,f0)-1)*100)}% · 받는 피해 -${f0*5}%) + 템 ${f0}개`);offer('직행 보급 — 건너뛴 층의 몫',f0,'base')}}/* 직행해도 빈손으로 정예를 만나지 않게 */
 function floorPlan(f){const F=FLR(f),ty=[...F.types];let rooms=F.rooms;
  if(f>=1&&!G.rift&&RIFT.some(k=>!achLocked(k))&&chance(.4)){const i=ty.indexOf('curio');if(i>=0)ty[i]='rift'}/* 인지의 균열: B2부터, 판당 1번, 수상한 역 자리에 40% */
  const d=DF(),swap=(a,b)=>{const i=ty.indexOf(a);if(i>=0)ty[i]=b};if(d.curio||d.quiet)swap('battle','curio');if(d.battle){ty.push('battle');rooms++}
@@ -1402,7 +1405,7 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
-  body=(SV.nextBuff?`<div class="card" style="border-color:var(--gold)">${HBUFF[SV.nextBuff].ic} <b>${HBUFF[SV.nextBuff].n}</b> — ${HBUFF[SV.nextBuff].d}</div>`:SV.bang?`<p class="tip">다락방에 <b>!</b> 표시된 사람에게 말을 걸어 보세요. 다음 판에 작은 도움을 줍니다.</p>`:'')+`<div class="card sub"><b class="en">SUB REQUEST</b> ${esc(sb.t)} <b style="color:var(--gold)">+¥${sb.y}</b></div>`+dayCard+vPartyGrid(sel)+`<details class="card"${SV.set.start||SV.set.neg||SV.set.bet||SV.set.warp?' open':''}><summary><b>판 세팅</b> <small style="color:var(--mut)">(이번 판에만)</small></summary>
+  body=(SV.freeWarp?`<div class="card" style="border-color:var(--gold)">🚌 <b>선로 개통 기념</b> — 이번 판은 <b>B${SV.freeWarp+1}에서 바로 출발</b>합니다 (1번). <button class="sm" data-a="nofw">이번엔 B1부터</button></div>`:'')+(SV.nextBuff?`<div class="card" style="border-color:var(--gold)">${HBUFF[SV.nextBuff].ic} <b>${HBUFF[SV.nextBuff].n}</b> — ${HBUFF[SV.nextBuff].d}</div>`:SV.bang?`<p class="tip">다락방에 <b>!</b> 표시된 사람에게 말을 걸어 보세요. 다음 판에 작은 도움을 줍니다.</p>`:'')+`<div class="card sub"><b class="en">SUB REQUEST</b> ${esc(sb.t)} <b style="color:var(--gold)">+¥${sb.y}</b></div>`+dayCard+vPartyGrid(sel)+`<details class="card"${SV.set.start||SV.set.neg||SV.set.bet||SV.set.warp?' open':''}><summary><b>판 세팅</b> <small style="color:var(--mut)">(이번 판에만)</small></summary>
   ${wmax?`<div class="row2" style="gap:6px;margin-top:6px">${[0,1,2].filter(n=>n<=wmax).map(n=>`<button class="tog ${(SV.set.warp||0)===n?'on':''}" data-a="setwarp:${n}">B${n+1}부터</button>`).join('')}</div>`:''}
   <div class="row2" style="flex-wrap:wrap;gap:6px;margin-top:6px"><button class="tog ${SV.set.neg?'on':''}" data-a="setneg">왜곡된 인지 하나 안고 출발 · 수익 ×1.5</button><button class="tog ${SV.set.bet?'on':''}" data-a="setbet">판돈 ¥${SET_BET} → 의뢰 관문 격파 시 ¥${BET_WIN}</button></div>
   <p class="tip" style="margin:8px 0 4px">시작 발동기 (¥${SET_START}) — 누르면 고름</p><div class="negs">${Object.keys(ITEMS).filter(k=>ITEMS[k].r==='발동'&&!ITEMS[k].risk&&unlocked(k)).map(k=>`<button class="tog ${SV.set.start===k?'on':''}" data-a="setstart:${k}">${ITEMS[k].ic} ${ITEMS[k].n}</button>`).join('')}</div></details>
@@ -1551,7 +1554,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='awk'){const x=AWK[v];if(x&&!awoke(v)&&SV.yen>=x.c){SV.yen-=x.c;SV.awk.push(v);save()}return render()}
   if(a==='pack'){const P=PACKS[v];if(P&&!packDone(v)&&SV.yen>=P.c){SV.yen-=P.c;for(const id of P.ids)if(!SV.unl.includes(id))SV.unl.push(id);save()}return render()}
   if(a==='unl'){if(SV.yen>=LOCK[v]&&!SV.unl.includes(v)){SV.yen-=LOCK[v];SV.unl.push(v);save()}return render()}
- if(a==='upg'){const c=UPG[v].cost[SV.up[v]||0];if(c&&SV.yen>=c){SV.yen-=c;SV.up[v]=(SV.up[v]||0)+1;save()}return render()}
+ if(a==='upg'){const c=UPG[v].cost[SV.up[v]||0];if(c&&SV.yen>=c){SV.yen-=c;SV.up[v]=(SV.up[v]||0)+1;if(v==='bus'&&(SV.q||0)>=SV.up.bus){SV.freeWarp=SV.up.bus;band(`<b>선로 개통!</b> 다음 판 한 번은 B${SV.up.bus+1}에서 바로 출발합니다`,'chain',4200)}save()}return render()}
  if(a==='bond'){const x=SV.bond[v];if(x&&bondReady(v)&&SV.yen>=BOND.cost[x.lv]){SV.yen-=BOND.cost[x.lv];x.lv++;save();ui.bs=v}return render()}
  if(a==='bsee'){ui.bs=ui.bs===v?null:v;return render()}
  if(a==='setwarp'){SV.set.warp=+v;save();return render()}
@@ -1569,6 +1572,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='buy')return shopBuy(+v);if(a==='shopheal')return shopHeal();if(a==='shoprr')return shopReroll();
  if(a==='bsel')return benchToggle(+v);if(a==='synth')return synth();if(a==='leave'){benchLeave();ui.screen='map';return render()}
  if(a==='tip'){ui.tip=ui.tip===v?null:v;return render()}
+ if(a==='nofw'){SV.freeWarp=0;save();return render()}
  if(a==='endshow'){ui.endShow=!ui.endShow;return render()}
  if(a==='sbtog'){SV.sbOff=SV.sbOff?0:1;save();if(!SV.sbOff){sbFlush();sbStats(true)}return render()}
  if(a==='tagi'){ui.tagi=ui.tagi===v?null:v;return render()}
