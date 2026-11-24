@@ -1,6 +1,6 @@
 """오늘도 메멘토스! 밸런스 시뮬레이터 (개발용, 게임에는 포함되지 않음)
 
-사용법: python3 tools/sim.py [index.html 경로] [판 수]
+사용법: python3 tools/sim.py [legacy.html 경로] [판 수]
 필요: pip install playwright && python3 -m playwright install chromium
 
 index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
@@ -18,7 +18,7 @@ from playwright.sync_api import sync_playwright
 DLV = int(os.environ.get('DEPTH', '0'))  # 도전 단계 (기본 0)
 STRATS = os.environ.get('STRATS', 'greedy-first,greedy-best,smart,oracle,reckless,cautious,shallow').split(',')  # 예: STRATS=greedy-first,smart
 STATES = os.environ.get('STATES', '기본,풀업').split(',')
-SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'index.html')
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'legacy.html')
 N = int(sys.argv[2]) if len(sys.argv) > 2 else 300
 MARK = "render();\n}\n</script>"
 HOOK = ("window.__g={get run(){return run},get S(){return S},set S(v){S=v},step,move,choose,newRun,ZONES,canEnter,endRun,SCRIPT,resolveQuirk,"

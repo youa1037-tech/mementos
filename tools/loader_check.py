@@ -3,7 +3,7 @@
 """
 import time,os,sys
 from playwright.sync_api import sync_playwright
-ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'));P='file://'+ROOT+'/index.html'
+ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'));P='file://'+ROOT+'/legacy.html'
 JS="""()=>{const l=document.getElementById('loader');return l?(l.classList.contains('out')?'out':'on'):'gone'}"""
 def run(name,mode,reduced=False,breakjs=False):
   with sync_playwright() as p:
@@ -14,7 +14,7 @@ def run(name,mode,reduced=False,breakjs=False):
       elif mode=='hang':pass
       else:time.sleep(mode);r.fulfill(status=200,content_type='text/css',body='/*x*/')
     pg.route('**/fonts.googleapis.com/**',fonts);pg.route('**/fonts.gstatic.com/**',lambda r:r.abort())
-    if breakjs:pg.route('**/index.html',lambda r:r.fulfill(body=open(ROOT+'/index.html',encoding='utf-8').read().replace('const TYPES={','throw 0;const TYPES={',1),content_type='text/html'))
+    if breakjs:pg.route('**/legacy.html',lambda r:r.fulfill(body=open(ROOT+'/legacy.html',encoding='utf-8').read().replace('const TYPES={','throw 0;const TYPES={',1),content_type='text/html'))
     t0=time.time();pg.goto(P,wait_until='commit')
     pg.wait_for_selector('#loader',state='attached',timeout=5000)
     first=pg.evaluate(JS);t_out=None;seen=[]

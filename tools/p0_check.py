@@ -1,11 +1,11 @@
 """P0 회귀 검사: 리뷰에서 나온 신뢰 버그와 선택의 값(무리수 손실·정석 보너스·기세)이 유지되는지 확인 (개발용)
 
-사용법: python3 tools/p0_check.py [index.html 경로]
+사용법: python3 tools/p0_check.py [legacy.html 경로]
 크롬 경로를 지정하려면 CHROME=/usr/bin/google-chrome
 """
 import tempfile,json,sys,os
 from playwright.sync_api import sync_playwright
-src=open(sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(__file__),'..','index.html'),encoding='utf-8').read()
+src=open(sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(__file__),'..','legacy.html'),encoding='utf-8').read()
 MARK="render();\n}\n</script>"
 assert src.count(MARK)==1
 HOOK="window.__g={get run(){return run},set run(v){run=v},get S(){return S},get ui(){return ui},step,move,choose,newRun,endRun,useCurry,saveRun,resumeRun,relicOffer,pickCut,EVENTS,render,SCRIPT,typeof_payout:typeof payout,hp,momShift,spillAmt,save};\n"+MARK
