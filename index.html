@@ -315,6 +315,10 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 @media (prefers-reduced-motion:reduce){.spark,.fx b.slash,.total,.stage.aoflash::after,.slot.on{animation:none!important}.stage.hstop *{animation-play-state:running!important}}
 .wk.st{background:#2a2023;color:var(--ink)}.wk.st.hot{background:var(--red);color:#fff}.pk .ic.en{font:400 14px var(--en);letter-spacing:.04em}.pk .ic .lk{font-size:11px;color:var(--mut)}
 .stage>.fxcv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;z-index:4}
+#band{position:fixed;left:0;right:0;top:0;z-index:40;pointer-events:none;transform:translateY(-110%);transition:transform .25s ease;background:#000;border-bottom:3px solid var(--gold);padding:9px 14px 10px;font:13px/1.5 var(--kr);color:var(--ink);text-align:center;word-break:keep-all}
+#band.on{transform:none}#band b{color:var(--gold);margin-right:4px}#band small{color:var(--mut)}
+#band.red{border-bottom-color:var(--red)}#band.red b{color:#ff8a8a}#band.warn{border-bottom-color:#ff9a1f}
+.res .cut{font:16px/1.5 var(--kr);color:var(--gold);margin:-4px 0 4px}
 </style>
 </head>
 <body>
@@ -554,7 +558,17 @@ function line(who,k,tg){const L=((LINES.lines||{})[who]||{})[k]||[];const inP=id
  const t=Array.isArray(x)?x[0]:x;return t.replace(/\{대상\}/g,tg&&CH[tg]?CH[tg].name:'다들').replace(/\{[^}]+\}/g,'')}
 const G={};let ui={screen:'title',busy:false,fx:null,log:false};
 function log(t,who){G.log.push({t,who});if(G.log.length>120)G.log.shift()}
-function say(id,k,tg,ms=2200){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키면 시트 대사에서 고르고, 아니면 받은 문장 그대로 */if(!t)return;G.bub[id]={t,until:Date.now()+ms};log(t,id);setTimeout(render,ms+30)}
+function say(id,k,tg,ms=2200,force){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키면 시트 대사에서 고르고, 아니면 받은 문장 그대로 */if(!t)return;log(t,id);
+ const now=Date.now();if(!force&&now-(G.bubAt||0)<1500)return;/* 말풍선은 1.5초에 하나 (로그엔 다 남음). 쌍대사·사슬·거두는 자는 force */
+ G.bubAt=now;G.bub[id]={t,until:now+ms};setTimeout(render,ms+30)}
+/* 화면 위 자막 띠: 멈추지 않고 몇 초 떴다 사라짐 (사슬 · 거두는 자 경고) */
+const bandEl=(()=>{const d=document.createElement('div');d.id='band';document.body.appendChild(d);return d})();
+function band(t,cls='',ms=3800){bandEl.className='on '+cls;bandEl.innerHTML=t;clearTimeout(bandEl._t);bandEl._t=setTimeout(()=>{bandEl.className=''},ms)}
+/* 거두는 자 대사 (시트 '거두는 자' 탭): 단계별로 서술 한 줄은 띠에, 파티에 있는 사람 대사는 말풍선에 */
+function reaperTalk(st,cls='warn'){const L=(SCRIPT.reaper||[]).filter(x=>x.st===st),n=L.filter(x=>!x.who),w=L.filter(x=>x.who&&alive().some(m=>m.id===x.who));
+ const a=pick(n);if(a){band(esc(a.t),cls);log(a.t)}const b=pick(w);if(b)setTimeout(()=>say(b.who,b.t,null,2600,true),600)}
+/* 쌍대사 한 쌍 (행군 · 출장소 · 바톤): 두 사람 머리 위에 톡-톡 */
+function pairTalk(al=alive(),gap=900){const P=(LINES.pairs||[]).filter(x=>al.some(m=>m.id===x.a)&&al.some(m=>m.id===x.b));if(!P.length)return false;const p=pick(P);say(p.a,p.qa,null,2400,true);setTimeout(()=>say(p.b,p.qb,null,2400,true),gap);return true}
 /* ============ 판 시작 · 층 ============ */
 function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH[a].hp);/* 선호 열 순서로 1~3열 */
  const f0=Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0);
@@ -563,13 +577,14 @@ function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH
  stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,reroll:SV.up.reroll,curry:1,setup:{...SV.set},
  day:DAYS.find(d=>d.id===SV.today)||null,chain:null,combos:[],sub:subNow().id});
  if(DF().reroll)G.reroll+=DF().reroll;
+ if(SV.nextBuff){const k=SV.nextBuff;G.buff=k;SV.nextBuff=null;save();if(k==='coffee')for(const m of G.party)m.sp=Math.min(m.msp,m.sp+10);if(k==='cushion')G.yen+=300;log(`다락방에서 받은 힘: ${HBUFF[k].n} — ${HBUFF[k].d}`)}
  {const ok=SCRIPT.chains.filter(c=>c.steps&&c.steps.find&&c.steps.grow&&c.steps.end);if(ok.length&&(DF().chain||chance(.7)))G.chain={c:pick(ok),st:f0,shown:f0-1}}/* 사슬: 1층 발견 · 2층 전개 · 3층 결말 */
  if(SV.set.start&&SV.yen>=SET_START){SV.yen-=SET_START;G.items.push(SV.set.start)}else G.setup.start=null;
  if(SV.set.bet&&SV.yen>=SET_BET){SV.yen-=SET_BET}else G.setup.bet=false;
  if(SV.set.neg){const k=pick(Object.keys(ITEMS).filter(x=>ITEMS[x].risk&&unlocked(x)));if(k)G.items.push(k);G.setup.negItem=k}/* 왜곡된 인지를 안고 출발 · 수익 ×1.5 */
  newFloor(f0);log(`${G.party.map(m=>m.c.name).join(' · ')} 파티가 메멘토스에 들어섰다.${f0?` (선로 직행 — B${f0+1})`:''}`);
  log(`의뢰: ${qNow().n} · 서브 의뢰: ${subNow().t} (+¥${subNow().y})`);
- if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save()}
+ if(G.day){log(`오늘의 메멘토스 — ${G.day.name}: ${G.day.intro} (${DAYRULE[G.day.id].t})`);const w=G.party.find(m=>m.id===G.day.who);if(w)setTimeout(()=>say(w.id,G.day.q,null,2600,true),400)}if(G.setup.start)log(`판 세팅: ${IT(G.setup.start).n}을(를) 들고 출발`);if(G.setup.negItem)log(`판 세팅: 왜곡된 인지 「${IT(G.setup.negItem).n}」을 안고 출발 — 수익 ×1.5`);if(G.setup.bet)log(`판돈 ¥${SET_BET} — 의뢰 관문을 쓰러뜨리면 ¥${BET_WIN}`);say(G.party[0].id,'chat');SV.last=ids;save()}
 function floorPlan(f){const F=FLOORS[f],ty=[...F.types];let rooms=F.rooms;
  const d=DF(),swap=(a,b)=>{const i=ty.indexOf(a);if(i>=0)ty[i]=b};if(d.curio||d.quiet)swap('battle','curio');if(d.battle){ty.push('battle');rooms++}
  return {rooms,types:ty.sort(()=>Math.random()-.5)}}
@@ -589,7 +604,7 @@ function sheetFx(list,whoId){const out=[],m0=G.party.find(m=>m.id===whoId&&m.hp>
   else if(f.k==='hp'){for(const m of f.all?alive():[m0])if(m)m.hp=Math.max(1,Math.min(m.max,m.hp+f.v));out.push(`${f.all?'전원 ':''}HP ${f.v>0?'+':''}${f.v}`)}
   else if(f.k==='sp'){for(const m of f.all?alive():[m0])if(m)m.sp=Math.max(0,Math.min(m.msp,m.sp+f.v));out.push(`SP ${f.v>0?'+':''}${f.v}`)}}
  return out.join(' · ')}
-const fillT=t=>String(t||'').replace(/\{파티\}/g,()=>G.party.map(m=>m.c.name).join('·')).replace(/\{[^}]*\}/g,'');
+const fillT=t=>String(t||'').replace(/\{파티\}/g,()=>(G.party||[]).map(m=>m.c.name).join('·')).replace(/\{[^}]*\}/g,'');
 /* 장면 화면: 대화창 한 장 (사슬 · 조합 사건 결말). 확인하면 then 실행 */
 function story(o,then){G.story={...o,then};ui.screen='story';render()}
 function storyOk(){const s=G.story;G.story=null;ui.screen='map';if(s&&s.then)return s.then();render()}
@@ -599,14 +614,15 @@ const known=i=>G.map.vis.has(i)||[...G.map.vis].some(v=>G.map.adj(v).includes(i)
 function move(to){if(ui.busy||!G.map.adj(G.at).includes(to))return;ui.walk=Date.now();setTimeout(render,1000);G.at=to;G.risk=Math.min(RISK_MAX,G.risk+(1+cnt('chain'))*(cnt('gate')?2:1));G.map.vis.add(to);G.stats.rooms++;
  for(const m of G.party)if(m.hp>0){m.sp=Math.min(m.msp,m.sp+4);if(DF().hurt)m.hp=Math.max(1,m.hp-DF().hurt);if(DF().spup)m.sp=Math.min(m.msp,m.sp+DF().spup)}
  const t=G.map.T[to],fresh=!G.map.done.has(to);log(`B${G.fl+1} · ${ROOM[t].n}에 내렸다. (경계도 ${G.risk})`);
- if(G.risk>=RISK_MAX&&!G.reaperMet){G.reaperMet=true;log(pick((LINES.reaper||[]).slice(0,5))||'…쇠사슬 소리가 바로 뒤에서 들린다.');
+ if(G.risk>=RISK_MAX&&!G.reaperMet){G.reaperMet=true;reaperTalk('appear','red');
   runSave(true,{reaper:1});return startBattle('reaper')}
- if(G.risk===RISK_HOT)log(`…어디선가 쇠사슬 끌리는 소리가 들린다. (경계도 ${RISK_MAX}에서 거두는 자 출현)`);
+ if(G.risk===RISK_HOT){reaperTalk('warn1');log(`(경계도 ${RISK_MAX}에서 거두는 자 출현)`)}else if(G.risk===RISK_MAX-2&&!G.reaperMet)reaperTalk('warn2','red');
  if(!fresh){march();return render()}
  G.map.done.add(to);runSave(true,{room:t});
  const C=G.chain;if(C&&C.st===G.fl&&C.shown<G.fl){C.shown=G.fl;const key=['find','grow','end'][G.fl],x=C.c.steps[key],w=G.party.find(m=>m.id===x.who&&m.hp>0)||pick(alive());
   const res=sheetFx(x.fx,w.id),sc=SV.chains||(SV.chains={}),isNew=(sc[C.c.id]||0)<G.fl+1;if(isNew){sc[C.c.id]=G.fl+1;save()}C.st++;if(key==='end')C.done=1;
-  return story({tag:'CHAIN',title:`사슬 — ${C.c.name}${key==='end'?' (결말)':key==='grow'?' (전개)':''}`,n:x.n,qs:[[w.id,x.q]],res,isNew},()=>enterRoom(t))}
+  band(`<b>사슬 — ${esc(C.c.name)}${key==='end'?' · 결말':key==='grow'?' · 전개':' · 발견'}</b> ${esc(fillT(x.n))}${res?` <small>${esc(res)}</small>`:''}${isNew?' <small>· 새 장면</small>':''}`,'chain',5200);log(`사슬 · ${C.c.name}: ${fillT(x.n)}${res?' ('+res+')':''}`);
+  if(x.q)setTimeout(()=>say(w.id,fillT(x.q),null,3000,true),700)}/* 멈추지 않는다: 바로 방으로 */
  enterRoom(t)}
 function enterRoom(t){
  if(t==='battle')return startBattle('normal');
@@ -628,7 +644,7 @@ function startBoss(){startBattle('boss');const f=G.battle&&G.battle.foes[0];if(!
  if(G.deal==='talk'){f.max=f.hp=Math.round(f.max*.75);f.noSeize=1}else if(G.deal==='angry')f.atk=Math.round(f.atk*1.2);render()}
 function march(){/* 방 사이 행군: 쌍대사 한 쌍 · 가끔 단독행동 한 줄 (없으면 잡담) */
  const al=alive();if(chance(.2)&&LINES.solo){const x=pick(LINES.solo.filter(y=>al.some(m=>m.id===y.who)&&(y.need||[]).every(i=>G.party.some(m=>m.id===i))));if(x){log(x.n);say(x.who,x.q);return}}
- if(chance(.55)&&LINES.pairs&&LINES.pairs.length){const p=pick(LINES.pairs.filter(x=>al.some(m=>m.id===x.a)&&al.some(m=>m.id===x.b)));if(p){say(p.a,p.qa,null,2400);setTimeout(()=>say(p.b,p.qb,null,2400),900);return}}
+ if(chance(.55)&&pairTalk(al))return;
  const m=pick(al);if(m)say(m.id,'chat')}
 const alive=()=>G.party.filter(m=>m.hp>0);
 /* ============ 왜곡 축: HP가 낮을수록 세진다 (스트레스 게이지는 없앰) ============ */
@@ -653,7 +669,7 @@ const QK={
  akechi:{t:'숨겨진 금고',n:'아케치가 말없이 혼자 앞서간다. 금고를 독차지할 생각이다…',odds:'템 고르기(진화 30%) · 동료 SP -8',go:k=>({item:k,evo:.3,mates:8*k})}};
 function openQuirk(id,kind){const Q=QK[id];G.ev={kind,who:id,t:Q.t,n:Q.n,odds:Q.odds};say(id,kind==='chest'?'treasure':'find');ui.screen='event';render()}
 function openCombo(){const al=alive(),sc=SV.scenes||[],L=(SCRIPT.combos||[]).filter(x=>al.some(m=>m.id===x.a)&&al.some(m=>m.id===x.b)&&!G.combos.includes(x.id));if(!L.length)return false;
- const un=L.filter(x=>x.ch.some((_,i)=>!sc.includes(x.id+':'+(i+1)))),x=pick(un.length?un:L);G.combos.push(x.id);G.ev={kind:'combo',x,t:x.title};ui.screen='event';say(x.a,x.qa,null,2600);setTimeout(()=>say(x.b,x.qb,null,2600),700);render();return true}
+ const un=L.filter(x=>x.ch.some((_,i)=>!sc.includes(x.id+':'+(i+1)))),x=pick(un.length?un:L);G.combos.push(x.id);G.ev={kind:'combo',x,t:x.title};ui.screen='event';say(x.a,x.qa,null,2600,true);setTimeout(()=>say(x.b,x.qb,null,2600,true),700);render();return true}
 function comboPick(i){const e=G.ev;if(!e||e.kind!=='combo')return;const x=e.x,c=x.ch[i];G.ev=null;const res=sheetFx(c.fx,x.a),sc=SV.scenes||(SV.scenes=[]),key=x.id+':'+(i+1),isNew=!sc.includes(key);if(isNew){sc.push(key);save()}
  log(`조합 사건 · ${x.title}: ${c.label}`);story({tag:'COMBO',title:`${x.title} — ${c.label}`,n:c.n,qs:[[x.a,c.qa],[x.b,c.qb]],res,isNew})}
 function openCurio(){const c=alive().filter(m=>QK[m.id]);if((G.qk||0)<QK_MAX&&c.length&&chance(.6)){G.qk=(G.qk||0)+1;return openQuirk(pick(c).id,'curio')}if(openCombo())return;openVault('수상한 역 구석에 누군가 두고 간 짐이 있다.')}
@@ -668,6 +684,7 @@ function resolveEv(mode){const e=G.ev;if(!e)return;if((mode==='stop'||mode==='bo
  if(mode==='stop'){log(`조커가 ${m.c.name}를 붙잡았다. 이번엔 없던 일로.`);if(who!=='joker')say(who,'argue');ui.screen='map';return render()}
  const k=mode==='boost'?2:1;if(k===2)say('joker','gambit');
  const r=QK[who].go(k);
+ {const sl=(LINES.solo||[]).filter(y=>y.who===who&&(y.need||[]).every(i=>G.party.some(m=>m.id===i)));if(sl.length){const x=pick(sl);log(x.n);say(who,x.q,null,2400,true)}}/* 기벽이 터질 때 단독행동 대사 */
  if(r.fight){log(`${m.c.name}의 기벽이 화를 불렀다! 섀도들이 몰려든다!`);say(who,'hurt');return startBattle('ambush',k)}
  if(r.yen){const y=yk(r.yen*flY());G.yen+=y;log(`${QK[who].t}: +¥${y}`)}
  if(r.heal){for(const x of alive())x.hp=Math.min(x.max,x.hp+r.heal);log(`${m.c.name}의 수다에 모두 기운이 났다 (전원 HP +${r.heal})`)}
@@ -685,7 +702,7 @@ function shopRoll(){const keys=Object.keys(ITEMS).filter(unlocked),w=id=>G.party
  while(ch.length<3&&ch.length<keys.length){const c=keys.filter(x=>!ch.includes(x)),tot=c.reduce((t,x)=>t+w(x),0);let r=Math.random()*tot;for(const x of c){r-=w(x);if(r<=0){ch.push(x);break}}}
  G.shop={ch,sold:[],healed:false}}
 function openBench(){for(const m of alive())m.sp=Math.min(m.msp,m.sp+10);
- G.benchUsed=false;ui.bsel=[];shopRoll();ui.screen='bench';log('벨벳 룸 출장소 — 푸른 문 너머에서 누군가 손짓한다. (SP +10)');say(pick(alive()).id,'find');render()}
+ G.benchUsed=false;ui.bsel=[];shopRoll();ui.screen='bench';log('벨벳 룸 출장소 — 푸른 문 너머에서 누군가 손짓한다. (SP +10)');if(!pairTalk())say(pick(alive()).id,'find');render()}
 function spendShop(p){G.shopSpent=(G.shopSpent||0)+p;const k=Math.floor(G.shopSpent/1000);if(k>(G.chk||0)){const n=k-(G.chk||0);G.chk=k;if(cnt('checks')){const hp=up('checks',5,8)*n;for(const m of G.party){m.max+=hp;if(m.hp>0)m.hp+=hp}log(`수표 다발: 최대 HP +${hp} · 공격력 누적`);glow('checks')}}}
 function shopBuy(i){const S_=G.shop,id=S_&&S_.ch[i];if(!id||S_.sold.includes(i))return;const p=shopPrice(id);if(G.yen<p)return;G.yen-=p;spendShop(p);S_.sold.push(i);G.items.push(id);log(`출장소: ${IT(id).n} 구입 (-¥${p})`);glow(id);render()}
 function shopHeal(){const S_=G.shop;if(!S_||S_.healed||G.yen<healP())return;spendShop(healP());G.yen-=healP();S_.healed=true;for(const m of G.party){if(m.hp<=0)m.hp=1;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+15)}log(`출장소: 휴식 (-¥${SHOP_HEAL}) · 전원 HP 30% · SP +15`);render()}
@@ -715,7 +732,7 @@ function startBattle(kind,k=1){if(kind!=='reaper')G.stats.battles++;if(kind==='n
   const fl0=G.fl===0&&!DF().elite;const ks=Array.from({length:c},(_,i)=>fl0?pick(nn):G.fl===0?(i===0?pick(ee.length?ee:nn):pick(nn)):G.fl===1?(i===0?pick(ee):pick(chance(.5)?ee:nn)):(i<2?pick(ee):pick(nn)));/* B1 일반만 · B2 정예 1 이상 · B3 정예 위주 */
   if(G.fl===2&&!ks.includes('conductor')&&chance(.6))ks[0]='conductor';
   foes=ks.map(x=>mk(FOES[x],hs,as,x)).sort((a,b)=>a.row-b.row)}/* 선호 열 순서로 선다 */
- G.battle={kind,foes,round:0,acted:new Set(),moreT:0,relay:0,atk:0,vuln:0,free:0,combo:0,env:false,extra:null,sel:0,showtime:false,sealed:[],rotEl:pick(ELS),unify:null};
+ G.battle={crit:G.buff==='dart'&&!G.dartUsed&&(G.dartUsed=1)?.2:0,kind,foes,round:0,acted:new Set(),moreT:0,relay:0,atk:0,vuln:0,free:0,combo:0,env:false,extra:null,sel:0,showtime:false,sealed:[],rotEl:pick(ELS),unify:null};
  ui.screen='battle';
  if(DF().sleep&&kind!=='boss'&&kind!=='reaper')for(const f of foes)if(chance(DF().sleep)){f.sleep=1;log(`${jo(f.n,'이','가')} 졸고 있다 (꽃가루)`)}
  if(DF().lens){const f=foes.find(x=>x.weak&&!SV.weak[x.n]&&!x.seen);if(f){f.seen=1;SV.weak[f.n]=1;log(`안개 속에서 ${f.n}의 약점이 비쳤다`)}}
@@ -836,7 +853,7 @@ function baton(id){const B=G.battle;if(!B.extra||ui.busy||cnt('radio'))return;co
  {const k=bkey(from,id);G.stats.bat[k]=(G.stats.bat[k]||0)+1}/* 유대: 바톤 횟수는 판이 끝날 때 르블랑에 쌓인다 */
  if(cnt('pass')){const m=G.party.find(x=>x.id===id);m.shield=(m.shield||0)+12*cnt('pass')*mul();glow('pass')}
  const p=[...(LINES.chem||[]),...(LINES.pairs||[])].filter(x=>(x.a===from&&x.b===id)||(x.a===id&&x.b===from));
- if(p.length){const x=pick(p);say(x.a,x.qa,null,1800);setTimeout(()=>say(x.b,x.qb,null,1800),500)}else say(id,'reply');
+ if(p.length){const x=pick(p);say(x.a,x.qa,null,1800,true);setTimeout(()=>say(x.b,x.qb,null,1800,true),500)}else say(id,'reply');
  {const bl=bondOf(from,id).lv;log(`바톤 터치: ${CH[from].name} → ${CH[id].name} (이번 공격 +${Math.round((.25+BOND.bat[bl])*100)}%${bl?` · 유대 ${bl}단계`:''})`)}render();autoGo()}
 async function allOutHit(){const B=G.battle;G.stats.allout++;ui.ao=Date.now();flash('ALL-OUT ATTACK','g');sfx('finish');fxPlay('frame',null,{stop:.3});await sleep(600);const dm=1+cnt('dice');
  for(const f of foeAlive()){await sleep(80);sfx('hit');fxPlay('crit',foeSel(B.foes.indexOf(f)),{stop:.6});const d=Math.round((30+alive().length*8)*(1+.3*B.relay+B.atk)*(1+B.vuln)*dm);f.hp=Math.max(0,f.hp-d);f.down=false;pop('f'+B.foes.indexOf(f),String(d),'w');G.stats.best=Math.max(G.stats.best,d)}
@@ -857,7 +874,7 @@ function pickT(only){const al=alive().filter(m=>!only||only.includes(m.row));con
 /* 한 방 때리기: 라이프 월 · 카스미 감싸기 · 자세 잡기 · 도발 반격까지 */
 async function strike(f,t,m=1,label){const B=G.battle,rk=(1+G.risk*.04)*(DF().fatk||1);if(!t)return;let d=Math.round(f.atk*(f.atkM||1)*m*rk*(.85+Math.random()*.3)*(B.guard?.75:1));
  if(B.wall){B.wall=0;f.hp=Math.max(0,f.hp-d);fxMid('rune',{foot:true,stop:.3});fxFoe(f,'crit',{stop:.5});pop('f'+B.foes.indexOf(f),String(d),'w');log(`라이프 월이 ${f.n}의 공격을 되돌렸다! (${d})`);return}
- const ks=alive().find(x=>x.id==='kasumi');if(ks&&t!==ks&&t.hp<=t.max*.3&&chance(.5)){log(`카스미가 ${t.c.name} 앞을 가로막았다!`);say('kasumi','protect',t.id);t=ks;d=Math.round(d*.7);f.hp=Math.max(0,f.hp-10);pop('f'+B.foes.indexOf(f),'10','')}
+ const ks=alive().find(x=>x.id==='kasumi');if(ks&&t!==ks&&t.hp<=t.max*.3&&chance(.5)){G.stats.cover=(G.stats.cover||0)+1;G.coverT=t.id;log(`카스미가 ${t.c.name} 앞을 가로막았다!`);say('kasumi','protect',t.id);t=ks;d=Math.round(d*.7);f.hp=Math.max(0,f.hp-10);pop('f'+B.foes.indexOf(f),'10','')}
  if(t.stance){t.stance=0;fxPlay('parry',unitSel(t.id));fxFoe(f,'spark');d=Math.round(d/2);f.hp=Math.max(0,f.hp-15);pop('f'+B.foes.indexOf(f),'15','');log(`${t.c.name}의 반격!`)}
  else if(t.taunt){f.hp=Math.max(0,f.hp-10);pop('f'+B.foes.indexOf(f),'10','')}
  log(`${f.n}의 ${label||'공격'} → ${t.c.name} ${d}`);hurt(t,d,f);if(t.hp>0&&chance(.25))say(t.id,'hurt')}
@@ -955,12 +972,22 @@ function pickAfters(kind){const res=kind==='wipe'?'forced':G.cleared?'complete':
  const out=[];if(r2.length)out.push(pick(r2));if(r1.length)out.push(pick(r1));
  if(tags.has('__chain')){const x=G.chain.c.steps.after;out.unshift({lines:[{who:null,t:x.n}].concat(x.q&&x.who?[{who:x.who,t:x.q}]:[]),chain:G.chain.c.name})}
  return out.slice(0,2)}
+/* 결정적 1컷 (시트 '결정적 1컷' 60줄): 앨범 없이 결과 화면 헤드라인 한 줄만 */
+function pickCut(kind){const by=k=>(SCRIPT.cuts||[]).filter(x=>x.k===k),ids=G.party.map(m=>m.id),
+ k=kind==='wipe'?'긴급 구출·전멸':G.reaperKill?'히든':G.reaperMet?'거두는 자 탈출':G.chain&&G.chain.done?'사슬 결말':G.stats.cover?'감싸기':(G.combos||[]).length?'조합 이벤트':G.stats.ko>=2?'대실패':G.yen>=8000?'유물 대박':'평범한 날';
+ const L=by(k).length?by(k):by('평범한 날');if(!L.length)return '';const x=pick(L),who=k==='감싸기'&&G.party.find(m=>m.id==='kasumi')?'kasumi':pick(ids),tg=k==='감싸기'&&G.coverT?G.coverT:pick(ids.filter(i=>i!==who))||who;
+ return x.t.replace(/\{이름\}/g,CH[who].name).replace(/\{대상\}/g,CH[tg].name).replace(/\{엔\}/g,'¥'+G.yen).replace(/\{역\}/g,FLOORS[G.fl].n).replace(/\{[^}]*\}/g,'')
+  .replace(/([가-힣A-Za-z0-9¥]+)\((이|과|을|은)\)(가|와|를|는)/g,(_,w,a,b)=>jo(w,a,b))}
 function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
  const sb=subNow(),subOk=kind!=='wipe'&&G.sub===sb.id&&sb.ok(),sy=subOk?Math.max(0,Math.min(sb.y,RUN_CAP-y-bet)):0;
  G.end={kind,y,bet,sub:sb,subOk,sy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy;
  {const ids=G.party.map(m=>m.id);for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const k=bkey(ids[i],ids[j]),x=SV.bond[k]||(SV.bond[k]={n:0,lv:0});x.n+=(G.stats.bat[k]||0)+(kind==='wipe'?0:1)}}/* 유대: 바톤 횟수 + 함께 살아 돌아오면 +1 */
  rollSub();
- G.afters=pickAfters(kind);rollDay();save();
+ if(G.reaperMet&&!G.reaperKill)reaperTalk(kind==='wipe'&&G.battle&&G.battle.kind==='reaper'?'caught':'escape','red');/* 거두는 자에게서 도망쳤거나 붙잡혔을 때 */
+ G.afters=pickAfters(kind);G.cut=pickCut(kind);
+ SV.hubAft=(G.afters||[]).flatMap(a=>a.lines).filter(l=>l.who&&CH[l.who]).map(l=>({who:l.who,t:fillT(l.t)}));/* 다락방에서 누르면 하는 말 */
+ SV.bang={id:pick(G.party.map(m=>m.id)),k:pick(Object.keys(HBUFF))};/* 판마다 딱 한 명 [!] */
+ rollDay();save();
  if(kind!=='wipe'){const m=pick(alive());if(m)log(line(m.id,'back'),m.id)}ui.screen='result';G.battle=null;render()}
 /* ============ 픽셀 이펙트 (pixelfx · MIT · fx/LICENSE-pixelfx.txt) ============
    무대 위에 무대와 같은 해상도(1 CSS px = 이펙트 1픽셀, 캐릭터 도트와 비슷한 크기)의 캔버스를 겹친다. 속성마다 다른 효과 + 맞으면 스파크(약점·크리면 크게) + 쓰러지면 연기.
@@ -1095,6 +1122,10 @@ function bgmSync(){const want=!BG_.ok||SV.mute||document.hidden?null:['title','m
  if(want===BG_.cur)return;for(const [k,a] of Object.entries(BG_.el))if(k!==want){a.pause()}BG_.cur=want;if(!want)return;
  const a=BG_.el[want]||(BG_.el[want]=Object.assign(new Audio(BGMF[want]),{loop:true}));a.volume=BGMV[want];a.play().catch(()=>{BG_.cur=null})}
 document.addEventListener('pointerdown',()=>{if(!BG_.ok){BG_.ok=true;bgmSync()}},{capture:true});document.addEventListener('visibilitychange',()=>bgmSync());
+/* 혼잣말 (시트 '혼잣말' 112개): 지도·전투에서 5초 넘게 아무것도 안 누르면 한 명이 툭. 튜토리얼 안내 중엔 안 함 */
+ui.lastIn=Date.now();for(const ev of ['pointerdown','keydown'])document.addEventListener(ev,()=>{ui.lastIn=Date.now()},{capture:true});
+setInterval(()=>{const now=Date.now();if(!['map','battle'].includes(ui.screen)||!G.party||ui.busy||tutCur||document.hidden)return;if(now-ui.lastIn<5000||now-(ui.idleAt||0)<9000)return;
+ const al=alive(),L=(SCRIPT.idle||[]).filter(x=>al.some(m=>m.id===x.who));if(!L.length)return;const x=pick(L);ui.idleAt=now;if(x.n)log(x.n);say(x.who,fillT(x.q),null,2600,true)},1000);
 function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='manual')return A.innerHTML=vManual();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
  const body=ui.screen==='story'?vStory():ui.screen==='battle'?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
  A.innerHTML=vHud()+vStage()+`<div class="panel">${vParty()}${vSlots()}${body}${vLog()}</div>`;
@@ -1106,20 +1137,34 @@ function vPartyGrid(sel){
  return `<div class="psg">${IDS.map(card).join('')}</div>
  <div class="card"><b>찌를 수 있는 속성</b> ${els.length?els.map(e=>`<span class="wk k" style="background:${EL[e]}">${(e)}</span>`).join(' '):'—'}</div>`}
 /* 르블랑 다락방 장면 (예전 버전 그림 img/bg/attic-default.png 180×136 · 가구를 누르면 탭으로) */
+/* 다락방 [!]: 판이 끝날 때마다 한 명만. 누르면 후일담 한마디 + 다음 판 1회용 버프 */
+const HBUFF={coffee:{n:'커피 한 잔',d:'다음 판 시작 SP +10',ic:'☕'},dart:{n:'다트 내기',d:'다음 판 첫 전투 크리티컬 +20%',ic:'🎯'},cushion:{n:'방석 쓰다듬기',d:'다음 판 시작 엔 +¥300',ic:'🐾'}};
+const TROPHY_Q=['저 트로피 볼 때마다 그날 생각난다니까.','선반이 점점 괴도단 박물관 같아지네.','다음 전리품 자리도 비워 둬야겠어.','저거, 다음 판 부적으로 들고 갈까?'];
+function hubPaint(){const el=document.querySelector('.hscene');if(el){const d=document.createElement('div');d.innerHTML=vAtticScene();el.replaceWith(d.firstElementChild)}}
+function hubSay(id,q,ms=2600){ui.hubSay={id,q};hubPaint();clearTimeout(ui.hubT);ui.hubT=setTimeout(()=>{ui.hubSay=null;hubPaint()},ms)}
+setInterval(()=>{if(ui.screen!=='hub'||tutCur||document.hidden||Date.now()-(ui.hubAt||0)<6000)return;ui.hubAt=Date.now();const cast=hubCast(),r=Math.random();
+ const P=(LINES.pairs||[]).filter(x=>cast.includes(x.a)&&cast.includes(x.b));
+ if(r<.55&&P.length){const p=pick(P);hubSay(p.a,p.qa,2000);setTimeout(()=>{if(ui.screen==='hub')hubSay(p.b,p.qb,2200)},2100);return}
+ if(r<.8){const L=(SCRIPT.idle||[]).filter(x=>cast.includes(x.who));if(L.length){const x=pick(L);return hubSay(x.who,fillT(x.q))}}
+ if((SV.q||0)>0)return hubSay(pick(cast),pick(TROPHY_Q));const id=pick(cast);hubSay(id,line(id,'chat'))},1000);
+const hubCast=()=>SV.last&&SV.last.length===3?SV.last:['joker','mona','ryuji'];
+function hubTalk(id){const A=(SV.hubAft||[]).filter(l=>l.who===id),N=ui.hubN||(ui.hubN={}),n=N[id]||0;N[id]=n+1;let q=A[n%Math.max(1,A.length)]?.t||line(id,'chat')||line(id,'reply');ui.hubAt=Date.now();
+ if(SV.bang&&SV.bang.id===id){const B=HBUFF[SV.bang.k];SV.nextBuff=SV.bang.k;SV.bang=null;save();band(`${B.ic} <b>${esc(B.n)}</b> — ${esc(B.d)}`,'chain',3600);if(ui.ht==='go'||!ui.ht)setTimeout(render,50)}
+ hubSay(id,q,3000)}
 const ATTIC={w:180,h:136,spots:{desk:[3,56,23,31,'rec','기록'],codex:[85,34,12,53,'scene','장면'],shop:[68,39,14,10,'pool','템 풀'],window:[37,27,26,34,'go','출발'],tv:[68,54,15,33,'title','메인']},stand:[[18,94],[50,94],[81,94]]};
-function vAttic(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,Math.floor(av/ATTIC.w)),W=ATTIC.w*sc,H=ATTIC.h*sc,cast=(SV.last&&SV.last.length===3?SV.last:['joker','mona','ryuji']);
+function vAttic(){return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1}</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>${vAtticScene()}`}
+function vAtticScene(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,Math.floor(av/ATTIC.w)),W=ATTIC.w*sc,H=ATTIC.h*sc,cast=hubCast();
  const spots=Object.entries(ATTIC.spots).map(([k,[x,y,w,h,t,n]])=>`<button class="hspot ${k}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%" data-a="${t==='title'?'title':'ht:'+t}" aria-label="${n}"></button>`).join('');
  const hk=Math.max(1,Math.floor(sc/2))*((devicePixelRatio||1)>=1.5?.72:1);
- const people=cast.map((id,i)=>{const c=CH[id],[x,y]=ATTIC.stand[i],q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-a="htalk:${id}" aria-label="${c.name}">${q?`<span class="hsay${x<30?' l':x>70?' r':''}">${esc(q)}</span>`:''}<i class="hshd" aria-hidden="true"></i><img class="art sprites stand" src="${IMG}sprites/${id}.png" width="${Math.round(c.w*hk)}" alt="" draggable="false"><span class="hcode">${c.code}</span></button>`}).join('');
- return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1}</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
- <section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
+ const people=cast.map((id,i)=>{const c=CH[id],[x,y]=ATTIC.stand[i],q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-a="htalk:${id}" aria-label="${c.name}${SV.bang&&SV.bang.id===id?' · 할 말 있음':''}">${q?`<span class="hsay${x<30?' l':x>70?' r':''}">${esc(q)}</span>`:SV.bang&&SV.bang.id===id?'<span class="hmark">!</span>':''}<i class="hshd" aria-hidden="true"></i><img class="art sprites stand" src="${IMG}sprites/${id}.png" width="${Math.round(c.w*hk)}" alt="" draggable="false"><span class="hcode">${c.code}</span></button>`}).join('');
+ return `<section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
 function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.yen>=UPG[k].cost[SV.up[k]||0]),canPool=Object.entries(LOCK).some(([k,c])=>!SV.unl.includes(k)&&!PACK_OF[k]&&SV.yen>=c)||Object.entries(PACKS).some(([k,P])=>!packDone(k)&&SV.yen>=P.c),canBond=Object.keys(SV.bond).some(k=>bondReady(k)&&SV.yen>=BOND.cost[SV.bond[k].lv]);
  const canAwk=IDS.some(id=>!awoke(id)&&SV.yen>=AWK[id].c);
  const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['awk','각성',canAwk],['scene','장면'],['rec','기록']];
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
-  body=`<div class="card sub"><b class="en">SUB REQUEST</b> ${esc(sb.t)} <b style="color:var(--gold)">+¥${sb.y}</b></div>`+dayCard+vPartyGrid(sel)+`<details class="card"${SV.set.start||SV.set.neg||SV.set.bet||SV.set.warp?' open':''}><summary><b>판 세팅</b> <small style="color:var(--mut)">(이번 판에만)</small></summary>
+  body=(SV.nextBuff?`<div class="card" style="border-color:var(--gold)">${HBUFF[SV.nextBuff].ic} <b>${HBUFF[SV.nextBuff].n}</b> — ${HBUFF[SV.nextBuff].d}</div>`:SV.bang?`<p class="tip">다락방에 <b>!</b> 표시된 사람에게 말을 걸어 보세요. 다음 판에 작은 도움을 줍니다.</p>`:'')+`<div class="card sub"><b class="en">SUB REQUEST</b> ${esc(sb.t)} <b style="color:var(--gold)">+¥${sb.y}</b></div>`+dayCard+vPartyGrid(sel)+`<details class="card"${SV.set.start||SV.set.neg||SV.set.bet||SV.set.warp?' open':''}><summary><b>판 세팅</b> <small style="color:var(--mut)">(이번 판에만)</small></summary>
   ${wmax?`<div class="row2" style="gap:6px;margin-top:6px">${[0,1,2].filter(n=>n<=wmax).map(n=>`<button class="tog ${(SV.set.warp||0)===n?'on':''}" data-a="setwarp:${n}">B${n+1}부터</button>`).join('')}</div>`:''}
   <div class="row2" style="flex-wrap:wrap;gap:6px;margin-top:6px"><button class="tog ${SV.set.neg?'on':''}" data-a="setneg">왜곡된 인지 하나 안고 출발 · 수익 ×1.5</button><button class="tog ${SV.set.bet?'on':''}" data-a="setbet">판돈 ¥${SET_BET} → 의뢰 관문 격파 시 ¥${BET_WIN}</button></div>
   <p class="tip" style="margin:8px 0 4px">시작 발동기 (¥${SET_START}) — 누르면 고름</p><div class="negs">${Object.keys(ITEMS).filter(k=>ITEMS[k].r==='발동'&&!ITEMS[k].risk&&unlocked(k)).map(k=>`<button class="tog ${SV.set.start===k?'on':''}" data-a="setstart:${k}">${ITEMS[k].ic} ${ITEMS[k].n}</button>`).join('')}</div></details>
@@ -1233,7 +1278,7 @@ function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  <div class="row2">${G.curry>0?`<button class="go sub" data-a="curry">CURRY ×${G.curry}</button>`:''}<button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">서브 의뢰 · ${esc(subNow().t)}${subNow().ok()?' ✔':''}</p>`}
 function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 ▴':'로그 펼치기 ▾'}</button>${ui.log?`<div class="log">${G.log.map(l=>`<p>${l.who?`<b>${CH[l.who].name}</b> 「${esc(l.t)}」`:esc(l.t)}</p>`).join('')}</div>`:''}`}
 function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?'ALL CLEAR':'RETURNED';
- return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1><p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?'최심부의 거두는 자를 쓰러뜨리고 메멘토스 끝까지 내려갔습니다.':`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
+ return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?'최심부의 거두는 자를 쓰러뜨리고 메멘토스 끝까지 내려갔습니다.':`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><small>${esc(QUESTS[G.questNew-1].next)}</small></div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
  <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd><dt>도달</dt><dd>B${G.fl+1}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
  <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
  ${(G.afters||[]).length?`<div class="card"><b class="en" style="color:var(--gold)">AFTER</b>${G.afters.map(a=>`<div style="margin-top:8px">${a.chain?`<small class="tg">사슬 · ${esc(a.chain)}</small>`:''}${a.lines.map(l=>l.who&&CH[l.who]?`<p style="margin:4px 0"><b style="color:${CH[l.who].col}">${CH[l.who].name}</b> 「${esc(fillT(l.t))}」</p>`:`<p style="margin:4px 0;color:var(--mut)">${esc(fillT(l.t))}</p>`).join('')}</div>`).join('')}</div>`:''}
@@ -1245,7 +1290,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='start'||a==='hubgo'){ui.screen='hub';ui.ht='go';ui.ps=null;return render()}
  if(a==='codex'){ui.screen='hub';ui.ht='scene';return render()}if(a==='saveload'){ui.screen='hub';ui.ht='rec';return render()}if(a==='manual'){ui.screen='manual';return render()}
  if(a==='mute'){SV.mute=!SV.mute;save();return render()}
- if(a==='htalk'){const q=line(v,'chat')||line(v,'reply');ui.hubSay={id:v,q};render();clearTimeout(ui.hubT);ui.hubT=setTimeout(()=>{ui.hubSay=null;render()},2600);return}
+ if(a==='htalk')return hubTalk(v);
  if(a==='ht'){ui.ht=v;ui.sv=null;return render()}
  if(a==='sv'){const [,id,i]=b.dataset.a.split(':');ui.sv={id,i:+i};return render()}
  if(a==='ssave')return slotSave(+v);if(a==='sload')return slotLoad(+v);if(a==='cont')return runLoad();
