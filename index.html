@@ -822,6 +822,12 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 /* 375px 폴리시 패스: 터치 영역 44px */
 .msnd,.btn.sm[data-act="copy"],.lnk[data-act="random"],.lnk.sm.more,[data-act="cashout"]{min-height:44px}
 .hudt{position:relative}.hudt::after{content:'';position:absolute;inset:-9px}
+.tile .skb{display:flex;align-items:baseline;justify-content:space-between;gap:4px;width:100%;margin-top:6px;min-height:40px;padding:4px 6px;background:var(--p2);border:1px solid var(--line2);border-left:3px solid var(--c);color:inherit;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.tile .skb b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tile .skb small{flex:none;font-size:12px;color:var(--mut)}
+.tile .skb.no{opacity:.55}.tile .skb:disabled{opacity:.3;cursor:default}
+.tile .skb.on{background:var(--c);color:#000}.tile .skb.on small{color:#000}
+.tile .skb.lit{opacity:1;border-color:var(--c)}.tile .skb.lit b{color:var(--c)}
 .cmdwin{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;width:min(560px,calc(100% - 16px));background:#141012;border:2px solid var(--c);box-shadow:0 10px 30px rgba(0,0,0,.6);padding:10px 12px 12px}
 .cmdwin .cw1{margin:0;font-size:14px;display:flex;gap:8px;align-items:baseline}.cmdwin .cw1 b{font-family:var(--en);color:var(--c);letter-spacing:.06em;font-weight:400}.cmdwin .cw1 span{margin-left:auto;color:var(--mut);font-size:13px}
 .cmdwin .cw2{margin:6px 0 0;font-size:12px;color:var(--mut)}.cmdwin .cw3{margin:6px 0 0;font-size:14px;line-height:1.45}
@@ -1049,7 +1055,7 @@ function pick(a){if(!a||a.length<2)return a&&a[0];const k0=txtKey(a[0]);if(!k0)r
  const x=pick0(f2.length?f2:a),k=txtKey(x);if(k)SEEN.add(k);return x}
 function recentStart(){SEEN=new Set();RECENT=new Set([].concat(...(S.recent||[])))}
 function recentEnd(){const R=S.recent||(S.recent=[]);R.push([...SEEN].slice(-500));while(R.length>3)R.shift()}
-const chance=p=>Math.random()<p;
+const chance=p=>(run&&run.sureNow&&p>0)?true:Math.random()<p;/* 아케치 [추리]가 걸린 선택지 안에서는 확률 판정이 잘 풀린다 */
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1151,7 +1157,10 @@ function applyFx(m,list,ym=1){m=m||pick(alive());const r=[];if(!m)return '';for(
  else if(f.k==='tag'){addTag(f.v,f.own?m.id:null);r.push(f.v===CLUE?'태그: 단서':`태그: ${f.v}`)}
  else if(f.k==='untag')delTag(f.v)}
  return r.join(' · ')}
-function hp(m,d){if(m.hp<=0&&d>0)return;if(d<0&&lvOk(5))d=Math.round(d*L5_DMG);if(d<0&&run&&(run.evCtx==='trap'||run.evCtx==='chest'))d=Math.round(d*(1-synV('함정 피해 -%')/100));m.hp=clamp(m.hp+d,0,100);if(m.hp<=0&&tutRun()){m.hp=1;run.rescue=true}
+function hp(m,d){if(m.hp<=0&&d>0)return;if(d<0&&lvOk(5))d=Math.round(d*L5_DMG);if(d<0&&run&&(run.evCtx==='trap'||run.evCtx==='chest'))d=Math.round(d*(1-synV('함정 피해 -%')/100));
+ if(d<0&&run&&run.skGuard&&m.hp>0&&mem('ryuji')){run.skGuard=0;run.q.unshift({who:'ryuji',n:m.id==='ryuji'?'류지가 이를 악물고 몸으로 받아 냈다! [정면 돌파]':`류지가 ${ul(m.c.name)} 밀쳐 내고 앞을 막아섰다! [정면 돌파]`,q:'',res:`${m.c.name} 피해 ${-d} 무효`});d=0}
+ if(d<0&&run&&run.skStand&&m.hp>0&&m.hp+d<=0&&mem('kasumi')){run.skStand=0;run.q.unshift({who:'kasumi',n:`쓰러지기 직전, 카스미가 ${ul(m.c.name)} 박자에 맞춰 끌어당겼다! [리듬 스텝]`,q:'',res:`${m.c.name} HP 1로 버팀`});d=1-m.hp}
+ m.hp=clamp(m.hp+d,0,100);if(m.hp<=0&&tutRun()){m.hp=1;run.rescue=true}
  if(d<0&&m.hp<=25&&!run.close){run.close=1;moment('구사일생',58,{이름:m.c.name})}/* 쓰러지기 직전까지 몰렸거나 쓰러진 동료가 있던 판은 '평범한 날'이 아니다 */
  if(d<0&&m.hp>0&&m.hp<=30&&hasR('R-10')&&!run.r10){run.r10=1;alive().forEach(x=>hp(x,25));relicPay('R-10','전원 HP +25')}}/* 첫 판은 HP 1에서 멈추고 모르가나가 구출 (T-SAFE) */
 function addTag(l,w=null){if(l===CLUE)run.oddT=run.turn;if(!run.tags.some(t=>t.l===l&&t.w===w)){run.tags.push({l,w});tagHook(l,w)}}
@@ -1159,7 +1168,7 @@ const hasTag=(l,w)=>run.tags.some(t=>t.l===l&&(w===undefined||t.w===w));
 const delTag=l=>{run.tags=run.tags.filter(t=>t.l!==l)};
 const moodL=m=>m>=65?{k:'good',l:'화기애애',en:'GOOD'}:m>=35?{k:'meh',l:'미묘',en:'UNEASY'}:{k:'bad',l:'긴장',en:'TENSE'};
 const addMood=n=>{run.mood=clamp(run.mood+n,0,100)};
-const addTre=(a,b)=>{run.tre++;run.tval+=R(a,b);run.oddT=run.turn};
+const addTre=(a,b)=>{let v=R(a,b);if(run.skAppr){run.skAppr=0;run.q.unshift({who:mem('yusuke')?'yusuke':null,sys:mem('yusuke')?0:1,n:'유스케의 감정안 — 이 보물, 보기보다 훨씬 값지다.',q:'',res:`보물 값 ×2 (+¥${fmt(v)})`});v*=2}run.tre++;run.tval+=v;run.oddT=run.turn};
 const canEnter=id=>{const k=KINDS.includes(id)?id:(stOf(id)||{}).k;return k!=='plat'||S.bus>=2||hasTag(CLUE)};
 /* 위험 정책 risk-v2: 깊은 구역에서 보낸 턴만큼 위험도가 쌓이고, 승강장에서 쉬면 내려간다 */
 const HEAT_MAX=12,HEAT_GAIN=[-3,1,2,3],SHALLOW_SOCIAL=1.6;
@@ -1310,6 +1319,33 @@ function vCmd(){const c=run.cmd;if(!c)return '';const m=mem(c.id),Q=QUIRK[c.id];
  return `<div class="cmdwin" role="dialog" aria-label="조커의 지휘 · ${esc(m.c.name)} ${esc(Q.n)}" style="--c:${m.c.col}"><p class="cw1"><b>COMMAND</b> ${esc(m.c.name)} · ${esc(Q.n)} <span>지휘 ${n}/${run.nudge0||3}</span></p><p class="cw3">${esc(Q.warn(m))}</p>
  ${wait?'<p class="cw2">고를 때까지 멈춰 있습니다</p>':`<i class="cbar"><b style="--ms:${rem}ms;--s:${(rem/tot).toFixed(3)}"></b></i>`}
  <div class="cbtns"><button data-act="cmd:stop" ${n>0?'':'disabled'}><span class="k">1</span><b>${c.id==='joker'?'물러선다':'말린다'}</b><small>사고 없음 · 지휘 -1</small></button><button data-act="cmd:boost" ${n>0?'':'disabled'}><span class="k">2</span><b>${c.id==='joker'?'판을 키운다':'부추긴다'}</b><small>${esc(Q.boost)}</small></button><button data-act="cmd:tag" ${tg?'':'disabled'}><span class="k">3</span><b>태그 사용</b><small>${tg?`[${esc(tg)}] 소비 · 나쁜 결과 없음`:'쓸 상태 태그 없음'}</small></button><button data-act="cmd:leave"><span class="k">␣</span><b>그냥 둔다</b><small>${esc(Q.leave)}</small></button></div></div>`}
+
+/* ============ SP 스킬 (restructure 8-1) ============
+   동료 칸 SKILL → 스킬 창 → 쓴다. 한 사람당 턴마다 1번. 창이 열려 있는 동안 진행이 멈춘다.
+   f: '다음 1번' 효과가 걸려 있는 동안 켜지는 run 플래그 (겹쳐 쓰지 않음) */
+const SK_REGEN=5,SK_NUDGE_MAX=5;
+const SKILL={
+ joker:{n:'와일드카드',c:25,d:'지휘 +1 (최대 5)',q:'…다음 수, 보였어.',no:()=>run.nudge>=SK_NUDGE_MAX?'지휘가 이미 가득 찼다':'',go:()=>{run.nudge++;run.nudge0=Math.max(run.nudge0||3,run.nudge);return '지휘 +1'}},
+ mona:{n:'메디아',c:20,d:'전원 HP +15',q:'이 몸한테 맡기라고! 메디아!',no:()=>alive().every(x=>x.hp>=100)?'다친 동료가 없다':'',go:()=>{alive().forEach(x=>hp(x,15));return '전원 HP +15'}},
+ ryuji:{n:'정면 돌파',c:15,d:'다음에 누가 받는 피해 1번을 류지가 막는다',q:'다 덤벼! 내가 앞에 선다고!',f:'skGuard',go:()=>{run.skGuard=1;return '다음 피해 1번 막기'}},
+ ann:{n:'응원',c:15,d:'분위기 +15',q:'자, 다들 기운 내! 아직 안 끝났잖아!',no:()=>run.mood>=100?'분위기가 이미 최고다':'',go:()=>{addMood(15);return '분위기 +15'}},
+ yusuke:{n:'감정안',c:15,d:'다음에 얻는 보물 1개의 값 ×2',q:'다음 보물의 감정은 내게 맡겨 다오.',f:'skAppr',go:()=>{run.skAppr=1;return '다음 보물 값 ×2'}},
+ makoto:{n:'작전 회의',c:20,d:'위험도 -2',q:'정리할게. 이 구간은 이렇게 돌자.',no:()=>run.heat<=0?'위험도가 이미 0이다':'',go:()=>{run.heat=clamp(run.heat-2,0,HEAT_MAX);return '위험도 -2'}},
+ futaba:{n:'적 분석',c:15,d:'[약점 간파] 태그를 얻는다. 섀도의 약점을 찌르거나, 지휘 창에서 태그로 쓸 수 있다',q:'스캔 완료! 약점 데이터 넘길게!',no:()=>hasTag('약점 간파')?'이미 [약점 간파]가 있다':'',go:()=>{addTag('약점 간파','futaba');return '태그: 약점 간파'}},
+ haru:{n:'벽 부수기',c:25,d:'숨은 보물 +1. 대신 위험도 +1',q:'이 벽, 조금 부숴도 괜찮겠지?',go:()=>{zTre();run.heat=clamp(run.heat+1,0,HEAT_MAX);return '보물 +1 · 위험도 +1'}},
+ akechi:{n:'추리',c:20,d:'다음 큰 사건에서 고른 선택이 반드시 잘 풀린다',q:'…대충 보이네. 다음 건 내 말대로 해.',f:'skSure',go:()=>{run.skSure=1;return '다음 큰 사건 성공 확정'}},
+ kasumi:{n:'리듬 스텝',c:15,d:'누가 쓰러질 피해를 1번, HP 1로 버티게 한다',q:'제 스텝에 맞춰 주세요, 선배!',f:'skStand',go:()=>{run.skStand=1;return '쓰러짐 1번 버티기'}}};
+const skOn=()=>!!run&&!tutRun()&&!run.forced&&!run.cmd&&!tq&&!FF&&(run.phase==='running'||run.phase==='choose');
+function skWhy(m){const K=SKILL[m.id];if(!K)return '스킬이 없다';if(m.hp<=0)return '쓰러져 있다';if((run.skT||{})[m.id]===run.turn)return '이번 턴에 이미 썼다';if(K.f&&run[K.f])return '이미 걸려 있다';const n=K.no&&K.no();if(n)return n;if(m.sp<K.c)return `SP가 모자라다 (${m.sp}/${K.c})`;return ''}
+function skOpen(id){if(!skOn()||!run.party.some(m=>m.id===id))return;ui.sk=id;clearTimeout(T);render()}
+function skClose(){ui.sk=null;render();schedule()}
+function skUse(id){const m=mem(id),K=SKILL[id];ui.sk=null;if(!m||!K||!skOn()||skWhy(m)){render();schedule();return}
+ m.sp=clamp(m.sp-K.c,0,m.msp);(run.skT||(run.skT={}))[id]=run.turn;run.skN=(run.skN||0)+1;m.mvp+=1;const res=K.go(m);
+ log({who:id,n:`${m.c.name}의 스킬 [${K.n}]`,q:K.q,res:`SP -${K.c} · ${res}`});sfx('talk');
+ if(run.phase==='choose')saveRun();render();schedule()}
+function vSk(){const id=ui.sk;if(!id||!run)return '';if(!skOn()){ui.sk=null;return ''}const m=run.party.find(x=>x.id===id),K=SKILL[id];if(!m||!K)return '';const why=skWhy(m);
+ return `<div class="cmdwin skwin" role="dialog" aria-label="${esc(m.c.name)} 스킬 ${esc(K.n)}" style="--c:${m.c.col}"><p class="cw1"><b>SKILL</b> ${esc(m.c.name)} · ${esc(K.n)} <span>SP ${m.sp}${why?'':` → ${m.sp-K.c}`}</span></p><p class="cw3">${esc(K.d)}</p><p class="cw2">${why?esc(why):`SP ${K.c} 소모 · 한 사람당 턴마다 1번 · 창이 열려 있는 동안 멈춥니다`}</p>
+ <div class="cbtns"><button data-act="sku:${id}" ${why?'disabled':''}><span class="k">↵</span><b>쓴다</b><small>SP -${K.c}</small></button><button data-act="skx"><span class="k">Esc</span><b>닫기</b><small>그대로 진행</small></button></div></div>`}
 
 /* (예전) 관찰 손맛: 말풍선을 누르면 조커가 한마디 거든다 (판당 3번). 지친 동료는 다독이고, 가끔은 쌍대사를 부추긴다 */
 const nudgeOk=()=>!!run&&run.phase==='running'&&!tq&&run.nudge>0&&!(run.nudgeAt!=null&&run.beat<run.nudgeAt+3);/* 연타 방지: 거든 뒤 몇 줄은 쉰다 */
@@ -1756,7 +1792,7 @@ function sfxLine(b){if(!run||ui.screen!=='explore'||FF)return;const r=b.res||'';
 
 /* ============ 진행 중인 판 저장: 턴이 끝나 역을 고를 때마다. 메인에서 CONTINUE ============ */
 const RKEY='todays-mementos-run';
-const RUN_KEYS=['lg','cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','lv','syn','rsynS','r07','r09','newb','falls','maxD','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge','nudge0','qn','qkU','skipEx','noHeat','oddT','bigN'];
+const RUN_KEYS=['lg','cond','st','memQ','relSeen','quiet','brk','brkD','mom','close','turn','zone','mood','yen','tre','tval','tags','used','beat','clock','speed','manual','forced','hidden','loss','heat','chains','pairs','maxT','tut','lv','syn','rsynS','r07','r09','newb','falls','maxD','tutOff','rescue','map','at','relics','rel','moments','lastMis','rw1','rw2','reaper','r10','relicYen','evTurn','newCombo','chainSeen','resv','nudge','nudge0','qn','qkU','skipEx','noHeat','oddT','bigN','skT','skN','skGuard','skAppr','skSure','skStand'];
 /* 카레(S.curry)는 바로 저장되지만 판은 체크포인트에서만 저장된다. 체크포인트 이후 카레 변동(S.runCurry)을 따로 적어 두고, 이어하기 때 판과 함께 되감는다 */
 function curryAdd(n){S.curry=clamp(S.curry+n,0,99);if(run&&!run.settled)S.runCurry=(S.runCurry||0)+n;save()}
 function saveRun(){if(!run||run.phase!=='choose'||run.q.length||run.settled)return;
@@ -1907,7 +1943,8 @@ function endTurnFn(){
  if(DAY('turnHp'))alive().forEach(x=>hp(x,-DAY('turnHp')));
  const rm=Object.entries(run.rel||{}).reduce((s,[k,v])=>{const [a,c]=k.split('+');return s+(mem(a)&&mem(c)?REL_MOOD[v]||0:0)},0);if(rm)addMood(rm);/* 관계가 분위기를 조금씩 움직인다 */
  {const md=synC('매 턴 분위기 -');if(md)addMood(-md)}if(hasR('R-07')&&!run.r07&&rsynOk('R-07')&&run.heat>0){run.r07=1;run.heat--;const nt=rsynNote('R-07','위험도 -1');if(nt)run.q.unshift(nt)}
- const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})`};run.quiet=run.evTurn===run.turn?0:(run.quiet||0)+1;run.turn++;
+ const spg=!tutRun();if(spg)alive().forEach(x=>x.sp=clamp(x.sp+SK_REGEN,0,x.msp));/* SP 스킬용: 턴마다 조금씩 찬다 */
+ const b={sys:1,turn:1,text:`— ${run.turn}턴 종료 — 위험도 ${h0}→${run.heat} (${heatL(run.heat).l})${spg?` · SP +${SK_REGEN}`:''}`};run.quiet=run.evTurn===run.turn?0:(run.quiet||0)+1;run.turn++;
  const rp=reaperTick();if(rp.length)run.q.push(...rp);
  if(run.turn>run.maxT)run.q.push({sys:1,tl:`${run.maxT}턴 탐사 완료`,text:pick(sysL('탐사 완료',['모나 버스가 귀환 준비를 마쳤다.']))},{fn:()=>{endRun('complete');return null}});
  else{if(run.turn===3||(!run.tut&&run.turn===5&&relic2Ok()))run.q.push({fn:relicOffer});run.q.push({fn:()=>{run.phase='choose';return null}})}/* 차례 안내는 지도 화면이 맡는다 (로그 반복 줄이기) */
@@ -1930,7 +1967,7 @@ function checkDown(){
   run.q=[...(run.reaper?reaperLines('caught'):[]),{sys:1,warn:1,text:'파티 전원이 쓰러졌다! 모나 버스가 긴급 회수에 나섰다.'},{fn:()=>{endRun('forced');return null}}]}
 }
 function step(){
- if(!run||run.phase!=='running'||run.cmd)return;/* 지휘 창이 열려 있으면 멈춤 */
+ if(!run||run.phase!=='running'||run.cmd||ui.sk)return;/* 지휘 창·스킬 창이 열려 있으면 멈춤 */
  let b=run.q.shift();
  while(b&&b.fn){const r=b.fn();if(!run||run.phase==='done')return;
   if(Array.isArray(r)){run.q.unshift(...r);b=run.q.shift()}else b=r;
@@ -1938,7 +1975,7 @@ function step(){
  if(b)log(b);/* 장면 탭 대기 없음: 일상·쌍대사·사건 결과 모두 흘러간다 (restructure 2장) */
  run.lastMis=run.party.reduce((s,m)=>s+m.mis,0);/* R-01은 성격 사고에서 지급 */
  checkDown();
- if(run.phase==='choose'){tip('choose');saveRun()}
+ if(run.phase==='choose'){tip('choose');if(!tutRun())tip('skill');saveRun()}
  else if(run.phase==='running'&&run.tags.length)tip('tag');
  render();
 }
@@ -1954,7 +1991,7 @@ function fastForward(){if(!run||run.phase!=='running'||tq)return;FF=true;
  sfx('select');render()}
 
 const HOLD_AUTO=12000;/* 자동 결정 방침일 때 장면 대기 최대 시간 */
-function schedule(){clearTimeout(T);cmdFreeze();if(!run||run.phase!=='running'||run.paused||run.manual||tq)return;
+function schedule(){clearTimeout(T);cmdFreeze();if(!run||run.phase!=='running'||run.paused||run.manual||tq||ui.sk)return;
  if(run.cmd){if(!S.cmdStop&&ui.screen==='explore'){const c=run.cmd;if(!c.at)c.at=Date.now()+(c.left||cmdMs());T=setTimeout(()=>{if(run&&run.cmd===c)resolveQuirk('leave')},Math.max(0,c.at-Date.now()))}return}/* 지휘 창: 1배속 4초 · 2배속 3초 */
  if(run.hold){T=setTimeout(()=>{if(run&&run.hold){run.hold=false;render();step();schedule()}},HOLD_AUTO/(run.speed===2?2:1));return}
  T=setTimeout(()=>{step();schedule()},lineDelay())}
@@ -1981,7 +2018,7 @@ function armAuto(){clearTimeout(AT);AT=null;if(!(run&&run.phase==='event'&&run.e
  if(ui.screen!=='explore'||!autoOn()||run.paused)return hold();
  if(!run.evAt){run.evAt=Date.now()+(run.evLeft||autoMs());run.evLeft=0}AT=setTimeout(autoDecide,Math.max(0,run.evAt-Date.now()))}
 function choose(i,by){const c=run.ev&&run.ev.choices[i];if(!c||c.dis)return;const ed=run.ev;if(!S.tips.includes('event')){S.tips.push('event');save()}run.ev=null;run.phase='running';run.evAt=0;run.evLeft=0;clearTimeout(AT);
- const pk=c.label+(by?` · ${CH[by].code}의 판단`:'');run.evCtx=ed&&run.evId;const out=c.go();run.evCtx=null;/* 고른 선택지는 따로 한 줄 대신 결과 첫 줄 앞에 붙인다 (반복 줄 줄이기) */
+ const pk=c.label+(by?` · ${CH[by].code}의 판단`:'');run.evCtx=ed&&run.evId;const sure=run.skSure;if(sure){run.skSure=0;run.sureNow=1}let out;try{out=c.go()}finally{run.sureNow=0}run.evCtx=null;if(sure)out.push({who:mem('akechi')?'akechi':null,sys:mem('akechi')?0:1,n:'…아케치가 짚어 둔 그대로였다. [추리]',q:mem('akechi')?'예상대로네.':''});/* 고른 선택지는 따로 한 줄 대신 결과 첫 줄 앞에 붙인다 (반복 줄 줄이기) */
  const f=out.find(b=>b&&!b.fn);if(f)f.pick=pk;else log({sys:1,text:`▶ 선택: ${pk}`});run.stamp=resultStamp(c.label,out);
  if(!tutRun()&&ed&&ed.title){const t=(c.label||'')+' '+(c.sub||''),pm=t.match(/성공 확률 약 (\d+)%/),risky=(pm&&+pm[1]<80)||/실패\s*시/.test(t),won=run.stamp.k!=='bad';
   const named=CHARS.find(ch=>(c.label||'').includes(ch.name)&&mem(ch.id)),aid=named?named.id:by&&mem(by)?by:ed.who&&mem(ed.who)?ed.who:null;
@@ -2260,6 +2297,7 @@ function vExplore(){
   return `<div class="tile ${m.hp<=0?'down':''} ${dh<0?'hit':dh>0?'heal':''}" style="--c:${m.c.col}">${nd?`<button class="bub tap ${fr?'fresh':''}" data-act="nudge:${m.id}" aria-label="${m.c.name}에게 한마디 거들기 (남은 ${r.nudge}번)">`:`<div class="bub ${fr?'fresh':''}">`}<span>${m.bub?esc(m.bub):'…'}</span>${nd?`<b class="nd">×${r.nudge}</b></button>`:'</div>'}
   <div class="nm">${art('sprites',m.id,40,m.hp<=0?'down':fr?'talk':m.hp<=35?'low':runCond(m.id)==='tired'?'tired':'')}<span class="code">${m.c.code}</span>${m.face?`<span class="face ${fr?'fresh':''}">${m.face}</span>`:''}<span class="hpn ${hl}" aria-label="HP">${m.hp}</span></div>
   <div class="hb"><i class="${hl}" style="width:${m.hp}%"></i></div><div class="hb s"><i style="width:${m.sp/m.msp*100}%"></i></div>
+  ${(()=>{const K=SKILL[m.id];if(!K||tutRun())return '';const on=K.f&&r[K.f],why=skWhy(m);return `<button class="skb ${why?'no':''} ${ui.sk===m.id?'on':''} ${on?'lit':''}" data-act="sk:${m.id}" ${skOn()&&m.hp>0?'':'disabled'} aria-label="${esc(m.c.name)} 스킬 ${esc(K.n)} · SP ${K.c}${on?' · 걸려 있음':why?' · '+esc(why):''}"><b>${on?'◆ ':''}${esc(K.n)}</b><small>SP ${K.c}</small></button>`})()}
   ${mt.length?`<div class="mt">${mt.map(t=>`<span class="tag">[${esc(t.l)}]</span>`).join('')}</div>`:''}</div>`}).join('');
  const pt=r.tags.filter(t=>!t.w);
  const ho=ui.hud||r.tut||!!tq;/* 첫 판과 튜토리얼 중에는 다 펼쳐 둔다 (강조 대상이 칩·태그일 수 있음) */
@@ -2270,7 +2308,7 @@ function vExplore(){
  <section class="party">${tiles}</section>
  <div class="grid"><section class="mapbox ${r.phase==='choose'?'big':'run'}">${vMap()}</section><section class="logbox ${r.hold&&!r.manual?'holding':''}" ${r.hold&&!r.manual?'data-act="next"':''}><ol id="log" aria-live="polite">${vLog()}</ol></section></div>
  ${r.phase==='event'?vEvent():(r.evIn=false,'')}
- ${vStamp()}${vTip()}${vCmd()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}" title="P">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}" title="F">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry&&!lvOk(4)?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" title="Esc" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&r.hold&&!r.manual&&!r.paused?'<div class="stepper hold"><button class="next" data-act="next">TAP ▶</button></div>':''}${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
+ ${vStamp()}${vTip()}${vCmd()}${vSk()}<footer class="ctl"><div class="grp"><button data-act="pause" aria-pressed="${r.paused}" title="P">${r.paused?'PLAY':'PAUSE'}</button><button data-act="speed" aria-pressed="${r.speed===2}" title="F">${r.speed}x</button><button data-act="manual" aria-pressed="${r.manual}">${r.manual?'MANUAL':'AUTO'}</button><button class="snd" data-act="mute" aria-pressed="${!S.mute}" aria-label="효과음 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'♪×':'♪'}</button></div><div class="grp r"><button data-act="curry" ${S.curry&&!lvOk(4)?'':'disabled'}>CURRY ${S.curry}</button><button class="warn" data-act="retreat" title="Esc" ${r.phase==='event'?'disabled':''}>${ui.rc?'SURE?':'ESCAPE'}</button></div>${run_&&r.hold&&!r.manual&&!r.paused?'<div class="stepper hold"><button class="next" data-act="next">TAP ▶</button></div>':''}${run_&&(r.manual||r.paused)?'<div class="stepper"><button class="next" data-act="next">NEXT ▶</button><button class="next ff" data-act="ff" aria-label="다음 선택까지 넘기기">SKIP ▶▶</button></div>':''}</footer></main>`;
 }
 function reportText(){const x=ui.res,st='★'.repeat(x.st)+'☆'.repeat(5-x.st);
  return `[괴도단 활동 보고서] 오늘도 메멘토스!\n참가 멤버: ${x.ids.map(i=>CH[i].name).join(' · ')}\n탐사 결과: ${st} (${x.reason})${x.cut?`\n결정적 1컷: ${x.cut.t}`:''}\n정산 수익: ¥${fmt(x.inc)}${x.bonus?` (위험 수당 +¥${fmt(x.bonus)})`:''}${x.team?` (팀워크 수당 +¥${fmt(x.team)})`:''} · 보물 ${x.tre}개\n오늘의 MVP: ${CH[x.mvp.id].name} (${x.mvp.why})\n오늘의 사고뭉치: ${x.mis?`${CH[x.mis.id].name} (${x.mis.why})`:'없음 (평화로운 하루)'}\n“${x.line}”`}
@@ -2401,7 +2439,8 @@ function vCodex(){
 const TIPS={
  start:'괴도단은 알아서 움직입니다. 캐릭터 말풍선과 아래 로그를 지켜보십시오.',
  choose:'선로로 이어진 구역을 눌러 이동합니다. 깊은 구역일수록 위험하지만 보상이 큽니다.',
- tag:'[태그]는 앞에서 생긴 일입니다. 나중 사건과 르블랑 후일담이 이것을 보고 달라집니다.'};
+ tag:'[태그]는 앞에서 생긴 일입니다. 나중 사건과 르블랑 후일담이 이것을 보고 달라집니다.',
+ skill:'SP 스킬: 동료 칸 아래 버튼을 누르면 SP를 써서 그 동료의 스킬을 씁니다. 한 사람당 턴마다 1번, 턴이 끝나면 SP가 5씩 찹니다.'};
 function tip(id){if(!S.tut||!run||S.tips.includes(id)||ui.tip)return;ui.tip={id,text:TIPS[id]};if(run.phase==='running'){run.paused=true;run.tipPause=true}}
 function vTip(){return ui.tip?`<div class="tipcard" role="status"><b>TIP</b><p>${esc(ui.tip.text)}</p><button class="btn sm" data-act="tipok">OK</button></div>`:''}
 
@@ -2593,6 +2632,7 @@ document.addEventListener('keydown',e=>{
  if(tq||e.ctrlKey||e.metaKey||e.altKey)return;const t=e.target;if(t&&t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;
  const k=e.key.toLowerCase(),A=$('#app'),hit=q=>{const b=A.querySelector(q);if(b&&!b.disabled){e.preventDefault();b.click();return true}return false};
  if(e.repeat&&k!==' '&&k!=='enter')return;
+ if(A.querySelector('.skwin')){if(k==='escape'){e.preventDefault();hit('button[data-act="skx"]');return}if(k==='enter'||k===' '){if(t&&t.closest&&t.closest('button'))return;hit('button[data-act^="sku:"]')}return}/* 스킬 창: Enter 쓴다 · Esc 닫기 */
  if(A.querySelector('.cmdwin')){const v={'1':'stop','2':'boost','3':'tag',' ':'leave','enter':'leave'}[k];if(v){if(t&&t.closest&&t.closest('button')&&(k===' '||k==='enter'))return;hit(`button[data-act="cmd:${v}"]`);return}}/* 지휘 창: 1 말린다 · 2 부추긴다 · 3 태그 · Space 그냥 둔다 */
  const i=k.length===1?Math.max('abcd'.indexOf(k),'1234'.indexOf(k)):-1;
  if(i>=0){if(hit(`button[data-act="choice:${i}"]`))return;const ms=[...A.querySelectorAll('button[data-act^="move:"]:not(:disabled)')];if(ms[i]){e.preventDefault();ms[i].click()}return}
@@ -2608,7 +2648,7 @@ $('#app').addEventListener('click',e=>{
  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
  const [a,v]=b.dataset.act.split(':');
  if(a!=='mute')sfx('select');
- if(a!=='retreat')ui.rc=false;if(a!=='reset')ui.reset=false;
+ if(a!=='retreat')ui.rc=false;if(a!=='reset')ui.reset=false;if(ui.sk&&a!=='sk'&&a!=='sku'&&a!=='skx'){ui.sk=null;setTimeout(()=>schedule(),0)}/* 스킬 창은 다른 걸 누르면 닫히고 진행이 이어진다 */
  if(a==='howto'){ui.screen='tutorial';ui.tstep=0;ui.tafter='main';ui.enter=true;render();window.scrollTo(0,0);return}
  if(a==='tutreplay'){S.tut=false;S.tutorialStep=[];save();ui.screen='main';ui.enter=true;render();window.scrollTo(0,0);return}
  if(a==='hints'){S.hintsOff=!S.hintsOff;save();render();return}
@@ -2642,6 +2682,9 @@ $('#app').addEventListener('click',e=>{
  if(a==='lv'){const n=+v;if(n>=0&&n<=(S.depthMax||0)){S.lvSel=n;save()}render();return}
  if(a==='cmdstop'){S.cmdStop=!S.cmdStop;save();render();if(run&&run.phase==='running')schedule();return}
  if(a==='cmd'){resolveQuirk(v);return}
+ if(a==='sk'){if(ui.sk===v)skClose();else skOpen(v);return}
+ if(a==='sku'){skUse(v);return}
+ if(a==='skx'){skClose();return}
  if(a==='pause'){run.paused=!run.paused;render();schedule();return}
  if(a==='hud'){ui.hud=!ui.hud;render();return}
  if(a==='speed'){run.speed=run.speed===1?2:1;render();schedule();return}
