@@ -30,12 +30,14 @@ function tick(){B.ticks++;
  {const k=sc+(sc==='hub'?':'+ui.ht:'');if(!B.ovf[k]&&document.documentElement.scrollWidth>innerWidth+1){const w=[...document.querySelectorAll('#app *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,3).map(e=>e.tagName+'.'+e.className);B.ovf[k]=w}
   if(!B.small[k]){const sm=[...document.querySelectorAll('#app *')].filter(e=>e.offsetParent!==null&&e.childNodes.length&&[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())&&parseFloat(getComputedStyle(e).fontSize)<11);B.small[k]=sm.slice(0,4).map(e=>e.tagName+'.'+e.className+' '+getComputedStyle(e).fontSize+' "'+e.textContent.trim().slice(0,14)+'"').concat(sm.length>4?['…'+sm.length]:[])}}
  if(sc==='title'){if(B.cur&&G.end){B.cur.end=G.end.kind;B.runs.push(B.cur);B.cur=null}return click(q('[data-a="go"]')[0])||click(q('[data-a="start"]')[0])}
- if(sc==='hub'){if(ui.ht!=='go'){if(Math.random()<.5){const c=q('[data-a^="unl:"],[data-a^="upg:"],[data-a^="bond:"],[data-a^="bsee:"],[data-a^="setstart:"],[data-a="setneg"],[data-a="setbet"],[data-a^="setwarp:"],[data-a^="ssave:"],[data-a="tutt"],[data-a^="sv:"]');if(c.length){const b=c[Math.floor(Math.random()*c.length)];B.meta[b.dataset.a.split(':')[0]]=(B.meta[b.dataset.a.split(':')[0]]||0)+1;return click(b)}}return click(q('[data-a="ht:go"]')[0])}
+ if(sc==='hub'){if(ui.ht!=='go'&&B.buy){B.buy=0;const c=q('[data-a^="upg:"],[data-a^="unl:"],[data-a^="bond:"]');if(c.length){const x=c[0];B.meta['buy-'+x.dataset.a.split(':')[0]]=(B.meta['buy-'+x.dataset.a.split(':')[0]]||0)+1;return click(x)}}
+  if(ui.ht==='go'&&!B.cur&&Math.random()<.8&&click(q('.nextu.ok')[0])){B.buy=1;return}
+  if(ui.ht!=='go'){if(Math.random()<.5){const c=q('[data-a^="unl:"],[data-a^="upg:"],[data-a^="bond:"],[data-a^="bsee:"],[data-a^="setstart:"],[data-a="setneg"],[data-a="setbet"],[data-a^="setwarp:"],[data-a^="ssave:"],[data-a="tutt"],[data-a^="sv:"]');if(c.length){const b=c[Math.floor(Math.random()*c.length)];B.meta[b.dataset.a.split(':')[0]]=(B.meta[b.dataset.a.split(':')[0]]||0)+1;return click(b)}}return click(q('[data-a="ht:go"]')[0])}
   if(!B.cur&&Math.random()<.25&&!B.hubSeen){B.hubSeen=1;return any('[data-a^="ht:"]')}B.hubSeen=0;
   const ps=ui.ps||[];if(ps.length<3)return any('[data-a^="ps:"]:not(.on)')||any('[data-a^="ps:"]');
-  B.cur={t0:Date.now(),party:[...ps],maxFl:0,battles:0,rounds:0,clicks:0};return click(q('[data-a="go"]')[0])}
+  B.cur={t0:Date.now(),party:[...ps],maxFl:0,battles:0,rounds:0,clicks:0,q0:SV.q,yen0:SV.yen};return click(q('[data-a="go"]')[0])}
  if(B.cur){B.cur.clicks++;B.cur.maxFl=Math.max(B.cur.maxFl,G.fl||0)}
- if(sc==='result'){if(B.cur){B.cur.end=G.end&&G.end.kind;B.cur.cleared=!!G.cleared;B.cur.yen=G.end&&G.end.y;B.cur.ms=Date.now()-B.cur.t0;B.cur.rooms=G.stats.rooms;B.cur.battles=G.stats.battles;B.runs.push(B.cur);B.cur=null}
+ if(sc==='result'){if(B.cur){B.cur.end=G.end&&G.end.kind;B.cur.cleared=!!G.cleared;B.cur.yen=G.end&&G.end.y;B.cur.ms=Date.now()-B.cur.t0;B.cur.rooms=G.stats.rooms;B.cur.battles=G.stats.battles;B.cur.q1=SV.q;B.cur.gain=G.end&&(G.end.y+G.end.bet+G.end.sy);B.cur.spent=0;B.cur.sub=G.end&&G.end.subOk;B.runs.push(B.cur);B.cur=null}
   return click(q('[data-a="hubgo"]')[0])||click(q('[data-a="title"]')[0])||any('[data-a]')}
  if(sc==='story')return click(q('[data-a="storyok"]')[0]);
  if(sc==='battle'){if(Math.random()<.01&&click(q('[data-a="auto"]')[0])){B.meta.auto=(B.meta.auto||0)+1;return}if(ui.busy)return;if(B.cur&&G.battle)B.cur.rounds=Math.max(B.cur.rounds,G.battle.round);
@@ -101,6 +103,9 @@ async def main():
     if ok:
         print('판당 클릭 평균 %.0f · 전투 평균 %.1f · 방 평균 %.1f' % (sum(r['clicks'] for r in ok) / len(ok), sum(r['battles'] for r in ok) / len(ok), sum(r['rooms'] for r in ok) / len(ok)))
     print('메타·조작 누른 횟수:', R['meta'])
+    print('의뢰 진행(판 순서):', ' '.join(str(r.get('q1','?')) for r in runs))
+    g=[r.get('gain') or 0 for r in runs if r.get('gain') is not None]
+    if g: print('판당 지갑 수입 평균 ¥%d (최소 ¥%d · 최대 ¥%d) · 서브 의뢰 성공 %d/%d' % (sum(g)/len(g), min(g), max(g), sum(1 for r in runs if r.get('sub')), len(runs)))
     print('가로 넘침 화면:', {k: v for k, v in R['ovf'].items() if v} or '없음')
     print('11px 미만 글씨 화면:'); [print('  ', k, v) for k, v in R['small'].items() if v]
     out['ovf'] = R['ovf']; out['small'] = R['small']; out['meta'] = R['meta']
