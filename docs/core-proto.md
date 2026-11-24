@@ -282,3 +282,9 @@
 - 칼럼: dev(주소에 ?dev=1이면 true, ?dev=0으로 해제) · ver(배포 시각) · kind(return/clear/wipe) · start_fl · end_fl · party · dur_s · yen
 - data(jsonb): run 번호, cleared, deep, risk, rooms, battles, ko, best, allout, spent(출장소), raw(번 엔), items("id:등급"), sets(켜진 각인), bosses[{fl, r(턴), hp(평균 %), ko}], wipe{fl, kind, foes, r}, reaper{n, fl[], res kill/escape/caught}, quest, sub, day, setup, grd, rift, ach(이번 판 업적)
 - 분석은 dev=false만. Supabase 노트북 「밸런스 대시보드」.
+
+## 적 행동 예고 (인텐트)
+- 적 패턴이 순서대로 돌기 때문에 다음 행동을 foeAct와 같은 규칙으로 미리 계산(검표 선언 1번 · 동료 부르기 · 강탈 뒤 던지기 · 압수 불가 시 반사막 · 컨센트레이트 → 메기도라온 포함). 보스·거두는 자는 2행동.
+- 적 머리 위: 아이콘 + 예상 피해(⚔20 · ✨34›🔫17). 기절·수면·DOWN이면 💤.
+- 조준 줄 아래 "다음" 줄: 행동 이름 · 예상 피해 · 맞을 열의 동료 이름. 맞으면 쓰러질 수 있으면(실드 포함, 피해 +15% 여유) 빨간 테두리 + "치명!".
+- 예상 피해 = 적 공격력 × 배율 × 경계도 보정 × 방어 기술 × (1 - 단련). 실제는 ±15% 흔들림.
