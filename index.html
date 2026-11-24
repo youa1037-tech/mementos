@@ -365,6 +365,10 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .combo.live b{animation:cbump .18s ease-out}@keyframes cbump{0%{transform:scale(1.25)}100%{transform:none}}
 .combo.done{animation:cfade 1.4s both}@keyframes cfade{0%{transform:rotate(-6deg) scale(1.15)}12%{transform:rotate(-6deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:rotate(-6deg) translateY(-10px)}}
 @media (prefers-reduced-motion:reduce){.combo b,.combo.done{animation:none}}
+.ach{border-left:4px solid var(--rc);opacity:.75}.ach.ok{opacity:1;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
+.ach .ah{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.ach p{margin:4px 0 2px;font-size:13px}.ach small{color:var(--mut)}.ach.ok small{color:var(--gold)}
+.ach .rar{font:12px/1 var(--en);font-style:normal;letter-spacing:.1em;color:var(--rc);border:1px solid var(--rc);padding:2px 5px}
+.tabs{flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -593,7 +597,7 @@ const RISK_MAX=24,RISK_HOT=18;/* 경계도: 24에서 거두는 자 (18부터 경
 /* ============ 저장 (mm-core · 시제품 때 저장 mm-proto는 처음 한 번 이어받음) ============ */
 let SV={awk:[],runs:0,wins:0,best:0,deep:0,weak:{},yen:0,unl:[],up:{bus:0,reroll:0,fund:0,warp:0},q:0,bond:{},set:{start:null,neg:false,bet:false}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-core')||localStorage.getItem('mm-proto')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('mm-core',JSON.stringify(SV))}catch(e){}};
-function svFix(){SV.awk=SV.awk||[];SV.up=Object.assign({bus:0,reroll:0,fund:0,disc:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
+function svFix(){SV.awk=SV.awk||[];SV.ach=SV.ach||{};SV.up=Object.assign({bus:0,reroll:0,fund:0,disc:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
 svFix();
 /* ============ 르블랑 메타: 판 밖의 돈은 세 군데에 쓴다 — ① 모나 버스 개조 ② 벨벳 룸 템 해금 ③ 유대(동료 둘) ============ */
 const LOCK={oil:2500,coat:2500,chip:2500,battery:2500,clock:2500,crack:2500,badge:3500,fuse:3500,express:4500,contra:4500,radio:4500,envelope:5000,dice:5000,mask:6000,seal:6000};/* 처음엔 잠긴 템과 해금 값 */
@@ -604,7 +608,24 @@ const PACKS={
  team:{n:'팀워크 팩',ids:['rbaton','flag'],c:4500}};
 const PACK_OF={};for(const [k,P] of Object.entries(PACKS))for(const id of P.ids){PACK_OF[id]=k;LOCK[id]=P.c}
 const packDone=k=>PACKS[k].ids.every(id=>SV.unl.includes(id));
-const unlocked=id=>!(id in LOCK)||SV.unl.includes(id);
+const unlocked=id=>(!(id in LOCK)||SV.unl.includes(id))&&!achLocked(id);
+/* 업적 (아이작식 해금): 깨면 템이 드롭 풀 · 인지의 균열에 풀린다. 희귀도는 서버 없이 등급으로만 (가짜 % 없음) */
+const RAR={COMMON:'#cfd6df',RARE:'#59a7ff',PHANTOM:'#ff3b3b',HIDDEN:'#b45cff'};
+const ACH=[
+ {id:'reaper3',n:'사신 토벌자',r:'RARE',d:'B3 최심부 관문에서 거두는 자를 쓰러뜨린다',rw:'fate'},
+ {id:'oneturn',n:'1턴 컷',r:'PHANTOM',d:'관문 보스를 첫 턴 안에 쓰러뜨린다',rw:'satanael'},
+ {id:'nospend',n:'지갑 안 여는 괴도',r:'RARE',d:'출장소에서 1엔도 쓰지 않고 B2 관문을 돌파한다',rw:'miser'},
+ {id:'brink',n:'자해가 아니라 전략입니다',r:'RARE',d:'살아 있는 전원이 HP 30% 이하인 채로 관문 보스를 쓰러뜨린다',rw:'phoenix'},
+ {id:'tag4',n:'4각성 마스터',r:'COMMON',d:'각인 칸에서 같은 태그 4세트를 완성한다',rw:'reroll'},
+ {id:'scratch',n:'스크래치 없는 괴도단',r:'PHANTOM',d:'아군 전원 HP 100%로 관문 보스를 쓰러뜨린다',rw:'perfect'},
+ {id:'devil',n:'악마와의 거래',r:'HIDDEN',d:'인지의 균열에서 피로 값을 치르고, 그 판을 ALL CLEAR로 끝낸다',hint:'인지의 균열에 무언가가 있다…',rw:'blank'}];
+const ACH_ITEM={};for(const a of ACH)if(a.rw!=='reroll')ACH_ITEM[a.rw]=a.id;
+const achDone=k=>!!(SV.ach&&SV.ach[k]);
+function achLocked(id){return !!ACH_ITEM[id]&&!achDone(ACH_ITEM[id])}
+const achRw=a=>a.rw==='reroll'?'판마다 3지선다 리롤 +1 (영구)':`${IT(a.rw).g||tier(a.rw)}급 「${IT(a.rw).n}」 ${IT(a.rw).rift?'— 인지의 균열에 나타남':'— 보상 · 상점에 나옴'}`;
+function achGet(k){if(achDone(k))return;const a=ACH.find(x=>x.id===k);if(!a)return;SV.ach=SV.ach||{};SV.ach[k]=Date.now();save();(G.achNew||(G.achNew=[])).push(k);
+ log(`업적 달성 — ${a.n} · 해금: ${achRw(a)}`);band(`<b>ACHIEVEMENT · ${a.r}</b> ${esc(a.n)} <small>해금: ${esc(achRw(a))}</small>`,'chain',5200)}
+const achTag4=()=>{if(Object.values(tagCnt()).some(n=>n>=4))achGet('tag4')};
 const UPG={bus:{n:'모나 버스 개조',d:'Lv.2: B2로 가는 막힌 선로를 뚫는다 · Lv.3: B3 최심부로 내려가는 선로를 뚫는다',cost:[7500,12000]},
  reroll:{n:'3지선다 리롤',en:'REROLL',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000]},
  fund:{n:'출발 자금',en:'STARTING FUNDS',d:'판마다 ¥400을 들고 출발 (출장소에서 쓸 돈)',cost:[2000,4000]},
@@ -683,7 +704,7 @@ function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH
  const f0=Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0);
  Object.assign(G,{deal:null,party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
  fl:0,risk:0,yen:400*(SV.up.fund||0),items:[],shopSpent:0,chk:0,kills:0,cmd:3,qk:0,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,questHit:false,
- stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,grd:0,glass:0,miserSh:0,rift:0,benchSp0:0,reroll:SV.up.reroll,curry:1,setup:{...SV.set},
+ stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,grd:0,glass:0,miserSh:0,rift:0,benchSp0:0,reroll:SV.up.reroll+(achDone('tag4')?1:0),achNew:[],devil:0,curry:1,setup:{...SV.set},
  day:DAYS.find(d=>d.id===SV.today)||null,chain:null,combos:[],sub:subNow().id});
  if(DF().reroll)G.reroll+=DF().reroll;
  if(SV.nextBuff){const k=SV.nextBuff;G.buff=k;SV.nextBuff=null;save();if(k==='coffee')for(const m of G.party)m.sp=Math.min(m.msp,m.sp+10);if(k==='cushion')G.yen+=300;log(`다락방에서 받은 힘: ${HBUFF[k].n} — ${HBUFF[k].d}`)}
@@ -747,12 +768,12 @@ function enterRoom(t){
  render()}
 /* 인지의 균열: S급 4종 중 2개가 걸려 있다. 하나를 골라 피(이번 판 전원 최대 HP -25%) 또는 엔(가진 엔 절반, 최소 ¥1,500)으로 치른다 */
 const RIFT=['satanael','blank','glassshoe','fate'],riftYen=()=>Math.max(1500,Math.round(G.yen*.5));
-function openRift(){G.rift=1;const own=RIFT.filter(k=>!G.items.includes(k)),L=(own.length?own:RIFT).sort(()=>Math.random()-.5).slice(0,2);G.ev={kind:'rift',ch:L,t:'인지의 균열'};ui.riftSel=null;ui.screen='event';
+function openRift(){G.rift=1;const own=RIFT.filter(k=>!G.items.includes(k)&&!achLocked(k)),L=(own.length?own:RIFT.filter(k=>!achLocked(k))).sort(()=>Math.random()-.5).slice(0,2);G.ev={kind:'rift',ch:L,t:'인지의 균열'};ui.riftSel=null;ui.screen='event';
  log('인지의 균열 — 비틀린 공간 너머에서 무언가가 값을 부른다.');say(pick(alive()).id,'find');render()}
 function riftPay(how){const e=G.ev,id=ui.riftSel;if(!e||e.kind!=='rift'||!id)return;
  if(how==='yen'){const y=riftYen();if(G.yen<y)return;G.yen-=y;log(`인지의 균열: ¥${y}를 바쳤다`)}
- else{for(const m of G.party){m.max=Math.max(1,Math.round(m.max*.75));m.hp=Math.min(m.hp,m.max)}log('인지의 균열: 피로 치렀다 — 전원 최대 HP -25%')}
- G.items.push(id);glassSync();G.ev=null;ui.riftSel=null;ui.screen='map';log(`S급 획득: ${IT(id).n}`);flash('S RANK','g');try{fxMid('coins')}catch(e){}render()}
+ else{for(const m of G.party){m.max=Math.max(1,Math.round(m.max*.75));m.hp=Math.min(m.hp,m.max)}log('인지의 균열: 피로 치렀다 — 전원 최대 HP -25%');G.devil=1}
+ G.items.push(id);glassSync();achTag4();G.ev=null;ui.riftSel=null;ui.screen='map';log(`S급 획득: ${IT(id).n}`);flash('S RANK','g');try{fxMid('coins')}catch(e){}render()}
 /* B2 관문: 분실물 보관소의 주인과 흥정 — 보물을 내주고 지나가기 · 협상(지휘 1) · 싸우기 */
 const DEAL_TALK=['makoto','futaba','akechi'];
 function openDeal(){G.ev={kind:'deal',t:'GATE'};ui.screen='event';render()}
@@ -826,7 +847,7 @@ function shopRoll(){const keys=Object.keys(ITEMS).filter(k=>unlocked(k)&&!ITEMS[
 function openBench(){for(const m of alive())m.sp=Math.min(m.msp,m.sp+10);
  G.benchUsed=false;ui.bsel=[];G.benchSp0=G.shopSpent||0;shopRoll();ui.screen='bench';log('벨벳 룸 출장소 — 푸른 문 너머에서 누군가 손짓한다. (SP +10)');if(!pairTalk())say(pick(alive()).id,'find');render()}
 function spendShop(p){G.shopSpent=(G.shopSpent||0)+p;const k=Math.floor(G.shopSpent/1000);if(k>(G.chk||0)){const n=k-(G.chk||0);G.chk=k;if(cnt('checks')){const hp=up('checks',5,8)*n;for(const m of G.party){m.max+=hp;if(m.hp>0)m.hp+=hp}log(`수표 다발: 최대 HP +${hp} · 공격력 누적`);glow('checks')}}}
-function shopBuy(i){const S_=G.shop,id=S_&&S_.ch[i];if(!id||S_.sold.includes(i))return;const p=shopPrice(id);if(G.yen<p)return;G.yen-=p;spendShop(p);S_.sold.push(i);G.items.push(id);glassSync();log(`출장소: ${IT(id).n} 구입 (-¥${p})`);glow(id);render()}
+function shopBuy(i){const S_=G.shop,id=S_&&S_.ch[i];if(!id||S_.sold.includes(i))return;const p=shopPrice(id);if(G.yen<p)return;G.yen-=p;spendShop(p);S_.sold.push(i);G.items.push(id);glassSync();achTag4();log(`출장소: ${IT(id).n} 구입 (-¥${p})`);glow(id);render()}
 function shopHeal(){const S_=G.shop;if(!S_||S_.healed||G.yen<healP())return;spendShop(healP());G.yen-=healP();S_.healed=true;for(const m of G.party){if(m.hp<=0)m.hp=1;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+15)}log(`출장소: 휴식 (-¥${SHOP_HEAL}) · 전원 HP 30% · SP +15`);render()}
 function shopReroll(){if(!G.shop)return;const p=rrP(),rr=(G.shop.rr||0)+1,h=G.shop.healed;if(G.yen<p)return;G.yen-=p;spendShop(p);shopRoll();G.shop.rr=rr;G.shop.healed=h;log(`출장소: 진열을 바꿨다 (-¥${p})`);render()}
 function benchLeave(){if(!cnt('miser')||(G.shopSpent||0)>(G.benchSp0||0))return;const h=up('miser',15,25);for(const m of G.party){m.max+=h;if(m.hp>0)m.hp+=h}G.miserSh=(G.miserSh||0)+10;log(`수전노의 저울: 한 푼도 안 썼다 — 전원 최대 HP +${h} · 전투 시작 실드 ${G.miserSh}`);glow('miser')}
@@ -844,7 +865,7 @@ function offer(why,n=1,pool='base',ax=null){const P=pool==='evo'?EVO:ITEMS,keys=
  G.pick={why,ch,left:n,pool,ax,syn:ch.map(syn),up,at:Date.now()};ui.screen='pick';render();
  const big=up>=0||ch.some(x=>tier(x)==='S');if(big)setTimeout(()=>{if(G.pick&&ui.screen==='pick'){flash(up>=0?'RANK UP':'S RANK','g');try{fxMid('coins')}catch(e){}}},380)}
 function reroll(){const P=G.pick;if(!P||G.reroll<=0)return;G.reroll--;log('3지선다를 다시 뽑았다');offer(P.why,P.left,P.pool,P.ax)}
-function takeItem(id){G.items.push(id);glassSync();/* 가방 칸 제한 없음 */log(`템 획득: ${IT(id).n}`);if(EVO[id])flash('EVOLVED','g');afterPick()}
+function takeItem(id){G.items.push(id);glassSync();achTag4();/* 가방 칸 제한 없음 */log(`템 획득: ${IT(id).n}`);if(EVO[id])flash('EVOLVED','g');afterPick()}
 function afterPick(){const P=G.pick;P.left--;if(P.left>0)return offer(P.why,P.left,P.pool,P.ax);G.pick=null;
  if(G.floorDone){G.floorDone=false;ui.screen='floor';return render()}
  ui.screen='map';render()}
@@ -1081,7 +1102,9 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  const y=Math.round((T2('탐욕')?1.3:1)*(B.kind==='boss'?Math.round((bossY[B.foes[0].boss]||2200)*bossK):B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
- if(B.kind==='boss'){SV.deep=Math.max(SV.deep,G.fl+1);if(G.risk<=10)G.stats.quietGate=true;
+ if(B.kind==='boss'){{const al=G.party.filter(m=>m.hp>0);if(G.fl===2)achGet('reaper3');if(B.round<=1)achGet('oneturn');if(G.fl===1&&!(G.shopSpent>0))achGet('nospend');
+  if(al.length&&al.every(m=>hpR(m)<=.3))achGet('brink');if(G.party.every(m=>m.hp>=m.max))achGet('scratch')}
+  SV.deep=Math.max(SV.deep,G.fl+1);if(G.risk<=10)G.stats.quietGate=true;
   if(questClear())setTimeout(()=>flash('REQUEST CLEAR','g'),60);/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
   if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
@@ -1121,7 +1144,7 @@ function pickCut(kind){const by=k=>(SCRIPT.cuts||[]).filter(x=>x.k===k),ids=G.pa
  const L=by(k).length?by(k):by('평범한 날');if(!L.length)return '';const x=pick(L),who=k==='감싸기'&&G.party.find(m=>m.id==='kasumi')?'kasumi':pick(ids),tg=k==='감싸기'&&G.coverT?G.coverT:pick(ids.filter(i=>i!==who))||who;
  return x.t.replace(/\{이름\}/g,CH[who].name).replace(/\{대상\}/g,CH[tg].name).replace(/\{엔\}/g,'¥'+G.yen).replace(/\{역\}/g,FLR(G.fl).n).replace(/\{[^}]*\}/g,'')
   .replace(/([가-힣A-Za-z0-9¥]+)\((이|과|을|은)\)(가|와|를|는)/g,(_,w,a,b)=>jo(w,a,b))}
-function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
+function endRun(kind){if(kind!=='wipe'&&G.cleared&&G.devil)achGet('devil');try{localStorage.removeItem('mm-run')}catch(e){}const keep=kind==='wipe'?.5:1,bonus=(G.setup.negItem?.5:0)+((DF().yen||1)-1)/* 배율은 곱하지 않고 더한다 */,y=Math.min(RUN_CAP,Math.round(G.yen*keep*(1+bonus))),bet=G.setup.bet&&G.questHit?BET_WIN:0;
  const sb=subNow(),subOk=kind!=='wipe'&&G.sub===sb.id&&sb.ok(),sy=subOk?Math.max(0,Math.min(sb.y,RUN_CAP-y-bet)):0;
  const dy=kind==='wipe'?0:(G.deepBonus||0);G.end={kind,y,bet,sub:sb,subOk,sy,dy};SV.runs++;SV.best=Math.max(SV.best,y);SV.yen+=y+bet+sy+dy;
  {const ids=G.party.map(m=>m.id);for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const k=bkey(ids[i],ids[j]),x=SV.bond[k]||(SV.bond[k]={n:0,lv:0});x.n+=(G.stats.bat[k]||0)+(kind==='wipe'?0:1)}}/* 유대: 바톤 횟수 + 함께 살아 돌아오면 +1 */
@@ -1225,7 +1248,7 @@ requestAnimationFrame(pxDraw);
 function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='map')))return;try{const m=G.map;localStorage.setItem('mm-run',JSON.stringify({
  party:G.party.map(x=>({id:x.id,hp:x.hp,max:x.max,sp:x.sp,msp:x.msp,row:x.row})),map:{cells:m.cells,edges:m.edges,start:m.start,boss:m.boss,T:m.T,vis:[...m.vis],done:[...m.done]},
  at:G.at,fl:G.fl,risk:G.risk,yen:G.yen,items:G.items,kills:G.kills,qk:G.qk,sub:G.sub,questHit:G.questHit,cmd:G.cmd,stats:G.stats,reroll:G.reroll,curry:G.curry,setup:G.setup,combos:G.combos,
- day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,cleared:!!G.cleared,deepBonus:G.deepBonus||0,grd:G.grd||0,glass:G.glass||0,miserSh:G.miserSh||0,rift:G.rift||0,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
+ day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,deal:G.deal||null,cleared:!!G.cleared,deepBonus:G.deepBonus||0,grd:G.grd||0,devil:G.devil||0,glass:G.glass||0,miserSh:G.miserSh||0,rift:G.rift||0,shopSpent:G.shopSpent||0,chk:G.chk||0,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
  Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:chOf(x.id)})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
@@ -1318,7 +1341,7 @@ function vAtticScene(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,M
  return `<section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
 function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.yen>=UPG[k].cost[SV.up[k]||0]),canPool=Object.entries(LOCK).some(([k,c])=>!SV.unl.includes(k)&&!PACK_OF[k]&&SV.yen>=c)||Object.entries(PACKS).some(([k,P])=>!packDone(k)&&SV.yen>=P.c),canBond=Object.keys(SV.bond).some(k=>bondReady(k)&&SV.yen>=BOND.cost[SV.bond[k].lv]);
  const canAwk=IDS.some(id=>!awoke(id)&&SV.yen>=AWK[id].c);
- const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['awk','각성',canAwk],['scene','장면'],['rec','기록']];
+ const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['awk','각성',canAwk],['ach','업적'],['scene','장면'],['rec','기록']];
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
@@ -1341,6 +1364,8 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   ${V?(()=>{const c=V.ch[ui.sv.i];return `<div class="dlg"><span class="who">REPLAY</span><p><b>${esc(V.title)} — ${esc(c.label)}</b></p><p>${esc(V.intro)}</p>${Q(V.a,V.qa)}${Q(V.b,V.qb)}<p>${esc(c.n)}</p>${Q(V.a,c.qa)}${Q(V.b,c.qb)}</div>`})():''}
   <div class="scg">${C.map(x=>`<div class="scc"><small>${CH[x.a].code} · ${CH[x.b].code}</small><b>${esc(x.title)}</b><span class="sce">${x.ch.map((c,i)=>sc.includes(x.id+':'+(i+1))?`<button class="tog" data-a="sv:${x.id}:${i}">${esc(c.label)}</button>`:'<i class="nx" title="아직 못 본 결말"></i>').join('')}</span></div>`).join('')}</div>
   <p class="tip" style="margin-top:10px"><b>사슬</b></p><div class="scg">${SCRIPT.chains.map(c=>{const v=cx[c.id]||0;return `<div class="scc"><small>${v>=3?'END':v+'/3'}</small><b>${v?esc(c.name):'???'}</b></div>`}).join('')}</div>`}
+ if(t==='ach'){const n=ACH.filter(a=>achDone(a.id)).length;body=`<p class="tip">업적을 깨면 새 템이 풀립니다. 다음 판에 노려 볼 목표를 고르세요. <b>${n}/${ACH.length}</b></p>`+ACH.map(a=>{const ok=achDone(a.id),hid=a.r==='HIDDEN'&&!ok;
+  return `<div class="card ach ${ok?'ok':''}" style="--rc:${RAR[a.r]}"><div class="ah"><b>${hid?'???':esc(a.n)}</b><em class="rar">${a.r}</em></div><p>${hid?esc(a.hint):esc(a.d)}</p><small>${ok?'✓ 해금됨 — ':'보상: '}${hid?'???':esc(achRw(a))}</small></div>`}).join('')}
  if(t==='rec'){const L=slots();body=`<p class="tip">르블랑 진행(지갑 · 의뢰 · 해금 · 개조 · 유대 · 장면)을 저장해 둡니다. 불러오면 지금 진행이 그 기록으로 바뀌고, 이어하던 판은 사라집니다.</p><div class="pick">${[0,1,2].map(i=>{const x=L[i];return `<div class="pk"><span class="ic">${i+1}</span><span style="flex:1">${x?`<b>${new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</b><small>${x.runs}판 · 지갑 ¥${x.yen}${x.sv&&x.sv.q!=null?` · 지지율 ${[0,35,70,100][x.sv.q]}%`:''}</small>`:'<small>빈 칸</small>'}</span><button class="tog" data-a="ssave:${i}">저장</button>${x?`<button class="tog" data-a="sload:${i}">불러오기</button>`:''}</div>`}).join('')}</div>
   <div class="row2" style="margin-top:8px"><button class="tog ${SV.tutOff?'':'on'}" data-a="tutt">튜토리얼 안내 ${SV.tutOff?'끔':'켬'}</button><button class="tog" data-a="tutr">안내 처음부터</button></div>`}
  return `<main class="hub">${vAttic()}<div class="title" style="padding-top:10px">${vQuest()}${vNext()}
@@ -1378,7 +1403,7 @@ function vTitle(){const sv=runSaved(),dy=DAYS.find(d=>d.id===SV.today),sc=SV.sce
  <a class="mlegacy" href="legacy.html">PLAY THE OLD VERSION (OBSERVATION)</a></section></main>`}
 function vManual(){return `<div class="title"><h1 style="font-size:38px">HOW TO PLAY</h1>
  <div class="card"><b>왜 메멘토스에 들어가나</b><br>메멘토스 최심부에 <b>왜곡된 선로</b>가 생겨 도쿄의 인지가 뒤틀렸다. 괴도 채널에 올라온 의뢰 대상 셋을 개심시켜 <b>지지율 100%</b>를 만들어라.<br>· 의뢰 1: B1 관문 「검표원의 그림자」 · 의뢰 2: B2 관문 「분실물 보관소의 주인」 · 의뢰 3: B3 최심부 「거두는 자」</div>
- <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를.<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
+ <div class="card"><b>이렇게 놉니다</b><br>· 괴도단 10명 중 <b>세 명</b>을 골라 출발. 누구를 데려가느냐에 따라 찌를 수 있는 <b>약점 속성</b>(9종)이 달라집니다.<br>· <b>환승 노선도</b>에서 이웃 역을 눌러 이동. 한 역마다 <b>경계도 +1</b>, ${RISK_MAX}이 되면 거두는 자가 쫓아옵니다.<br>· 전투: <b>약점</b>을 찌르면 DOWN + <b>1 MORE</b>. 바톤 터치로 동료에게 넘기면 +25%. 적이 전부 DOWN이면 <b>총공격</b>.<br>· 이기면 템 3개 중 하나. 가방 제한 없이 쌓아 <b>스위칭 · 약점 · 왜곡</b> 빌드를. 왜곡 템은 HP가 낮을수록 세지고, <b>왜곡된 인지</b>는 강한 대신 대가가 붙습니다.<br>· <b>각인</b>: 모든 템은 태그 2개(자해 · 재생 · 연타 · 마력 · 탐욕). 가방 <b>앞 6칸</b>에 같은 태그가 2개 · 4개 모이면 세트 효과. 지도에서 템을 눌러 각인 칸으로 올리거나 뺄 수 있습니다.<br>· <b>인지의 균열</b>(B2부터, 판당 1번): 피나 엔을 치르고 S급 사기템 하나를. 처음엔 유리의 구두만 있고, 나머지는 <b>업적</b>으로 풀립니다.<br>· <b>업적</b>(르블랑 〈업적〉 탭): 1턴 컷 · 스크래치 없는 괴도단 같은 도전을 깨면 새 템이 드롭 풀에 들어옵니다.<br>· <b>금고 차량</b>은 템, <b>수상한 역</b>은 동료 기벽·조합 사건, <b>벨벳 룸 출장소</b>에선 이번 판에 번 엔으로 템 구입 · 휴식 · 합성.</div>
  <div class="card"><b>돈은 어디에</b><br>· 귀환하면 번 엔이 <b>르블랑 지갑</b>으로(전멸하면 절반). 서브 의뢰를 해내면 보너스.<br>· ① <b>모나 버스</b>: B2 선로 개방 · 리롤 · 출발 자금 · 선로 직행 ② <b>템 해금</b>: 3지선다에 나올 템을 늘림 ③ <b>유대</b>: 바톤을 주고받은 두 사람의 장면과 바톤 보너스</div>
  <div class="row2"><button class="go sub" data-a="tutr">튜토리얼 처음부터</button><button class="go" data-a="title">BACK</button></div></div>`}
 function vHud(){if(!G.map)return '';const m=G.map,cells=Array.from({length:16},(_,i)=>{const c=m.cells.includes(i);return `<i class="${!c?'':i===G.at?'at':m.vis.has(i)?'v':known(i)?'k':''} ${c&&known(i)&&m.T[i]==='boss'?'b':''}"></i>`}).join('');
@@ -1443,7 +1468,7 @@ function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  <div class="row2">${G.curry>0?`<button class="go sub" data-a="curry">CURRY ×${G.curry}</button>`:''}<button class="go sub" data-a="ret">RETURN NOW</button></div><p class="tip" style="text-align:center">서브 의뢰 · ${esc(subNow().t)}${subNow().ok()?' ✔':''}</p>`}
 function vLog(){return `<button class="sm" data-a="log">${ui.log?'로그 접기 ▴':'로그 펼치기 ▾'}</button>${ui.log?`<div class="log">${G.log.map(l=>`<p>${l.who?`<b>${CH[l.who].name}</b> 「${esc(l.t)}」`:esc(l.t)}</p>`).join('')}</div>`:''}`}
 function vResult(){const e=G.end||{kind:'clear',y:G.yen},s=G.stats,head=e.kind==='wipe'?'WIPED OUT':G.cleared?(G.fl>=3?'ENDLESS CLEAR':'ALL CLEAR'):'RETURNED';
- return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?(G.fl>=3?`무한 모드로 심층 B${G.fl+1}까지 내려갔다가 무사히 돌아왔습니다.`:'세 관문을 모두 넘고 무사히 르블랑으로 돌아왔습니다.'):`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><p class="qrw">의뢰 보상 <b>+¥${QUESTS[G.questNew-1].y.toLocaleString()}</b> <small>(르블랑 지갑으로 · 판 수익과 따로)</small></p>${vGuide('in')}</div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
+ return `<div class="title res"><h1>${head.split(' ').join('<br>')}</h1>${G.cut?`<p class="cut">「${esc(G.cut)}」</p>`:''}${(G.achNew||[]).map(k=>{const a=ACH.find(x=>x.id===k);return `<div class="card ach ok" style="--rc:${RAR[a.r]}"><div class="ah"><b>ACHIEVEMENT · ${esc(a.n)}</b><em class="rar">${a.r}</em></div><small>해금: ${esc(achRw(a))}</small></div>`}).join('')}<p>${e.kind==='wipe'?`B${G.fl+1}에서 전멸했습니다. 번 엔의 절반을 건졌습니다.`:G.cleared?(G.fl>=3?`무한 모드로 심층 B${G.fl+1}까지 내려갔다가 무사히 돌아왔습니다.`:'세 관문을 모두 넘고 무사히 르블랑으로 돌아왔습니다.'):`B${G.fl+1}에서 무사히 르블랑으로 돌아왔습니다.`}</p>${G.questNew?`<div class="card quest"><b class="en">REQUEST ${G.questNew} CLEAR</b><p><b>${esc(QUESTS[G.questNew-1].n)}</b> — 괴도 채널 지지율 ${QUESTS[G.questNew-1].sup}%</p><p class="qrw">의뢰 보상 <b>+¥${QUESTS[G.questNew-1].y.toLocaleString()}</b> <small>(르블랑 지갑으로 · 판 수익과 따로)</small></p>${vGuide('in')}</div>`:''}${G.questNew===3?`<div class="dlg ending"><span class="who">ENDING</span><p>선로를 비틀던 쇠사슬 소리가 멎었다. 아침 첫차가 평소처럼 들어오고, 괴도 채널의 숫자가 100에 멈췄다.</p><p>르블랑 다락방, 누군가 말한다. 「…내일도 메멘토스, 가 볼까?」</p></div>`:''}
  <div class="card"><dl><dt>수익${G.setup.negItem?' (×1.5)':''}</dt><dd>¥${e.y}</dd><dt>서브 의뢰</dt><dd>${e.subOk?'+¥'+e.sy:'—'}</dd>${G.setup.bet?`<dt>판돈</dt><dd>${e.bet?'+¥'+e.bet:'잃음'}</dd>`:''}<dt>르블랑 지갑</dt><dd>¥${SV.yen}</dd>${e.dy?`<dt>심층 보너스</dt><dd>+¥${e.dy}</dd>`:''}<dt>도달</dt><dd>B${G.fl+1}${G.fl>=3?' ∞':''}</dd><dt>최고 한 방</dt><dd>${s.best}</dd></dl>
  <div class="slots">${G.items.map(id=>{const I=IT(id);return `<div class="slot f ${EVO[id]?'evo':''} ${I.risk?'risk':''}" data-r="${I.r}">${tierI(id,'sl')}${I.ic}<small>${I.risk?'왜곡':I.r}</small></div>`}).join('')||'<div class="slot"></div>'}</div></div>
  ${(G.afters||[]).length?`<div class="card"><b class="en" style="color:var(--gold)">AFTER</b>${G.afters.map(a=>`<div style="margin-top:8px">${a.chain?`<small class="tg">사슬 · ${esc(a.chain)}</small>`:''}${a.lines.map(l=>l.who&&CH[l.who]?`<p style="margin:4px 0"><b style="color:${CH[l.who].col}">${CH[l.who].name}</b> 「${esc(fillT(l.t))}」</p>`:`<p style="margin:4px 0;color:var(--mut)">${esc(fillT(l.t))}</p>`).join('')}</div>`).join('')}</div>`:''}
@@ -1484,7 +1509,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='bsel')return benchToggle(+v);if(a==='synth')return synth();if(a==='leave'){benchLeave();ui.screen='map';return render()}
  if(a==='tip'){ui.tip=ui.tip===v?null:v;return render()}
  if(a==='tagi'){ui.tagi=ui.tagi===v?null:v;return render()}
- if(a==='tagmv'){const i=G.items.indexOf(ui.tip);if(i<0||G.battle)return;const [x]=G.items.splice(i,1);if(v==='in')G.items.splice(TAG_N-1,0,x);else G.items.push(x);log(`${IT(x).n}: 각인 칸${v==='in'?'으로 올렸다':'에서 뺐다'}`);runSave(true,null);return render()}
+ if(a==='tagmv'){const i=G.items.indexOf(ui.tip);if(i<0||G.battle)return;const [x]=G.items.splice(i,1);if(v==='in')G.items.splice(TAG_N-1,0,x);else G.items.push(x);log(`${IT(x).n}: 각인 칸${v==='in'?'으로 올렸다':'에서 뺐다'}`);achTag4();runSave(true,null);return render()}
  if(a==='log'){ui.log=!ui.log;return render()}
  if(!G.battle)return;
  if(a==='sel'){G.battle.sel=+v;return render()}
