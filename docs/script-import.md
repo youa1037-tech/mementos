@@ -11,7 +11,7 @@
 | chains | 6 |
 | days | 12 |
 | afters | 67 |
-| tut | 16 |
+| tut | 27 |
 | chem | 2 |
 | idle | 112 |
 | reaper | 30 |
