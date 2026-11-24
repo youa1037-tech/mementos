@@ -1,0 +1,513 @@
+{
+ "runs": [
+  {
+   "t0": 1795493862608,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 7,
+   "rounds": 4,
+   "clicks": 115,
+   "end": "clear",
+   "cleared": true,
+   "yen": 19508,
+   "ms": 2875,
+   "rooms": 15
+  },
+  {
+   "t0": 1795493865533,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 4,
+   "clicks": 162,
+   "end": "clear",
+   "cleared": true,
+   "yen": 19148,
+   "ms": 4050,
+   "rooms": 22
+  },
+  {
+   "t0": 1795493869640,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 11,
+   "rounds": 5,
+   "clicks": 150,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 9387,
+   "ms": 3742,
+   "rooms": 16
+  },
+  {
+   "t0": 1795493873558,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 8,
+   "rounds": 6,
+   "clicks": 208,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 9661,
+   "ms": 5200,
+   "rooms": 29
+  },
+  {
+   "t0": 1795493878808,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 0,
+   "battles": 5,
+   "rounds": 10,
+   "clicks": 124,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 2273,
+   "ms": 3100,
+   "rooms": 14
+  },
+  {
+   "t0": 1795493881958,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 11,
+   "rounds": 7,
+   "clicks": 210,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 13515,
+   "ms": 5250,
+   "rooms": 22
+  },
+  {
+   "t0": 1795493887257,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 6,
+   "rounds": 3,
+   "clicks": 146,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8565,
+   "ms": 3652,
+   "rooms": 28
+  },
+  {
+   "t0": 1795493890957,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 11,
+   "rounds": 3,
+   "clicks": 203,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 10640,
+   "ms": 5076,
+   "rooms": 29
+  },
+  {
+   "t0": 1795493896083,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 4,
+   "rounds": 5,
+   "clicks": 122,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 3353,
+   "ms": 3052,
+   "rooms": 22
+  },
+  {
+   "t0": 1795493899185,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 8,
+   "clicks": 182,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 9344,
+   "ms": 4548,
+   "rooms": 24
+  },
+  {
+   "t0": 1795493903783,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 8,
+   "rounds": 5,
+   "clicks": 130,
+   "end": "clear",
+   "cleared": true,
+   "yen": 20258,
+   "ms": 3250,
+   "rooms": 18
+  },
+  {
+   "t0": 1795493907082,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 8,
+   "rounds": 3,
+   "clicks": 138,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8319,
+   "ms": 3452,
+   "rooms": 18
+  },
+  {
+   "t0": 1795493910583,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 10,
+   "rounds": 6,
+   "clicks": 188,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8950,
+   "ms": 4701,
+   "rooms": 23
+  },
+  {
+   "t0": 1795493915333,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 6,
+   "rounds": 7,
+   "clicks": 139,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 5120,
+   "ms": 3475,
+   "rooms": 11
+  },
+  {
+   "t0": 1795493918858,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 6,
+   "clicks": 194,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8872,
+   "ms": 4850,
+   "rooms": 26
+  },
+  {
+   "t0": 1795493923758,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 7,
+   "clicks": 198,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 7356,
+   "ms": 4949,
+   "rooms": 21
+  },
+  {
+   "t0": 1795493928783,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 13,
+   "rounds": 6,
+   "clicks": 237,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 16444,
+   "ms": 5925,
+   "rooms": 29
+  },
+  {
+   "t0": 1795493934759,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 5,
+   "clicks": 170,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8218,
+   "ms": 4248,
+   "rooms": 19
+  },
+  {
+   "t0": 1795493939058,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 11,
+   "rounds": 8,
+   "clicks": 200,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 13400,
+   "ms": 5000,
+   "rooms": 17
+  },
+  {
+   "t0": 1795493944108,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 5,
+   "rounds": 2,
+   "clicks": 104,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 6158,
+   "ms": 2600,
+   "rooms": 23
+  },
+  {
+   "t0": 1795493946758,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 7,
+   "rounds": 6,
+   "clicks": 147,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 7098,
+   "ms": 3676,
+   "rooms": 23
+  },
+  {
+   "t0": 1795493950486,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 9,
+   "rounds": 5,
+   "clicks": 187,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 9309,
+   "ms": 4672,
+   "rooms": 18
+  },
+  {
+   "t0": 1795493955333,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 6,
+   "rounds": 3,
+   "clicks": 138,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 4651,
+   "ms": 3454,
+   "rooms": 22
+  },
+  {
+   "t0": 1795493958833,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 1,
+   "battles": 6,
+   "rounds": 3,
+   "clicks": 82,
+   "end": "clear",
+   "cleared": true,
+   "yen": 15021,
+   "ms": 2050,
+   "rooms": 16
+  },
+  {
+   "t0": 1795493960933,
+   "party": [
+    "ryuji",
+    "joker",
+    "mona"
+   ],
+   "maxFl": 2,
+   "battles": 10,
+   "rounds": 9,
+   "clicks": 165,
+   "end": "wipe",
+   "cleared": false,
+   "yen": 8066,
+   "ms": 4124,
+   "rooms": 14
+  }
+ ],
+ "errors": [],
+ "pageerrors": [],
+ "stuck": [],
+ "ovf": {},
+ "small": {
+  "title": [],
+  "hub:go": [
+   "SMALL. 10px \"스위칭 · 1~2열\"",
+   "I. 9px \"물리\"",
+   "I. 9px \"주원\"",
+   "SMALL. 10px \"스위칭 · 2~3열\"",
+   "…32"
+  ],
+  "map": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"1열\"",
+   "…16"
+  ],
+  "story": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"1열\"",
+   "…12"
+  ],
+  "battle": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SPAN.fr 9px \"1열\"",
+   "…18"
+  ],
+  "pick": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"2열\"",
+   "…19"
+  ],
+  "event": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"1열\"",
+   "…15"
+  ],
+  "floor": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"1열\"",
+   "…16"
+  ],
+  "bench": [
+   "SPAN.row 10px \"3열\"",
+   "SPAN.row 10px \"2열\"",
+   "SPAN.row 10px \"1열\"",
+   "SMALL. 10px \"1열\"",
+   "…16"
+  ],
+  "result": [
+   "SMALL. 9px \"발동\"",
+   "SMALL. 9px \"폭발\"",
+   "SMALL. 9px \"진화\"",
+   "SMALL. 9px \"발동\"",
+   "…6"
+  ],
+  "hub:rec": [],
+  "hub:care": [
+   "SMALL. 10px \"스트레스 99\"",
+   "SMALL. 10px \"스트레스 56\"",
+   "SMALL. 10px \"스트레스 89\"",
+   "SMALL. 10px \"스트레스 0\"",
+   "…10"
+  ]
+ },
+ "meta": {
+  "auto": 16,
+  "ssave": 3,
+  "care": 3,
+  "reroll": 1
+ }
+}

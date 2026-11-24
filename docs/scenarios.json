@@ -1,0 +1,72 @@
+[
+ {
+  "name": "지도에서 판이 자동 저장된다",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "새로고침 뒤 처음 화면에 CONTINUE",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "이어하기로 같은 상태(층·위치·위험도·템·HP·엔)",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "이어하기 뒤 지도 화면",
+  "ok": true,
+  "note": "map"
+ },
+ {
+  "name": "전투 중 새로고침해도 CONTINUE가 남는다",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "전투 중 새로고침 → 지도에서 다시",
+  "ok": true,
+  "note": "map"
+ },
+ {
+  "name": "기록 탭에 슬롯 저장 버튼",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "저장한 슬롯에 불러오기 버튼",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "불러오면 지갑이 저장 때로",
+  "ok": true,
+  "note": "¥12345"
+ },
+ {
+  "name": "불러온 기록이 새로고침 뒤에도 유지",
+  "ok": true,
+  "note": "¥12345"
+ },
+ {
+  "name": "위험도 최대에서 거두는 자 전투",
+  "ok": true,
+  "note": "reaper"
+ },
+ {
+  "name": "거두는 자 전투에 RETURN NOW",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "name": "RETURN NOW → 결과 화면",
+  "ok": true,
+  "note": "result:return"
+ },
+ {
+  "name": "페이지 에러 없음",
+  "ok": true,
+  "note": ""
+ }
+]
