@@ -7,6 +7,7 @@ index.html을 임시로 복사해 내부 함수를 window.__g로 노출한 뒤,
 헤드리스 크롬에서 전략 3가지로 자동 플레이하고 지표를 출력합니다.
 - greedy-first : 매 턴 가장 깊은 구역, 선택지는 항상 첫 번째 (아무 생각 없는 플레이)
 - greedy-best  : 매 턴 가장 깊은 구역, 선택지는 미리 정한 선호 순서
+- oracle       : 매 턴 가장 깊은 구역, 선택지마다 같은 상태에서 12번씩 미리 굴려 본 뒤 기대값(엔+보물가치+HP·분위기·위험도 환산)이 가장 큰 쪽 (기대값 기준선)
 - smart        : 매 턴 가장 깊은 구역, 선택지는 화면의 확률·손실·보너스를 읽고 기대값으로 (생각하는 플레이)
 - shallow      : 얕은 역(통로·승강장)만 돈다. HP 40 이하·전투불능·거두는 자면 귀환
 - cautious     : 위험도 7 이상이면 승강장으로 물러나 위험도를 낮추고, 누군가 HP 40 이하·전투불능이면 귀환
@@ -15,10 +16,12 @@ import json, os, statistics as st, sys, tempfile, collections
 from playwright.sync_api import sync_playwright
 
 DLV = int(os.environ.get('DEPTH', '0'))  # 도전 단계 (기본 0)
+STRATS = os.environ.get('STRATS', 'greedy-first,greedy-best,smart,oracle,reckless,cautious,shallow').split(',')  # 예: STRATS=greedy-first,smart
+STATES = os.environ.get('STATES', '기본,풀업').split(',')
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'index.html')
 N = int(sys.argv[2]) if len(sys.argv) > 2 else 300
 MARK = "render();\n}\n</script>"
-HOOK = ("window.__g={get run(){return run},get S(){return S},set S(v){S=v},step,move,choose,newRun,ZONES,canEnter,endRun,SCRIPT,"
+HOOK = ("window.__g={get run(){return run},get S(){return S},set S(v){S=v},step,move,choose,newRun,ZONES,canEnter,endRun,SCRIPT,resolveQuirk,"
         "get ui(){return ui}};\n" + MARK)
 
 JS = r"""
@@ -30,6 +33,7 @@ for(let k=0;k<a.n;k++){
  const ids=[...IDS].sort(()=>Math.random()-.5).slice(0,3);g.S.today=g.SCRIPT.days.length?g.SCRIPT.days[Math.floor(Math.random()*g.SCRIPT.days.length)].id:null;g.S.lastChains=[];
  g.newRun(ids);const r=g.run;r.manual=true;let guard=0,ch=0;const ev=[];
  while(r.phase!=='done'&&guard++<3000){
+  if(r.cmd){g.resolveQuirk('leave');continue}/* 지휘 창: 전략 비교가 사건 선택에만 걸리도록 모두 「그냥 둔다」 */
   if(r.phase==='choose'){
    const al=r.party.filter(m=>m.hp>0);
    if((a.strat==='cautious'||a.strat==='shallow')&&(al.length<3||Math.min(...al.map(m=>m.hp))<=40)){g.endRun('retreat');break}
@@ -40,6 +44,13 @@ for(let k=0;k<a.n;k++){
    g.move(to);continue}
   if(r.phase==='event'){ch++;const c=r.ev.choices;ev.push(r.ev.title);let i=c.findIndex(x=>!x.dis);
    if(a.strat!=='greedy-first')for(const p of PREF){const j=c.findIndex(x=>!x.dis&&p.test(x.label));if(j>=0){i=j;break}}
+   if(a.strat==='oracle'){/* 상태를 통째로 떠 두고 선택지마다 12번씩 굴려 본다. 클로저가 같은 객체를 가리키도록 제자리에 되돌린다 */
+    const keep=['q','ev','log','party'],own=o=>Object.fromEntries(Object.entries(o).filter(([k,v])=>!keep.includes(k)&&typeof v!=='function'));
+    const snap=JSON.stringify(own(r)),mems=r.party.slice(),ps=mems.map(m=>JSON.stringify(m)),ss=JSON.stringify(g.S),ln=r.log.length,qs=r.q.slice();
+    const put=(t,o)=>{for(const k of Object.keys(t))if(!keep.includes(k)&&!(k in o)&&typeof t[k]!=='function')delete t[k];Object.assign(t,o)};
+    const restore=()=>{put(r,JSON.parse(snap));mems.forEach((m,j)=>put(m,JSON.parse(ps[j])));r.party=mems.slice();g.S=Object.assign(g.S,JSON.parse(ss));r.log.length=ln;r.q=qs.slice()};
+    const val=()=>{const al=r.party.filter(m=>m.hp>0);return r.yen+r.tval+20*al.reduce((t,m)=>t+m.hp,0)-1500*(r.party.length-al.length)+12*r.mood-350*r.heat+150*r.tags.length};
+    let bs=-1e9;c.forEach((x,j)=>{if(x.dis)return;let t=0;for(let k=0;k<12;k++){restore();try{x.go()}catch(e){}t+=val()}if(t/12>bs){bs=t/12;i=j}});restore()}
    if(a.strat==='smart'){/* 화면에 보이는 확률·손실·보너스만 읽고 기대값으로 고른다 */
     const low=Math.min(...r.party.filter(m=>m.hp>0).map(m=>m.hp));let bs=-1e9;
     c.forEach((x,j)=>{if(x.dis)return;const s=x.sub||'',pm=s.match(/확률 약 (\d+)%/),p=pm?+pm[1]/100:1,lm=s.match(/-⁠?¥([\d,]+)/),loss=lm?+lm[1].replace(/,/g,''):0;
@@ -67,9 +78,11 @@ def main():
         b = p.chromium.launch(); pg = b.new_page()
         pg.route('**/fonts.*/**', lambda r: r.abort())
         pg.goto('file://' + tmp.name)
-        for label, state in [('기본', BASE), ('풀업', FULL)]:
-            for strat in ['greedy-first', 'greedy-best', 'smart', 'reckless', 'cautious', 'shallow']:
-                res = pg.evaluate(JS, {"n": N, "state": state, "strat": strat})
+        for label, state in [x for x in [('기본', BASE), ('풀업', FULL)] if x[0] in STATES]:
+            for strat in STRATS:
+                res = []
+                for k in range(0, N, 50):  # 한 번에 50판씩 (메모리 부족으로 탭이 죽지 않게)
+                    pg.reload(); res += pg.evaluate(JS, {"n": min(50, N - k), "state": state, "strat": strat})
                 inc = [x['inc'] for x in res]; evc = collections.Counter(e for x in res for e in x['ev'])
                 rows.append(dict(state=label, strat=strat, n=N, inc_mean=round(st.mean(inc)), inc_median=st.median(inc),
                                  wipe=round(sum(x['wipe'] for x in res) / N * 100, 1),
@@ -93,6 +106,9 @@ def main():
     hdr = ['state', 'strat', 'n', 'inc_mean', 'wipe', 'retreat', 'star5', 'warn', 'reaper', 'riskpay', 'team', 'mood', 'rels', 'chain_end', 'pairs', 'hidden', 'cuts']
     print('| ' + ' | '.join(hdr) + ' |'); print('|' + '---|' * len(hdr))
     for r in rows: print('| ' + ' | '.join(str(r[h]) for h in hdr) + ' |')
+    for lb in STATES:  # 선택의 무게: 첫 번째만 고르는 플레이가 기대값 플레이의 80% 이하여야 통과
+        f = next((r for r in rows if r['state'] == lb and r['strat'] == 'greedy-first'), None); m = next((r for r in rows if r['state'] == lb and r['strat'] == 'oracle'), None) or next((r for r in rows if r['state'] == lb and r['strat'] == 'smart'), None)
+        if f and m: print(f"[{lb}] greedy-first / {m['strat']} = {f['inc_mean']} / {m['inc_mean']} = {f['inc_mean'] / m['inc_mean'] * 100:.1f}% → {'통과' if f['inc_mean'] <= m['inc_mean'] * .8 else '미달 (80% 초과)'}")
 
 if __name__ == '__main__':
     main()

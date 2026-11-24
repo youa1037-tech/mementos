@@ -67,7 +67,7 @@ HL = {
     '활성 상태 태그': '.ptags, .tile .mt', 'RISK 표시': '#risktag', 'RISK': '#risktag', 'RETURN NOW': '[data-act="cashout"]',
     '보고서 카드': '.report', '후일담': '.after', '수익 정산': '.report dl', '르블랑': '[data-act="go:shop"]',
     '르블랑 가기': '[data-act="go:shop"]', '오늘의 메멘토스 배너': '.today', '캐릭터 선택 그리드': '.cards',
-    '사슬 배지': '.logbox', '도감': '[data-act="go:codex"]', '모나 버스 튜닝': '[data-act="bus"]',
+    '사슬 배지': '.logbox', '지휘 창': '.cmdwin', '지휘 버튼': '.cmdwin .cbtns', '도감': '[data-act="go:codex"]', '모나 버스 튜닝': '[data-act="bus"]',
 }
 GO = {'탭': 'tap', '선택': 'choice', '버튼 누름': 'act', '구역 클릭': 'act', '선택지 클릭': 'act',
       '선택 후 행동': 'choice', '선택 후 버튼': 'choice', '탭 (T-8 직행)': 'tap'}
