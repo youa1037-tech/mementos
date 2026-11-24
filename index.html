@@ -589,7 +589,14 @@ const ITEMS={
  satanael:{n:'사타나엘의 탄환',ic:'🔥',r:'폭발',ax:'공용',rift:1,d:'모든 공격이 내성·방어·경감을 무시하고 무조건 2연타 (2개: 3연타)'},
  blank:{n:'벨벳 룸의 백지수표',ic:'🧾',r:'폭발',ax:'공용',rift:1,d:'출장소의 템·휴식·진열 바꾸기가 전부 ¥0 + 섀도 전투 보상을 한 번 더 고른다'},
  glassshoe:{n:'유리의 구두',ic:'👠',r:'폭발',ax:'공용',rift:1,d:'약점이 아니어도 매 턴 각자의 첫 공격 스킬이 1 MORE (2개: 첫 2번)'},
- fate:{n:'운명의 모래시계',ic:'⌛',r:'폭발',ax:'공용',rift:1,d:'전투 시작 시 관문 포함 적 전체의 현재 HP 50% 삭감 (2개: 60%)'}};
+ fate:{n:'운명의 모래시계',ic:'⌛',r:'폭발',ax:'공용',rift:1,d:'전투 시작 시 관문 포함 적 전체의 현재 HP 50% 삭감 (2개: 60%)'},
+ /* 각인 S급: 같은 각인 4세트를 맞춘 채 출장소에서 합성하면 그 각인의 S급이 합성 후보 첫 칸에 뜬다 (거울 던전식 키워드 합성) */
+ bloodcrown:{n:'피의 대관식',ic:'👑',r:'폭발',ax:'왜곡',rift:1,tagS:'자해',d:'잃은 HP 1%당 그 사람 피해 +1.5%'},
+ grail:{n:'불멸의 성배',ic:'🏆',r:'폭발',ax:'공용',rift:1,tagS:'재생',d:'매 턴 시작 전원 실드 +12 · [재생] 4세트 고정 피해 ×2'},
+ drum:{n:'무한 회전 탄창',ic:'🥁',r:'폭발',ax:'공용',rift:1,tagS:'연타',d:'모든 공격 스킬이 한 번 더 때린다'},
+ stone:{n:'현자의 돌',ic:'💠',r:'폭발',ax:'약점',rift:1,tagS:'마력',d:'스킬 SP 소모 절반 · 약점을 찌르면 SP +5'},
+ engine:{n:'황금 기관차',ic:'🚂',r:'폭발',ax:'공용',rift:1,tagS:'탐욕',d:'가진 엔 ¥1,000당 파티 공격력 +10% · 전투 엔 +50%'}};
+const TAG_S={자해:'bloodcrown',재생:'grail',연타:'drum',마력:'stone',탐욕:'engine'};
 const up=(id,a,b)=>cnt(id)>=2||(cnt(id)>=1&&(G.plus||[]).includes(id))?b:a;/* 같은 유물 2개 이상 또는 출장소 +1 강화 */
 /* 출장소: 템 하나를 고르면 판매 · +1 강화, 둘을 고르면 합성 */
 const SELL_P={B:100,A:250,S:500},PLUS_P={B:300,A:500,S:800},canPlus=id=>/2개/.test((IT(id)||{}).d||'')&&!(G.plus||[]).includes(id)&&cnt(id)<2;/* 같은 유물 2개 이상 = +1 강화 */
@@ -615,7 +622,7 @@ const TAGS={자해:{c:'#ff5a5a',s2:'HP 60% 이하인 사람 공격력 +35%',s4:'
  cell:'마력 연타',oclock:'마력 자해',infbat:'마력 연타',tdice:'연타 탐욕',trigger:'연타 마력',revolver:'연타 탐욕',gate:'탐욕 자해',oneway:'자해 재생',
  contract:'자해 마력',wallet:'탐욕 연타',card:'탐욕 자해',checks:'탐욕 재생',spshield:'재생 자해',censer:'마력 탐욕',hourglass:'재생 마력',rbaton:'연타 재생',flag:'재생 연타',
  bloodoath:'자해 연타',regen:'재생 마력',steelheart:'재생 자해',perfect:'재생 연타',transfuse:'재생 탐욕',phoenix:'자해 재생',glasscannon:'자해 마력',coil:'자해 마력',fang:'연타 재생',miser:'탐욕 재생',
- satanael:'연타 자해',blank:'탐욕 재생',glassshoe:'마력 연타',fate:'자해 마력',
+ satanael:'연타 자해',blank:'탐욕 재생',glassshoe:'마력 연타',fate:'자해 마력',bloodcrown:'자해 재생',grail:'재생 마력',drum:'연타 탐욕',stone:'마력 자해',engine:'탐욕 연타',
  sboots:'연타 탐욕',rails:'연타 마력',gaunt:'마력 연타',navi:'마력 탐욕',gold:'연타 탐욕',choker:'자해 재생'};
  for(const [k,v] of Object.entries(T)){const I=ITEMS[k]||EVO[k];if(I)I.tg=v.split(' ')}
  /* 표에 등급이 적힌 템은 그 등급 (나머지는 역할 기준) */
@@ -883,7 +890,7 @@ const alive=()=>G.party.filter(m=>m.hp>0);
 const hpR=m=>m.hp/m.max;
 function memMul(m){const B=G.battle,base=cnt('badge')?Math.min(...alive().map(hpR)):hpR(m);
  let k=1+.12*Math.floor((1-base)*10)*cnt('thorn');if(hpR(m)<=.4)k*=Math.pow(1.8,cnt('valve'));
- k*=1+.6*cnt('fuse');k*=1+.35*riskN()*cnt('contra');if(T2('자해')&&hpR(m)<=.6)k*=1.35;if(m.row===1)k*=Math.pow(1.5,cnt('cuffs'))*(cnt('oneway')?up('oneway',1.8,2.2):1);if(B)k*=1+(B.rev||0);return k}
+ k*=1+.6*cnt('fuse');k*=1+.35*riskN()*cnt('contra');if(T2('자해')&&hpR(m)<=.6)k*=1.35;if(cnt('bloodcrown'))k*=1+1.5*(1-hpR(m));if(m.row===1)k*=Math.pow(1.5,cnt('cuffs'))*(cnt('oneway')?up('oneway',1.8,2.2):1);if(B)k*=1+(B.rev||0);return k}
 const maskOn=m=>cnt('mask')&&hpR(m)<=.3;
 const byRow=r=>G.party.find(m=>m.row===r);
 /* ============ 수상한 역 · 금고 차량 (기벽 + 지휘 개입, 조합 사건) ============ */
@@ -944,7 +951,9 @@ function benchSell(){const i=ui.bsel[0],id=G.items[i];if(ui.bsel.length!==1||!id
 function benchPlus(){const i=ui.bsel[0],id=G.items[i];if(ui.bsel.length!==1||!id||!canPlus(id))return;const p=Math.round(PLUS_P[tier(id)]*dsc()/10)*10;if(G.yen<p)return;G.yen-=p;spendShop(p);(G.plus||(G.plus=[])).push(id);ui.bsel=[];log(`출장소: ${IT(id).n} +1 강화 (-¥${p})`);glow(id);flash('+1','g');render()}
 function benchToggle(i){if(!G.items[i])return;const s=ui.bsel;const j=s.indexOf(i);if(j>=0)s.splice(j,1);else if(s.length<2)s.push(i);render()}
 function synth(){const s=ui.bsel;if(s.length!==2||G.benchUsed)return;const ax=s.map(i=>IT(G.items[i]).ax);log(`출장소 합성: ${s.map(i=>IT(G.items[i]).n).join(' + ')} → ?`);
- G.items=G.items.filter((_,i)=>!s.includes(i));glassSync();G.benchUsed=true;ui.bsel=[];G.stats.evo++;G.fuseN=(G.fuseN||0)+1;if(G.fuseN>=2)achGet('regular');offer('벨벳 룸에서 새로 짜 맞춘 것',1,'evo',ax)}
+ const sx=Object.keys(TAG_S).filter(t=>T4(t)&&!G.items.includes(TAG_S[t])).map(t=>TAG_S[t]);
+ G.items=G.items.filter((_,i)=>!s.includes(i));glassSync();G.benchUsed=true;ui.bsel=[];G.stats.evo++;G.fuseN=(G.fuseN||0)+1;if(G.fuseN>=2)achGet('regular');offer('벨벳 룸에서 새로 짜 맞춘 것',1,'evo',ax);
+ if(sx.length&&G.pick){sx.slice(0,2).forEach((id,i)=>{G.pick.ch[i]=id;G.pick.syn[i]=true});G.pick.tagS=sx.length;G.stats.tagS=(G.stats.tagS||0)+1;log(`각인 합성식: ${sx.map(id=>`[${ITEMS[id].tagS}] ${ITEMS[id].n}`).join(' · ')}이 후보에 올랐다!`);render();setTimeout(()=>{if(G.pick){flash('S RANK','g');try{fxMid('coins')}catch(e){}}},420)}}
 /* ============ 템 3지선다 (시너지 가중 드롭: 가진 템과 맞물리는 템 ×2.5) ============ */
 /* 등급 B/A/S: 기존 역할 그대로 — 발동기 B · 증폭기 A · 폭발기·진화 S. 보상 3지선다에서 가끔 한 칸이 한 등급 위로 뜬다(랭크업) */
 const TIER_OF={발동:'B',증폭:'A',폭발:'S',진화:'S'},tier=id=>(IT(id)&&IT(id).g)||(EVO[id]?'S':TIER_OF[IT(id).r]||'B'),RANKUP=.12;
@@ -994,6 +1003,7 @@ function newRound(enemyFirst){const B=G.battle;B.round++;B.acted=new Set();B.mor
  if(cnt('bloodoath')){for(const m of alive())m.hp=Math.max(1,m.hp-5);B.atk+=up('bloodoath',.15,.22);log(`피의 서약: 전원 HP -5 · 공격력 +${Math.round(up('bloodoath',.15,.22)*100)}% 누적`);glow('bloodoath')}
  if(cnt('regen')){for(const m of alive())healU(m,up('regen',5,8));glow('regen')}
  if(cnt('steelheart')){for(const m of alive())shieldU(m,Math.round((m.max-m.hp)*up('steelheart',1,1.5)));glow('steelheart')}
+ if(cnt('grail')){for(const m of alive())m.shield=(m.shield||0)+12;glow('grail')}
  if(cnt('oneway')){const f1=byRow(1);if(f1&&f1.hp>0){shieldU(f1,15);glow('oneway')}}
  if(cnt('brink')&&!B.brinkUsed&&alive().some(m=>hpR(m)<=up('brink',.25,.4))){B.brinkT=1;log('벼랑 끝 예고장: 이번 턴 각성 스킬 SP 0');glow('brink')}else B.brinkT=0;
  if(B.round>1&&cnt('fuse')){for(const m of alive())m.hp=Math.max(1,m.hp-6*cnt('fuse'));log('도화선: 타들어 간다 — 전원 HP -6');glow('fuse')}
@@ -1003,9 +1013,9 @@ function newRound(enemyFirst){const B=G.battle;B.round++;B.acted=new Set();B.mor
  if(enemyFirst){render();return enemyPhase()}render();autoGo()}
 function actor(){const B=G.battle;if(!B)return null;if(B.extra)return G.party.find(m=>m.id===B.extra.id);return [...alive()].sort((a,b)=>a.row-b.row).find(m=>!B.acted.has(m.id))}
 function target(){const fa=foeAlive();if(!fa.length)return null;const B=G.battle;const tz=fa.find(x=>x.taunt);if(tz){B.sel=B.foes.indexOf(tz);return tz}let f=B.foes[B.sel];if(!f||f.hp<=0){f=fa[0];B.sel=B.foes.indexOf(f)}return f}
-const ocOn=s=>cnt('oclock')&&!s.type&&!s.all&&s.el!=='물리',spOf=(m,s)=>{const B=G.battle;if(s.awk&&B&&B.brinkT&&!B.brinkUsed)return 0;const c=ocOn(s)?Math.ceil(s.sp*up('oclock',2,1.5)):s.sp;return c>0&&T2('마력')?Math.max(1,Math.ceil(c*.75)):c};
+const ocOn=s=>cnt('oclock')&&!s.type&&!s.all&&s.el!=='물리',spOf=(m,s)=>{const B=G.battle;if(s.awk&&B&&B.brinkT&&!B.brinkUsed)return 0;const c=ocOn(s)?Math.ceil(s.sp*up('oclock',2,1.5)):s.sp;const c2=c>0&&T2('마력')?Math.max(1,Math.ceil(c*.75)):c;return c2>0&&cnt('stone')?Math.max(1,Math.ceil(c2*.5)):c2};
 function canUse(m,s){return s.rows.includes(m.row)&&m.sp>=spOf(m,s)&&(!s.type||!['sleep','hack','debuff'].includes(s.type)||!!target())&&reach(s,target())}
-const powMul=bat=>{const B=G.battle,bx=bat&&B.lastBat?BOND.bat[bondOf(B.lastBat.from,B.lastBat.id).lv]+(achDone('trio')?.05:0):0;return (DF().patk||1)*(1+.3*B.relay+B.atk+(B.atkT||0)+up('checks',.04,.06)*(cnt('checks')?G.chk||0:0)+up('wallet',.08,.12)*(cnt('wallet')?Math.floor(G.yen/1000):0))*(1+B.vuln)*(bat?1.25+bx:1)*(B.round===1&&cnt('navi')?1.5:1)};
+const powMul=bat=>{const B=G.battle,bx=bat&&B.lastBat?BOND.bat[bondOf(B.lastBat.from,B.lastBat.id).lv]+(achDone('trio')?.05:0):0;return (DF().patk||1)*(1+.3*B.relay+B.atk+(B.atkT||0)+up('checks',.04,.06)*(cnt('checks')?G.chk||0:0)+up('wallet',.08,.12)*(cnt('wallet')?Math.floor(G.yen/1000):0)+(cnt('engine')?.1*Math.floor(G.yen/1000):0))*(1+B.vuln)*(bat?1.25+bx:1)*(B.round===1&&cnt('navi')?1.5:1)};
 async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;ui.autoHold=0;const s=m.c.sk[i];if(!canUse(m,s))return;ui.busy=true;const spPaid=spOf(m,s);if(s.awk&&B.brinkT&&!B.brinkUsed){B.brinkUsed=1;log('벼랑 끝 예고장: 각성 스킬 SP 0!');glow('brink')}m.sp-=spPaid;B.spT=(B.spT||0)+spPaid;if(B.spT>=50)achGet('spover');
  if(cnt('cell')){B.mag=(B.mag||0)+up('cell',.12,.18);glow('cell')}
  if(s.sp)for(let k=0;k<cnt('battery');k++)if(chance(.3)){m.sp=Math.min(m.msp,m.sp+s.sp);log('배터리 팩: SP 환급');glow('battery');break}
@@ -1034,7 +1044,7 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;ui.a
  const rb=bat&&cnt('rbaton'),cd=cnt('card')&&G.yen>=100?(G.yen-=100,glow('card'),up('card',1.6,2)):1,all=s.all||ocOn(s);if(ocOn(s))glow('oclock');
  const pw=s.pow*powMul(bat)*memMul(m)*(B.moreHit&&cnt('radio')?1+.6*cnt('radio'):1)*(s.el!=='물리'?1+(B.mag||0):1)*cd*(rb&&cnt('rbaton')>=2?1.2:1)*(cnt('perfect')&&hpR(m)>=up('perfect',1,.9)?2:1)*(cnt('glasscannon')?up('glasscannon',1.8,2.2):1);m.crit=s.crit||0;let weak=false;B.moreHit=false;
  if(cnt('perfect')&&hpR(m)>=up('perfect',1,.9))glow('perfect');if(s.sp&&cnt('coil')){m.hp=Math.max(1,m.hp-up('coil',4,2));m.crit=1;glow('coil')}
- let reps=1+(s.el==='물리'&&cnt('knuckle')&&hpR(m)<=up('knuckle',.5,.7)?1:0)+(rb?1:0)+(cnt('satanael')?up('satanael',1,2):0);if(cnt('satanael'))glow('satanael');if(reps>1)glow(rb?'rbaton':'knuckle');
+ let reps=1+(s.el==='물리'&&cnt('knuckle')&&hpR(m)<=up('knuckle',.5,.7)?1:0)+(rb?1:0)+(cnt('satanael')?up('satanael',1,2):0)+(cnt('drum')?1:0);if(cnt('satanael'))glow('satanael');if(reps>1)glow(rb?'rbaton':'knuckle');
  const once=(k=1)=>{let w=false;if(all){for(const x of foeAlive())if(hit(m,x,pw*k,s.el,s.n))w=true}
  else{const t=f&&f.hp>0?f:target();if(t&&t.hp>0){w=hit(m,t,pw*k,s.el,s.n);if(t.hp>0){if(s.dot){t.dot={v:s.dot,t:2};}if(s.stun&&!t.immune&&chance(s.stun)){t.stun=1;log(`${t.n} 기절!`)}if(s.push&&t===f){const a=B.foes,i=a.indexOf(t),j=a.findIndex((x,k)=>k>i&&x.hp>0);if(j>0){a[i]=a[j];a[j]=t;B.sel=j;log(`${jo(t.n,"을","를")} 뒤로 밀쳤다!`)}}}}}return w};
  for(let r=0;r<reps&&foeAlive().length;r++){if(r)await sleep(170);if(once(reps>1&&r===reps-1&&T2('연타')?1.5:1))weak=true}/* 연타 2세트: 마지막 타 +50% */
@@ -1066,6 +1076,7 @@ function hit(m,f,pow,el,sn){const B=G.battle,wasDown=f.down,we=effWeak(f);
  if(w&&cnt('glove')){const i=B.foes.indexOf(f),nb=[B.foes[i-1],B.foes[i+1]].filter(x=>x&&x.hp>0),t=cnt('glove')*mul();for(let k=0;k<t;k++)for(const x of nb){const sd=Math.round(d*.5);x.hp=Math.max(0,x.hp-sd);pop('f'+B.foes.indexOf(x),String(sd),'w')}if(nb.length){log('전도성 장갑: 옆 적에게 번졌다');glow('glove')}}
  if(w&&cnt('gaunt')&&!B.unify){B.unify=el;log(`과부하 건틀릿: 이번 턴 모든 적의 약점이 ${el}!`);glow('gaunt')}
  if(w)G.stats.weak++;
+ if(w&&!cr&&cnt('stone')&&m.hp>0){m.sp=Math.min(m.msp,m.sp+5);glow('stone')}
  if(cr){B.critN=(B.critN||0)+1;const n=cnt('tdice')?up('tdice',1,2)*mul():0;for(let k=0;k<n;k++){const fa=foeAlive();if(!fa.length)break;const x=pick(fa),xd=Math.round(d*.6);x.hp=Math.max(0,x.hp-xd);pop('f'+B.foes.indexOf(x),String(xd),'');fxFoe(x,'spark')}if(n)glow('tdice')}
  if(f.hp<=0&&cnt('vampmask')&&m.hp>0){const v=Math.round(m.max*up('vampmask',.2,.3)),gain=Math.min(v,m.max-m.hp);m.hp+=gain;if(v>gain)m.over=(m.over||0)+v-gain;pop(m.id,'+'+gain,'h');glow('vampmask')}
  if(w&&f.boss==='lost'&&B.sealed.length){B.sealed=[];B.sealT={};log('약점을 찔리자 보관함이 열렸다! 봉인 해제')}
@@ -1167,7 +1178,7 @@ async function foeAct(f,k){const B=G.battle,al=alive(),i=B.foes.indexOf(f);act('
   case 'megido':f.charge=0;flash('MEGIDOLAON');fxPlay('megido','.side.pt',{foot:true});log('메기도라온!');for(const m of al)await strike(f,m,2.2,'메기도라온');return;
   default:return strike(f,pickT(),1)}}
 async function enemyPhase(){const B=G.battle;ui.busy=true;
- if(T4('재생')){const sh=alive().reduce((t,m)=>t+(m.shield||0),0);if(sh>0){for(const f of foeAlive()){f.hp=Math.max(0,f.hp-sh);pop('f'+B.foes.indexOf(f),String(sh),'w')}log(`각인 [재생] 4세트: 남은 실드 ${sh}만큼 적 전체 고정 피해`);render();await sleep(300);if(!foeAlive().length){ui.busy=false;checkWin();return}}}
+ if(T4('재생')){const sh=alive().reduce((t,m)=>t+(m.shield||0),0)*(cnt('grail')?2:1);if(sh>0){for(const f of foeAlive()){f.hp=Math.max(0,f.hp-sh);pop('f'+B.foes.indexOf(f),String(sh),'w')}log(`각인 [재생] 4세트: 남은 실드 ${sh}만큼 적 전체 고정 피해`);render();await sleep(300);if(!foeAlive().length){ui.busy=false;checkWin();return}}}
  if(cnt('flag')&&B.acted.size>=3){const r=up('flag',.15,.25);for(const m of alive()){m.hp=Math.min(m.max,m.hp+Math.round(m.max*r));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*r))}B.flagNext=up('flag',.4,.6);log(`괴도단의 깃발: 셋 모두 행동 — 전원 HP·SP ${r*100}% 회복!`);glow('flag')}
  if(cnt('hourglass')){const sh=alive().reduce((t,m)=>t+(m.shield||0),0);if(sh>0){for(const m of G.party)m.shield=0;const d=Math.round(sh*up('hourglass',2,3));for(const f of foeAlive()){f.hp=Math.max(0,f.hp-d);pop('f'+B.foes.indexOf(f),String(d),'w');fxFoe(f,'crit',{stop:.4})}log(`역전의 모래시계: 실드 ${sh}을 터뜨려 적 전체 ${d}!`);glow('hourglass');render();await sleep(400);if(!foeAlive().length){ui.busy=false;checkWin();return}}}
  if(B.foes.some(f=>f.hp>0&&f.key==='swarm')&&B.round>0){for(const m of alive())m.sp=Math.max(0,m.sp-3)}/* 섀도 무리: 방치하면 매 턴 SP -3 */
@@ -1191,7 +1202,7 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
  const fy=f=>f.fled?0:yk(f.tier==='e'?R(600,950):f.tier==='n'?R(350,420):0);
  const bossY={ticket:yk(2200),lost:yk(3500),final:yk(6000)},bossK=1+.5*DEEP(),cm=1+.6*Math.min(1,cnt('crack'));/* 정기권은 겹쳐도 한 번만 */
  if(B.kind==='boss')G.stats.gates=(G.stats.gates||0)+1;
- const y=Math.round((T2('탐욕')?1.3:1)*(B.kind==='boss'?Math.round((bossY[B.foes[0].boss]||2200)*bossK):B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
+ const y=Math.round((T2('탐욕')?1.3:1)*(cnt('engine')?1.5:1)*(B.kind==='boss'?Math.round((bossY[B.foes[0].boss]||2200)*bossK):B.kind==='reaper'?yk(6000):B.foes.reduce((t,f)=>t+fy(f),0)*cm)*(B.kind==='normal'||B.kind==='ambush'?(DF().byen||1)*(cnt('gate')?up('gate',2,2.5):1):1));G.yen+=y;log(`승리! +¥${y}${cm>1&&B.kind!=='boss'?' (깨진 정기권)':''}`);
  setTimeout(()=>{const m=pick(alive());if(m)say(m.id,'win')},50);for(const m of alive())act(m.id,'hop',1000);
  G.battle=null;runSave(true,null);/* 이긴 뒤 새로고침하면 보상 고르기만 건너뜀 (전투를 다시 하지 않음) */
  if(B.kind==='boss'){(G.bossLog||(G.bossLog=[])).push({fl:G.fl+1,r:B.round,hp:Math.round(G.party.reduce((t,m)=>t+Math.max(0,m.hp)/m.max,0)/3*100),ko:G.party.filter(m=>m.hp<=0).length});{const al=G.party.filter(m=>m.hp>0);if(G.fl===0)achGet('first');if(G.fl===1)achGet('lostfound');if(G.fl===2){achGet('deepest');achGet('reaper3')}
@@ -1592,7 +1603,7 @@ function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  return `<div class="dlg"><span class="who">VELVET ROOM</span><p>"어서 오시게, 손님." · <b>¥${G.yen}</b></p></div>
  <div class="pick">${S_.ch.map((id,i)=>{const I=IT(id),p=shopPrice(id),sold=S_.sold.includes(i);return `<button class="pk ${I.risk?'risk':''}" data-a="buy:${i}" ${sold||G.yen<p?'disabled':''}><span class="ic">${I.ic}</span><span style="flex:1"><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${cnt(id)?`<span class="tg">×${cnt(id)+1}</span>`:''}<small>${I.d}${I.risk?` · <b class="rk">대가: ${I.risk}</b>`:''}</small></span><b class="price">${sold?'SOLD':'¥'+p}</b></button>`}).join('')}</div>
  <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
- <div class="dlg"><span class="who">WORKBENCH</span><p>위 템 칸에서 <b>1개</b>를 고르면 판매 · +1 강화, <b>2개</b>를 고르면 진화 템 합성${G.benchUsed?' (합성은 이번 출장소에서 완료)':''}</p>${s.length===1?(()=>{const id=G.items[s[0]],T=tier(id),sp=SELL_P[T]||100,pp=Math.round(PLUS_P[T]*dsc()/10)*10;return `<p class="tip">${IT(id).ic} <b>${IT(id).n}</b> ${T}등급${(G.plus||[]).includes(id)||cnt(id)>=2?' · 이미 +1':''}</p><div class="row2"><button class="ab" data-a="bsell"><b>판매</b><small>+¥${sp}</small></button><button class="ab" data-a="bplus" ${canPlus(id)&&G.yen>=pp?'':'disabled'}><b>+1 강화</b><small>${canPlus(id)?`¥${pp} · 2개 가진 효과`:/2개/.test(IT(id).d)?'이미 강화됨':'강화 효과 없는 템'}</small></button></div>`})():''}${!G.benchUsed&&s.length===2?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
+ <div class="dlg"><span class="who">WORKBENCH</span><p>위 템 칸에서 <b>1개</b>를 고르면 판매 · +1 강화, <b>2개</b>를 고르면 진화 템 합성${G.benchUsed?' (합성은 이번 출장소에서 완료)':''}</p>${(()=>{const L=Object.keys(TAG_S).filter(t=>T4(t)&&!G.items.includes(TAG_S[t]));return L.length&&!G.benchUsed?`<p class="tip tags">${L.map(t=>`${tagChip(t)} 4세트 → 합성하면 <b>${ITEMS[TAG_S[t]].n}</b>(S)이 후보에`).join('<br>')}</p>`:''})()}${s.length===1?(()=>{const id=G.items[s[0]],T=tier(id),sp=SELL_P[T]||100,pp=Math.round(PLUS_P[T]*dsc()/10)*10;return `<p class="tip">${IT(id).ic} <b>${IT(id).n}</b> ${T}등급${(G.plus||[]).includes(id)||cnt(id)>=2?' · 이미 +1':''}</p><div class="row2"><button class="ab" data-a="bsell"><b>판매</b><small>+¥${sp}</small></button><button class="ab" data-a="bplus" ${canPlus(id)&&G.yen>=pp?'':'disabled'}><b>+1 강화</b><small>${canPlus(id)?`¥${pp} · 2개 가진 효과`:/2개/.test(IT(id).d)?'이미 강화됨':'강화 효과 없는 템'}</small></button></div>`})():''}${!G.benchUsed&&s.length===2?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
 function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% · 보상 <b>+¥${QUESTS[n-1].y.toLocaleString()}</b> (르블랑 지갑으로)</p><p class="tip">${esc(questGuide().t)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · <b>최대 HP +10% · 받는 피해 -5%</b>(누적 최대 -40%) · 경계도 -${riskDrop()} (지금 ${G.risk} → ${Math.max(0,G.risk-riskDrop())}, 다음 층으로 이어짐) · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
  ${n>=3?`<p class="tip">∞ <b>무한 모드</b> — 심층은 한 층마다 적이 세지고, 관문마다 <b>심층 보너스</b>(상한과 따로)가 쌓입니다. 전멸하면 심층 보너스는 사라집니다.${G.deepBonus?` 지금 <b>+¥${G.deepBonus}</b>`:''} · 최고 기록 B${Math.max(SV.deep||0,n)}</p>`:''}<div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">${n>=3?'ALL CLEAR':'RETURN'}</button>${ok?`<button class="go" data-a="down">${n>=3?'∞ ENDLESS ↓':'GO DEEPER ↓'}</button>`:''}</div>`}
