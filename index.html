@@ -644,6 +644,37 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .shot small{position:absolute;top:-11px;left:10px;background:#141012;color:#fff;font:400 13px var(--en);letter-spacing:.08em;padding:2px 8px}
 .shot figcaption{font:400 clamp(19px,4.6vw,23px)/1.3 'Jua',sans-serif;color:#141012}
 .report.anim .shot{animation:slash .5s 1.1s both}
+.mtop{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:3;display:flex;gap:6px}.mtop .msnd{position:static}
+.msave{min-height:44px;padding:4px 10px;background:var(--red);color:#fff;font:400 13px var(--en);letter-spacing:.06em;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
+.hhr{display:flex;align-items:center;gap:10px}.hsv{min-height:36px;padding:2px 10px;background:#141012;color:var(--ink);border:1px solid var(--line);font:400 13px var(--en);letter-spacing:.06em}
+/* ===== 세이브 · 로드: 붉은 사선 무대 위에 비스듬한 기록 띠 (오리지널 구성) ===== */
+.sv{position:relative;min-height:100svh;padding:calc(14px + env(safe-area-inset-top)) 14px calc(84px + env(safe-area-inset-bottom));overflow:hidden;box-sizing:border-box}
+.svbg{position:fixed;inset:0;z-index:-1;background:#0f0b0c;overflow:hidden}
+.svbg::before{content:'';position:absolute;left:-20%;top:-10%;width:75%;height:130%;background:var(--red);transform:skewX(-14deg)}
+.svbg::after{content:'';position:absolute;left:-30%;top:0;width:58%;height:100%;background:repeating-linear-gradient(-14deg,transparent 0 18px,rgba(0,0,0,.18) 18px 20px);transform:skewX(-14deg)}
+.svh{position:relative;max-width:640px;margin:0 auto}
+.svh h2{margin:0;font-family:var(--disp);font-size:clamp(46px,14vw,80px);line-height:.95;transform:rotate(-6deg);transform-origin:left;text-shadow:4px 4px 0 #000}
+.svtab{position:absolute;right:0;top:6px;display:flex;gap:4px}.svtab button{min-height:40px;padding:2px 12px;background:#000;color:var(--ink);font:400 15px var(--en);letter-spacing:.06em;transform:skewX(-10deg)}
+.svtab button[aria-selected="true"]{background:var(--ink);color:#000}
+.svq{margin:10px 0 0 4px;font-size:14px;color:#fff;text-shadow:1px 1px 0 #000}
+.svl{list-style:none;margin:14px auto 0;padding:0;max-width:640px;display:flex;flex-direction:column;gap:8px}
+.svs{position:relative;transform:rotate(calc(-1.6deg + (var(--i) - 3) * .5deg)) translateX(calc((var(--i) - 1) * 6px));transition:transform .18s var(--snap)}
+.svb{display:grid;grid-template-columns:52px 1fr auto;grid-template-areas:'n d y' 'n m p';column-gap:10px;row-gap:2px;align-items:center;width:100%;min-height:62px;padding:8px 14px 8px 10px;text-align:left;background:var(--ink);color:#141012;border:3px solid #000;clip-path:polygon(0 0,100% 6%,98% 100%,1.5% 94%);box-shadow:6px 6px 0 #000}
+.svn{grid-area:n;font:400 18px/1 var(--en);transform:rotate(-8deg);color:#141012}
+.svd{grid-area:d;display:flex;align-items:baseline;gap:6px;white-space:nowrap}.svd b{font:400 26px/1 var(--disp)}.svd i{font:400 12px var(--en);font-style:normal;background:#141012;color:var(--ink);padding:0 4px}.svd small{font:400 12px var(--en);letter-spacing:.05em;color:#5a4a46}
+.svm{grid-area:m;font:400 13px var(--en);letter-spacing:.05em;color:#5a4a46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svp{grid-area:p;display:flex;gap:4px;justify-self:end}.svp em{font:400 11px var(--en);font-style:normal;color:#fff;background:var(--c);padding:0 4px;letter-spacing:.04em}
+.svy{grid-area:y;justify-self:end;text-align:right;font:400 18px/1 var(--en)}.svy small{display:block;font-size:11px;color:#5a4a46;letter-spacing:.04em;margin-top:2px}
+.svs.empty .svb{background:#2a2023;color:var(--mut)}.svs.empty .svn,.svs.empty .svd{color:var(--mut)}.svs.empty .svd{font:400 22px var(--en);letter-spacing:.2em}
+.svs.on{transform:rotate(-3deg) translateX(-4px) scale(1.04);z-index:2}
+.svs.on .svb{background:var(--red);color:#fff;min-height:84px}.svs.on .svn,.svs.on .svm,.svs.on .svd small,.svs.on .svy small{color:#fff}.svs.on .svd b{font-size:34px}.svs.on .svd i{background:#fff;color:var(--red)}
+.svx{display:flex;gap:8px;justify-content:flex-end;margin:6px 6px 0}
+.svgo{min-height:48px;padding:4px 16px;background:#000;color:#fff;font-family:var(--disp);font-size:20px;transform:skewX(-10deg);box-shadow:4px 4px 0 var(--red)}
+.svdel{min-height:48px;padding:4px 12px;background:transparent;color:var(--ink);border:1px solid var(--line);font:400 13px var(--en);letter-spacing:.05em}
+.svf{display:flex;gap:16px;justify-content:center;margin:18px 0 0}.svf .lnk{color:var(--ink)}
+.svk{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000 40%)}
+.svk button{min-height:44px;display:flex;align-items:center;gap:8px;padding:4px 12px;color:#fff;font:400 16px var(--en);letter-spacing:.06em}.svk span{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 4px;border-radius:13px;background:#fff;color:#000;font-size:11px}
+@media(prefers-reduced-motion:reduce){.svs{transition:none}}
 .msnd{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:3;min-height:36px;padding:4px 10px;background:#141012;color:var(--ink);font:400 13px var(--en);letter-spacing:.06em}
 .ctl .snd{min-width:44px}
 .mmenu.m5{--off:11px;--ang:7.6deg;--len:83px}
@@ -1905,6 +1936,34 @@ function restoreSave(){const inp=document.createElement('input');inp.type='file'
    clearRun();location.reload()};
   rd.readAsText(f)};
  inp.click()}
+/* ============ 세이브 · 로드 슬롯 (5칸) ============
+   슬롯 = 그 순간의 기록(S) + 진행 중인 판 스냅숏(RKEY, 있으면). 불러오면 두 키를 바꾸고 새로고침 */
+const SLOT_N=5,SLOT_KEY=n=>'todays-mementos-slot-'+n;
+function slotGet(n){try{const d=JSON.parse(localStorage.getItem(SLOT_KEY(n))||'null');return d&&d.s&&d.s.codex?d:null}catch(e){return null}}
+function slotSave(n){try{localStorage.setItem(SLOT_KEY(n),JSON.stringify({v:1,at:new Date().toISOString(),s:S,r:localStorage.getItem(RKEY)}));return true}catch(e){return false}}
+function slotLoad(n){const d=slotGet(n);if(!d)return false;try{localStorage.setItem(KEY,JSON.stringify(d.s));if(d.r)localStorage.setItem(RKEY,d.r);else localStorage.removeItem(RKEY)}catch(e){return false}location.reload();return true}
+function slotDel(n){try{localStorage.removeItem(SLOT_KEY(n))}catch(e){}}
+const slotUsed=()=>{let k=0;for(let i=1;i<=SLOT_N;i++)if(slotGet(i))k++;return k};
+const WDAY=['SU','MO','TU','WE','TH','FR','SA'],dayPart=h=>h<5?'LATE NIGHT':h<11?'MORNING':h<17?'DAYTIME':h<21?'EVENING':'NIGHT';
+function vSave(){const mode=ui.svMode||'save',sel=ui.svSel||1,arm=ui.svArm||'';
+ const rows=[];for(let n=1;n<=SLOT_N;n++){const d=slotGet(n),on=n===sel;
+  if(!d){rows.push(`<li class="svs empty ${on?'on':''}" style="--i:${n}"><button class="svb" data-act="svsel:${n}" aria-pressed="${on}"><span class="svn">No.${n}</span><span class="svd">— — —</span><span class="svm">NO DATA · 빈 슬롯</span></button>
+   ${on&&mode==='save'?`<div class="svx"><button class="svgo" data-act="svdo:${n}">${rn('SAVE HERE')}</button></div>`:''}</li>`);continue}
+  const t=new Date(d.at),x=d.s,cx=x.codex||{},ids=(x.hub&&x.hub.ids)||[],r=(()=>{try{return d.r?JSON.parse(d.r):null}catch(e){return null}})();
+  const zone=r&&r.map&&r.map.st&&r.map.st[r.at]&&ZONES[r.map.st[r.at].t];
+  rows.push(`<li class="svs ${on?'on':''}" style="--i:${n}"><button class="svb" data-act="svsel:${n}" aria-pressed="${on}"><span class="svn">No.${n}</span>
+   <span class="svd"><b>${t.getMonth()+1}/${t.getDate()}</b><i>${WDAY[t.getDay()]}</i><small>${dayPart(t.getHours())} · ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</small></span>
+   <span class="svm">${r?`IN MEMENTOS · T${r.turn} ${zone?esc(zone.en):''}`:`LEBLANC · DAY ${(cx.reports||0)+1}`}</span>
+   <span class="svp">${ids.map(id=>CH[id]?`<em style="--c:${CH[id].col}">${CH[id].code}</em>`:'').join('')}</span>
+   <span class="svy">¥${fmt(x.yen||0)}<small>RUNS ${cx.reports||0}${cx.best?` · BEST ${'★'.repeat(cx.best)}`:''}${x.depthMax?` · DEPTH ${x.depthMax}`:''}</small></span></button>
+   ${on?`<div class="svx"><button class="svgo" data-act="svdo:${n}">${rn(arm==='do'+n?(mode==='save'?'OVERWRITE?':'LOAD?'):(mode==='save'?'OVERWRITE':'LOAD'))}</button><button class="svdel" data-act="svdel:${n}">${arm==='del'+n?'정말 지울까요?':'DELETE'}</button></div>`:''}</li>`)}
+ return `<main class="sv ${mode}"><div class="svbg" aria-hidden="true"></div>
+ <header class="svh"><h2>${rn(mode==='save'?'SAVE':'LOAD')}</h2><div class="svtab" role="tablist"><button role="tab" aria-selected="${mode==='save'}" data-act="svmode:save">SAVE</button><button role="tab" aria-selected="${mode==='load'}" data-act="svmode:load">LOAD</button></div>
+ <p class="svq">${mode==='save'?'지금까지의 기록을 어디에 남길까?':'어느 기록에서 다시 시작할까?'}</p></header>
+ ${ui.msg?`<p class="toast" role="status">${esc(ui.msg)}</p>`:''}
+ <ol class="svl">${rows.join('')}</ol>
+ <div class="svf"><button class="lnk sm" data-act="backup">파일로 내보내기</button><button class="lnk sm" data-act="restore">파일에서 불러오기</button></div>
+ <footer class="svk"><button data-act="${backTo()}"><span>Esc</span>BACK</button><button data-act="svdo:${sel}"><span>↵</span>CONFIRM</button></footer></main>`}
 function resumeRun(){const s=runSnap();if(!s)return false;recentStart();if(S.runCurry){S.curry=clamp(S.curry-S.runCurry,0,99);S.runCurry=0;save()}
  run=Object.assign({q:[],log:[],ev:null,stamp:null,paused:false,chemUsed:[],banner:null},s,{phase:'choose'});
  run.party=s.party.map(p=>Object.assign({c:CH[p.id],bub:'',face:p.down?'×':'',bat:-1},p));run.last=run.party.find(m=>m.id===s.last)||null;
@@ -2244,7 +2303,7 @@ function vMain(){
   ...(S.tut&&S.hub?[]:[['go:shop','LEBLANC',`PROPS ${S.props.length}/${PROPS.length} · MONA BUS LV.${S.bus}`]]),
   ['go:codex','CODEX',`COMBOS ${cx.combos.length}/120 · STORIES ${Object.values(cx.chains||{}).filter(v=>v==='end').length}/${SCRIPT.chains.length}`],
   ['howto','HOW TO PLAY','MANUAL · REPLAY TUTORIAL']];
- return `<main class="mstage"><button class="msnd" data-act="mute" aria-pressed="${!S.mute}" aria-label="소리 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'SOUND OFF':'SOUND ON'}</button><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
+ return `<main class="mstage"><div class="mtop"><button class="msave" data-act="go:save">SAVE / LOAD</button><button class="msnd" data-act="mute" aria-pressed="${!S.mute}" aria-label="소리 ${S.mute?'꺼짐':'켜짐'}">${S.mute?'SOUND OFF':'SOUND ON'}</button></div><div class="msky"><h1 class="mtitle boil"><span class="sr">오늘도 메멘토스!</span>${rn("TODAY'S")}<br>${rn('MEMENTOS!')}</h1></div>
  <section class="mground"><div class="mbg" aria-hidden="true"><div class="mslab"></div>${MAIN_ART.city}${MAIN_ART.tun}</div>
  <ul class="mmenu ${M.length>4?'m5':''}">${M.map(([a,en,meta],i)=>`<li style="--n:${i}"><button class="${i?'':'primary'}" data-act="${a}"><span class="st"></span><span class="lbl">${rn(en)}</span><small>${meta}</small></button></li>`).join('')}</ul>
  <div class="mpass"><div class="pl">PASS</div><div class="pb"><small>MEMENTOS LINE · COMMUTER PASS</small><p class="pr"><b>¥${fmt(S.yen)}</b><span>RUNS ${cx.reports} · BEST ${cx.best?'★'.repeat(cx.best):'—'}${S.rec&&S.rec.streak>1?` · STREAK ${S.rec.streak}`:''}${S.depthMax?` · DEPTH ${S.depthMax}`:''}</span></p><p class="pg">${mainGoal()}</p></div></div>
@@ -2288,7 +2347,7 @@ function vHub(){const bg=hubBg(),h=S.hub||{},cast=hubCast(),sp=HUB_SPOTS[bg?bg.k
  const LG=(h.after||[]).filter(l=>l.who||l.n).slice(0,8),lgOpen=!!ui.hubLog,more=LG.length-3;
  const lg=(lgOpen?LG:LG.slice(0,3)).map(l=>l.who?`<p><b style="color:${CH[l.who].col}">${CH[l.who].code}</b>${esc(l.q)}</p>`:`<p class="n">${esc(l.n)}</p>`).join('')+(lgOpen||more<=0?act:'');
  const ids=h.ids||[],again=S.tut&&ids.length===3;
- return `<main class="hub"><header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${(S.codex.reports||0)+1}</span></div><b class="hyen">¥${fmt(S.yen)}</b></header>
+ return `<main class="hub"><header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${(S.codex.reports||0)+1}</span></div><span class="hhr"><button class="hsv" data-act="go:save">SAVE</button><b class="hyen">¥${fmt(S.yen)}</b></span></header>
  <section class="hscene${pan?' pan':''}" id="hscene" aria-label="르블랑 다락방${pan?' · 옆으로 밀어서 둘러보기':''}"><div class="hroom" style="width:${Wd}px;height:${H}px">${bg?`<img class="hbg ${bg.k}" src="${bg.src}" alt="밤의 르블랑 다락방" draggable="false">`:''}${spots}${props}${people}<i class="hlight" aria-hidden="true"></i></div></section>
  ${nav}
  ${pan?'<p class="hpan" aria-hidden="true">← 밀어서 둘러보기 →</p>':''}
@@ -2484,7 +2543,7 @@ function vShop(){
  return `<main class="wrap shop">${hdr('LEBLANC',`<span class="pill">¥${fmt(S.yen)}</span>`)}<div class="shophead"><div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${t===k}" data-act="tab:${k}">${l}</button>`).join('')}</div></div>
  ${ui.msg?`<p class="toast" role="status">${esc(ui.msg)}</p>`:''}
  <section>${body}</section>
- <div class="savebar"><button class="reset bk" data-act="backup">BACKUP SAVE<small>기록 파일로 내려받기</small></button><button class="reset bk" data-act="restore">LOAD SAVE<small>백업 파일 불러오기</small></button><button class="reset" data-act="reset">${ui.reset?'TAP AGAIN TO RESET ALL DATA':'RESET DATA'}</button></div>
+ <div class="savebar"><button class="reset bk" data-act="go:save">SAVE / LOAD<small>슬롯 ${slotUsed()}/${SLOT_N} 사용 중</small></button><button class="reset" data-act="reset">${ui.reset?'TAP AGAIN TO RESET ALL DATA':'RESET DATA'}</button></div>
  <div class="actbar"><button class="btn big" data-act="go:party">INFILTRATE</button></div></main>`;
 }
 /* 도감: 45쌍 관계 보드 — 칸 색 = 영구 관계 단계, 금테 = 시너지 발견, 숫자 = 본 장면 수. 칸을 누르면 두 사람의 기록 */
@@ -2577,7 +2636,7 @@ function tutGo(d){const n=ui.tstep+d;if(n<0)return;if(n>=TUT.length){S.tut=true;
 function render(){
  const ol=$('#log'),stick=!ol||ol.scrollHeight-ol.scrollTop-ol.clientHeight<40,top=ol?ol.scrollTop:0;
  const fa=document.activeElement,fk=fa&&fa.closest&&fa.closest('#app')&&fa.dataset?fa.dataset.act:null;
- const app=$('#app');app.innerHTML=({main:vMain,hub:vHub,party:vParty,explore:vExplore,result:vResult,shop:vShop,codex:vCodex,tutorial:vTut})[ui.screen]();
+ const app=$('#app');app.innerHTML=({main:vMain,hub:vHub,party:vParty,explore:vExplore,result:vResult,shop:vShop,codex:vCodex,tutorial:vTut,save:vSave})[ui.screen]();
  app.classList.toggle('scr-in',!!ui.enter&&!RM);ui.enter=false;
  const l=$('#log');if(l)l.scrollTop=stick?l.scrollHeight:top;
  if(fk){const el=[...document.querySelectorAll('#app [data-act]')].find(x=>x.dataset.act===fk);if(el)el.focus({preventScroll:true})}
@@ -2739,6 +2798,7 @@ document.addEventListener('keydown',e=>{
  if(e.repeat&&k!==' '&&k!=='enter')return;
  if(A.querySelector('.skwin')){if(k==='escape'){e.preventDefault();hit('button[data-act="skx"]');return}if(k==='enter'||k===' '){if(t&&t.closest&&t.closest('button'))return;hit('button[data-act^="sku:"]')}return}/* 스킬 창: Enter 쓴다 · Esc 닫기 */
  if(A.querySelector('.cmdwin')){const v={'1':'stop','2':'boost','3':'tag',' ':'leave','enter':'leave'}[k];if(v){if(t&&t.closest&&t.closest('button')&&(k===' '||k==='enter'))return;hit(`button[data-act="cmd:${v}"]`);return}}/* 지휘 창: 1 말린다 · 2 부추긴다 · 3 태그 · Space 그냥 둔다 */
+ if(ui.screen==='save'){const n=ui.svSel||1;if(k==='arrowdown'||k==='arrowup'){e.preventDefault();ui.svSel=clamp(n+(k==='arrowdown'?1:-1),1,SLOT_N);ui.svArm='';render();return}if(k==='enter'){if(t&&t.closest&&t.closest('button'))return;hit(`button[data-act="svdo:${n}"]`);return}if(k==='escape'){hit(`.svk button[data-act="${backTo()}"]`);return}}
  const i=k.length===1?Math.max('abcd'.indexOf(k),'1234'.indexOf(k)):-1;
  if(i>=0){if(hit(`button[data-act="choice:${i}"]`))return;const ms=[...A.querySelectorAll('button[data-act^="move:"]:not(:disabled)')];if(ms[i]){e.preventDefault();ms[i].click()}return}
  if(k===' '||k==='enter'){if(t&&t.closest&&t.closest('button,a,summary'))return;hit('button[data-act="next"]');return}
@@ -2764,7 +2824,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='tutprev'){tutGo(-1);return}
  if(a==='tutskip'){ui.tstep=TUT.length-1;tutGo(1);return}
  if(a==='tipok'){if(ui.tip){S.tips.push(ui.tip.id);save();ui.tip=null}if(run&&run.tipPause){run.paused=false;run.tipPause=false}render();schedule();return}
- if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
+ if(a==='go'){if(v==='save'){ui.svArm='';ui.svSel=ui.svSel||1}ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
  if(a==='tab'){ui.tab=v;ui.msg='';render();return}
  if(a==='reroll'){if(!S.tut||S.yen<REROLL_COST)return;const c=SCRIPT.days.filter(d=>d.id!==S.today);if(!c.length)return;S.yen-=REROLL_COST;S.today=pick(c).id;save();render();return}
  if(a==='resv'){ui.resv=ui.resv===v?null:v;ui.rvOpen=false;render();return}
@@ -2810,6 +2870,12 @@ $('#app').addEventListener('click',e=>{
  if(a==='smoke'){if(S.smoke<9&&spend(600)){S.smoke++;ui.msg='연막탄을 하나 챙겼습니다.'}save();render();return}
  if(a==='curry-buy'){if(S.curry<9&&spend(400)){S.curry++;ui.msg='르블랑 카레를 포장했습니다.'}save();render();return}
  if(a==='reset'){if(!ui.reset){ui.reset=true;render();return}clearTimeout(T);run=null;S=DEF();save();clearRun();ui.reset=false;ui.msg='모든 기록과 진행 중인 판을 지웠습니다.';render();return}/* 진행 중 판(RKEY)도 함께 지워야 CONTINUE가 남지 않음 */
+ if(a==='svmode'){ui.svMode=v;ui.svArm='';ui.msg='';render();return}
+ if(a==='svsel'){const n=+v;ui.svArm='';ui.msg='';if(ui.svSel===n&&slotGet(n)===null&&(ui.svMode||'save')==='save'){slotSave(n)?ui.msg=`No.${n}에 저장했습니다.`:ui.msg='저장 공간이 부족합니다.'}ui.svSel=n;render();return}
+ if(a==='svdo'){const n=+v,mode=ui.svMode||'save',d=slotGet(n);ui.svSel=n;
+  if(mode==='save'){if(d&&ui.svArm!=='do'+n){ui.svArm='do'+n;render();return}ui.svArm='';ui.msg=slotSave(n)?`No.${n}에 저장했습니다.`:'저장 공간이 부족합니다.';sfx('good');render();return}
+  if(!d){ui.msg='빈 슬롯입니다.';render();return}if(ui.svArm!=='do'+n){ui.svArm='do'+n;render();return}if(!slotLoad(n)){ui.msg='불러오지 못했습니다.';render()}return}
+ if(a==='svdel'){const n=+v;if(ui.svArm!=='del'+n){ui.svArm='del'+n;render();return}slotDel(n);ui.svArm='';ui.msg=`No.${n}을 지웠습니다.`;render();return}
  if(a==='backup'){backupSave();return}
  if(a==='restore'){restoreSave();return}
 });
