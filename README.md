@@ -27,4 +27,9 @@
 
 비상업 · 비공식 팬 게임입니다. 《페르소나 5》 및 등장인물의 권리는 ATLUS / SEGA에 있으며, 공식 게임의 일러스트·음악·UI 리소스는 사용하지 않았습니다.
 
+배경음악:
+- 대기 화면 — "Vibing Over Venus" Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- 탐사 — "Hopstep Battle" PeriTune (https://peritune.com)
+- 심층(버려진 플랫폼 단계) — "Deep Sea" PeriTune (https://peritune.com)
+
 제작: [@nyamaker](https://x.com/nyamaker)
