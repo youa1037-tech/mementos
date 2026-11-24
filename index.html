@@ -740,6 +740,10 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .hprop{position:absolute;width:34px;height:34px;transform:translate(-50%,-50%);display:block}.hprop svg{width:100%;height:100%;filter:drop-shadow(0 2px 0 rgba(0,0,0,.55))}
 .hprop.empty{width:44px;height:44px;border:0;background:none;color:var(--ink);font-family:var(--en);font-size:15px;padding:0}.hprop.empty::before{content:'';position:absolute;inset:8px;border:2px dashed rgba(246,241,234,.7);background:rgba(13,11,18,.45);z-index:-1}
 .hprop.empty{isolation:isolate}.hprop.empty:hover,.hprop.empty:focus-visible{color:var(--gold)}.hprop.empty:hover::before,.hprop.empty:focus-visible::before{border-color:var(--gold)}
+.hpx{position:absolute;display:block;image-rendering:pixelated;pointer-events:none;z-index:1}
+.hpxe{position:absolute;z-index:1;border:0;background:none;padding:0;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;color:rgba(246,241,234,.75);font-family:var(--en);font-size:13px}
+.hpxe::before{content:'';position:absolute;inset:0;border:1px dashed rgba(246,241,234,.45)}.hpxe span{position:relative}
+.hpxe:hover,.hpxe:focus-visible{color:var(--gold)}.hpxe:hover::before,.hpxe:focus-visible::before{border-color:var(--gold)}
 .hman{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border:0;background:none;padding:0 4px;min-width:44px;min-height:44px;z-index:2}
 .hman .art{position:relative;z-index:1;display:block;filter:sepia(.18) brightness(.9) contrast(.95)}/* 다락방 조명 톤 */
 .hman .hshd{position:absolute;left:50%;bottom:-3px;width:72%;max-width:44px;height:8px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.45);filter:blur(1.5px);z-index:0}
@@ -2252,8 +2256,9 @@ function vMain(){
 const HUB_SPOTS={
  custom:{desk:[36,45,15,22],codex:[83,48,7,16],shop:[89,38,11,44],window:[52,37,30,19],tv:[0,40,10,24],
   stand:[[24,80],[33,82],[47,76],[74,80],[60,90]],props:{game:[10,76],tea:[44,61],easel:[62,66],cushion:[40,92],dart:[29,38]}},
- def:{desk:[1,57,24,27],codex:[2,33,15,26],shop:[81,31,16,37],window:[35,20,29,27],tv:[23,47,12,14],stairs:[66,67,34,33],
-  stand:[[24,87],[43,94],[63,92]],/* 빈 바닥만: 책상 앞 · 탁자 앞 러그 아래 · 계단 앞 (가구를 밟지 않게) */props:{game:[30,63],tea:[54,79],easel:[76,62],cushion:[20,95],dart:[71,26]}}};
+ def:{desk:[3,56,23,31],codex:[85,34,12,53],shop:[68,39,14,10],window:[37,27,26,34],tv:[68,54,15,33],
+  stand:[[18,94],[50,94],[81,94]],/* 정면 단면 그림: 모두 같은 바닥선(발 y=128/136)에 선다 */
+  props:{},px:{game:[106,111,14,7],tea:[23,87,13,7],easel:[47,88,12,30],cushion:[74,99,16,6],dart:[113,47,11,12]}}};/* px: 180x136 그림 좌표의 도트 소품 (img/props/*.png, 같은 픽셀 크기) */
 const HUB_LBL={desk:['DESK','지난 판 보고'],codex:['CODEX','도감'],shop:['SHOP','상점'],window:['TODAY','오늘의 메멘토스'],tv:['MENU','타이틀 · 설정'],stairs:['DEPLOY','출발']};
 const HUB_ACT={desk:'desk',codex:'go:codex',shop:'go:shop',window:'hubday',tv:'go:main',stairs:'again'};
 function hubBg(){const c=ART[BG.custom],d=ART[BG.def];return c?{k:'custom',src:BG.custom,...c}:d?{k:'def',src:BG.def,...d}:null}
@@ -2262,19 +2267,22 @@ function hubLine(id){const h=S.hub||{},mine=(h.after||[]).filter(l=>l.who===id),
 function vHub(){const bg=hubBg(),h=S.hub||{},cast=hubCast(),sp=HUB_SPOTS[bg?bg.k:'def'];
  if(ui.hubK!==h.k){ui.hubK=h.k;ui.hubRead=[];ui.hubSay=null;ui.hubN={};ui.hubX=null}
  if(!ui.hubSz||ui.hubSz.w!==(innerWidth||390))ui.hubSz={w:innerWidth||390,h:Math.round(clamp((innerHeight||800)*.48,300,420))};/* 주소창이 숨고 나타나며 높이가 바뀌어도 방 크기는 그대로 (폭이 바뀔 때만 다시) */
- const av=Math.min(ui.hubSz.w,600)-24,H0=ui.hubSz.h,ar=bg?bg.w/bg.h:.93,pan=!!bg&&bg.k==='custom'&&H0*ar>av+40,Wd=pan?Math.round(H0*ar):av,H=pan?H0:Math.round(av/ar);/* 넓은 직접 넣은 그림만 옆으로 밀어서 둘러보기, 기본 그림은 폭에 맞춤 */
+ const av=Math.min(ui.hubSz.w,600)-24,H0=ui.hubSz.h,ar=bg?bg.w/bg.h:.93,pan=!!bg&&bg.k==='custom'&&H0*ar>av+40,px=!!bg&&bg.k==='def',sc=px?Math.max(1,Math.floor(av/bg.w)):0,Wd=px?bg.w*sc:pan?Math.round(H0*ar):av,H=px?bg.h*sc:pan?H0:Math.round(av/ar);/* 기본 도트 그림은 정수 배율로 (픽셀이 고르게) *//* 넓은 직접 넣은 그림만 옆으로 밀어서 둘러보기, 기본 그림은 폭에 맞춤 */
  const box=a=>`left:${a[0]}%;top:${a[1]}%;width:${a[2]}%;height:${a[3]}%`,dy=unl('day')&&SCRIPT.days.find(d=>d.id===S.today);
  const navK=['desk','codex','shop','window','tv'].filter(k=>(k!=='window'||dy)&&(k!=='desk'||S.lastRes));
  const spots=navK.filter(k=>sp[k]).map(k=>`<button class="hspot ${k}" style="${box(sp[k])}" data-act="${HUB_ACT[k]}" aria-label="${HUB_LBL[k][1]}"></button>`).join('');/* 방 안 가구는 라벨 없는 탭 자리. 메뉴는 아래 hnav */
  const nav=`<nav class="hnav" aria-label="다락방 메뉴">${navK.map(k=>`<button data-act="${HUB_ACT[k]}" aria-pressed="${k==='window'?!!ui.hubDay:false}"><b>${HUB_LBL[k][0]}</b><small>${HUB_LBL[k][1].split(' · ')[0]}</small></button>`).join('')}</nav>`;
- const props=Object.entries(sp.props).map(([id,[x,y]])=>{const p=PROPS.find(q=>q.id===id);if(!p)return '';
+ const props=px&&sp.px?Object.entries(sp.px).map(([id,[x,y,w,h]])=>{const p=PROPS.find(q=>q.id===id);if(!p)return '';const st=`left:${x/bg.w*100}%;top:${y/bg.h*100}%;width:${w/bg.w*100}%;height:${h/bg.h*100}%`;
+  return S.props.includes(id)?`<img class="hpx" src="img/props/${id}.png" style="${st}" alt="${esc(p.name)}" draggable="false">`
+   :`<button class="hpxe" style="${st}" data-act="go:shop" aria-label="빈 소품 자리 · ${esc(p.name)} (상점)"><span>+</span></button>`}).join('')
+ :Object.entries(sp.props).map(([id,[x,y]])=>{const p=PROPS.find(q=>q.id===id);if(!p)return '';
   return S.props.includes(id)?`<span class="hprop" style="left:${x}%;top:${y}%" role="img" aria-label="${esc(p.name)}"><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg></span>`
    :`<button class="hprop empty" style="left:${x}%;top:${y}%" data-act="go:shop" aria-label="빈 소품 자리 · ${esc(p.name)} (상점)">+</button>`}).join('');
  const marked=cast.filter(id=>!(ui.hubRead||[]).includes(id)&&(h.after||[]).some(l=>l.who===id)).slice(0,2);/* ! 는 새 대사가 있는 최대 2명만 */
  const people=cast.map((id,i)=>{const c=CH[id],[x,y]=sp.stand[i%sp.stand.length],unread=marked.includes(id),q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';
-  const body=artOf('sprites',id)?art('sprites',id,Math.round(H*(bg&&bg.k==='custom'?.26:.15)),'stand'):`<span class="hph">${emb(id,c.col)}</span>`;
+  const a=artOf('sprites',id),body=a?(px?`<img class="art sprites stand" src="img/sprites/${id}.png" width="${a.w*Math.max(1,Math.floor(sc/2))}" height="${a.h*Math.max(1,Math.floor(sc/2))}" alt="" draggable="false">`:art('sprites',id,Math.round(H*(bg&&bg.k==='custom'?.26:.15)),'stand')):`<span class="hph">${emb(id,c.col)}</span>`;/* 스프라이트는 @2x 저장: 정수 배율로만 키워야 얼굴이 안 비뚤어진다 (배경 2배면 원본 그대로) */
   return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-act="htalk:${id}" aria-label="${c.name}${unread?' · 할 말 있음':''}">${q?`<span class="hsay">${esc(q)}</span>`:unread?'<span class="hmark">!</span>':''}<i class="hshd" aria-hidden="true"></i>${body}<span class="hcode">${c.code}</span></button>`}).join('');
- const act=S.props.filter(id=>sp.props[id]).slice(0,2).map((id,i)=>{const p=PROPS.find(q=>q.id===id),w=CH[cast[(i+3)%cast.length]];return `<p class="n">— ${ig(w.name)} ${esc(p.name)} 앞을 차지했다</p>`}).join('');
+ const act=S.props.filter(id=>sp.props[id]||(sp.px&&sp.px[id])).slice(0,2).map((id,i)=>{const p=PROPS.find(q=>q.id===id),w=CH[cast[(i+3)%cast.length]];return `<p class="n">— ${ig(w.name)} ${esc(p.name)} 앞을 차지했다</p>`}).join('');
  const LG=(h.after||[]).filter(l=>l.who||l.n).slice(0,8),lgOpen=!!ui.hubLog,more=LG.length-3;
  const lg=(lgOpen?LG:LG.slice(0,3)).map(l=>l.who?`<p><b style="color:${CH[l.who].col}">${CH[l.who].code}</b>${esc(l.q)}</p>`:`<p class="n">${esc(l.n)}</p>`).join('')+(lgOpen||more<=0?act:'');
  const ids=h.ids||[],again=S.tut&&ids.length===3;
