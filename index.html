@@ -468,7 +468,12 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .today b{display:block;font-family:var(--hd);font-weight:400;font-size:22px;line-height:1.2}
 .today b i{font-style:normal;font-family:var(--en);font-size:15px;color:var(--mut);letter-spacing:.04em;margin-left:6px}
 .today p{margin:4px 0 0;font-size:14px;color:#ebe3dd}.today .rr{margin-top:8px}
-.resv{background:var(--p);border-left:4px solid #59c3ff;padding:10px 14px;margin:0 0 12px}.resv small{font-family:var(--en);letter-spacing:.05em;color:#59c3ff;font-size:13px}.resv p{margin:6px 0 0;font-size:14px;color:#ebe3dd}
+.resv{background:var(--p);border-left:4px solid #59c3ff;padding:4px 14px;margin:0 0 12px}
+.rvhead{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;text-align:left;padding:0}.rvhead span{flex:1;font-size:14px;color:#ebe3dd}.rvhead i{font-style:normal;color:#59c3ff}
+.rvlist{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:6px}
+.rvrow{display:grid;width:100%;min-height:48px;text-align:left;padding:8px 10px;background:var(--p2);border:1px solid var(--line2)}.rvrow b{font-size:14px}.rvrow small{font-size:12px;color:var(--mut);line-height:1.4}
+.rvrow.on{border-color:#59c3ff;box-shadow:inset 4px 0 0 #59c3ff}.rvrow:disabled{opacity:.45}.rvrow:hover:not(:disabled){border-color:#59c3ff}
+.resv>p{margin:8px 0 8px;font-size:13px;color:var(--mut)}.resv small{font-family:var(--en);letter-spacing:.05em;color:#59c3ff;font-size:13px}.resv p{margin:6px 0 0;font-size:14px;color:#ebe3dd}
 .rchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.rchip{min-height:36px;padding:4px 10px;background:var(--p2);color:var(--ink);border:1px solid #3b2b2f;font-size:13px;cursor:pointer}.rchip.on{background:#59c3ff;color:#141012;border-color:#59c3ff}.rchip:disabled{opacity:.4}.today p.rule{color:var(--gold);font-weight:700}
 .today p.dq em{font-style:normal;font-family:var(--en);margin-right:6px;letter-spacing:.03em}
 @media(max-width:600px){#log li{grid-template-columns:minmax(0,1fr)}#log time{display:none}
@@ -1265,14 +1270,14 @@ function quirkTick(k){if(!run||run.forced||run.phase!=='running'||tutRun())retur
  if(cmdOk())return [w,{fn:()=>{run.cmd={id:m.id,at:0,left:0};return null}}];
  return [w,{fn:()=>quirkRun(m.id,'leave')}]}
 function quirkRun(id,mode){const m=mem(id),Q=QUIRK[id];if(!m||!Q)return null;
- const J=mem('joker')?'조커가':'무전 너머로 조커가';/* 조커가 파티에 없어도 지휘는 리더 권한 */
+ const J=mem('joker')?'조커가':'무전 너머로 조커가',me=id==='joker';/* 플레이어 = 조커(리더). 파티에 있으면 현장에서, 없으면 무전으로 지휘. 자기 사고면 자기 결정 */
  if(m.hp<=0)return [{sys:1,text:`${un(m.c.name)} 더 움직일 수 없었다.`}];
- if(mode==='stop'){const L=[{sys:1,qk:1,text:`${J} ${ul(m.c.name)} 붙잡았다. [${Q.n}] 없던 일로.`,res:'지휘 -1 · 사고 없음'}];if(hasR('R-12')){const y=Math.round(400*yenMul());relicPay('R-12','+¥'+fmt(y),y)}return L}
+ if(mode==='stop'){const L=[{sys:1,qk:1,text:me?`조커가 숨을 고르고 물러섰다. [${Q.n}] 이번엔 보류.`:`${J} ${ul(m.c.name)} 붙잡았다. [${Q.n}] 없던 일로.`,res:'지휘 -1 · 사고 없음'}];if(hasR('R-12')){const y=Math.round(400*yenMul());relicPay('R-12','+¥'+fmt(y),y)}return L}
  let safe=false,tg=null;if(mode==='tag'){tg=cmdTag();if(tg){delTag(tg);safe=true}}
  const k=mode==='boost'?2:1,r=Q.go(m,k,safe)||{},L=r.L||[];
  if(L[0])L[0].n=`[${Q.n}] `+(L[0].n||'');
- if(mode==='boost')L.unshift({sys:1,qk:1,text:`${J} ${m.c.name}의 등을 떠밀었다. "가 봐!"`,res:'지휘 -1 · 효과 2배'});
- if(safe)L.unshift({sys:1,qk:1,text:`${J} [${tg}] 카드를 꺼내 판을 받쳐 줬다.`,res:'태그 소비 · 나쁜 결과 없음'});
+ if(mode==='boost')L.unshift({sys:1,qk:1,text:me?'조커가 판돈을 두 배로 올렸다. "전부 건다."':`${J} ${m.c.name}의 등을 떠밀었다. "가 봐!"`,res:'지휘 -1 · 효과 2배'});
+ if(safe)L.unshift({sys:1,qk:1,text:me?`조커가 [${tg}] 카드를 손에 쥐고 승부에 나섰다.`:`${J} [${tg}] 카드를 꺼내 판을 받쳐 줬다.`,res:'태그 소비 · 나쁜 결과 없음'});
  if(hasR('R-01')){const y=Math.round(250*yenMul());relicPay('R-01','+¥'+fmt(y),y)}
  if(r.bad&&hasR('R-04')){const z=Zc();addTre(200+z.risk*80,400+z.risk*120);relicPay('R-04','보물 +1')}
  if(run.st)run.st.qk=(run.st.qk||0)+1;
@@ -1284,7 +1289,7 @@ function vCmd(){const c=run.cmd;if(!c)return '';const m=mem(c.id),Q=QUIRK[c.id];
  const rem=c.at?Math.max(0,c.at-Date.now()):(c.left||tot);
  return `<div class="cmdwin" role="dialog" aria-label="조커의 지휘 · ${esc(m.c.name)} ${esc(Q.n)}" style="--c:${m.c.col}"><p class="cw1"><b>COMMAND</b> ${esc(m.c.name)} · ${esc(Q.n)} <span>지휘 ${n}/${run.nudge0||3}</span></p><p class="cw3">${esc(Q.warn(m))}</p>
  ${wait?'<p class="cw2">고를 때까지 멈춰 있습니다</p>':`<i class="cbar"><b style="--ms:${rem}ms;--s:${(rem/tot).toFixed(3)}"></b></i>`}
- <div class="cbtns"><button data-act="cmd:stop" ${n>0?'':'disabled'}><span class="k">1</span><b>말린다</b><small>사고 없음 · 지휘 -1</small></button><button data-act="cmd:boost" ${n>0?'':'disabled'}><span class="k">2</span><b>부추긴다</b><small>${esc(Q.boost)}</small></button><button data-act="cmd:tag" ${tg?'':'disabled'}><span class="k">3</span><b>태그 사용</b><small>${tg?`[${esc(tg)}] 소비 · 나쁜 결과 없음`:'쓸 상태 태그 없음'}</small></button><button data-act="cmd:leave"><span class="k">␣</span><b>그냥 둔다</b><small>${esc(Q.leave)}</small></button></div></div>`}
+ <div class="cbtns"><button data-act="cmd:stop" ${n>0?'':'disabled'}><span class="k">1</span><b>${c.id==='joker'?'물러선다':'말린다'}</b><small>사고 없음 · 지휘 -1</small></button><button data-act="cmd:boost" ${n>0?'':'disabled'}><span class="k">2</span><b>${c.id==='joker'?'판을 키운다':'부추긴다'}</b><small>${esc(Q.boost)}</small></button><button data-act="cmd:tag" ${tg?'':'disabled'}><span class="k">3</span><b>태그 사용</b><small>${tg?`[${esc(tg)}] 소비 · 나쁜 결과 없음`:'쓸 상태 태그 없음'}</small></button><button data-act="cmd:leave"><span class="k">␣</span><b>그냥 둔다</b><small>${esc(Q.leave)}</small></button></div></div>`}
 
 /* (예전) 관찰 손맛: 말풍선을 누르면 조커가 한마디 거든다 (판당 3번). 지친 동료는 다독이고, 가끔은 쌍대사를 부추긴다 */
 const nudgeOk=()=>!!run&&run.phase==='running'&&!tq&&run.nudge>0&&!(run.nudgeAt!=null&&run.beat<run.nudgeAt+3);/* 연타 방지: 거든 뒤 몇 줄은 쉰다 */
@@ -2173,7 +2178,8 @@ function vParty(){
  const lock=id=>tp&&TUT_FIX.includes(id);
  return `<main class="wrap psel">${hdr('PARTY SELECT',`<span class="pill">${sel.length} / 3</span>`)}
  ${dy?`<section class="today"><small>TODAY'S MEMENTOS</small><b>${esc(dy.en)}<i>${esc(dy.name)}</i></b><p class="rule">${esc(dy.rule)}</p>${dy.q?`<p class="dq">${dy.who?`<em style="color:${CH[dy.who].col}">${CH[dy.who].code}</em>`:''}“${esc(dy.q)}”</p>`:''}${perk('reroll')&&SCRIPT.days.length>1?`<button class="btn ghost sm rr" data-act="reroll" ${S.yen<REROLL_COST?'disabled':''}>REROLL ¥${fmt(REROLL_COST)}</button>`:''}</section>`:''}
- ${!tp&&perk('resv')&&(S.codex.relics||[]).length?`<section class="resv"><small>RELIC RESERVE</small><div class="rchips">${(S.codex.relics||[]).map(id=>`<button class="rchip ${ui.resv===id?'on':''}" data-act="resv:${id}" aria-pressed="${ui.resv===id}" ${S.yen<RESV_COST?'disabled':''}>◆ ${esc(relicOf(id).name)}</button>`).join('')}</div><p>${ui.resv?`${esc(relicOf(ui.resv).name)} 예약 · 출발할 때 ¥${fmt(RESV_COST)}를 냅니다. 첫 유물 후보에 반드시 나옵니다.`:`본 적 있는 유물 하나를 예약할 수 있습니다 (¥${fmt(RESV_COST)}).`}</p></section>`:''}
+ ${!tp&&perk('resv')&&(S.codex.relics||[]).length?`<section class="resv"><button class="rvhead" data-act="rvopen" aria-expanded="${!!ui.rvOpen}"><small>RELIC RESERVE</small><span>${ui.resv?`◆ ${esc(relicOf(ui.resv).name)} · 출발 때 ¥${fmt(RESV_COST)}`:`예약 안 함 · 본 유물 ${(S.codex.relics||[]).length}개`}</span><i aria-hidden="true">${ui.rvOpen?'▴':'▾'}</i></button>
+ ${ui.rvOpen?`<ul class="rvlist">${(S.codex.relics||[]).map(id=>{const r=relicOf(id);return `<li><button class="rvrow ${ui.resv===id?'on':''}" data-act="resv:${id}" aria-pressed="${ui.resv===id}" ${S.yen<RESV_COST&&ui.resv!==id?'disabled':''}><b>${esc(r.name)}</b><small>${esc(r.eff||'')}</small></button></li>`}).join('')}</ul><p>하나를 예약하면 첫 유물 후보에 반드시 나옵니다 (¥${fmt(RESV_COST)}, 출발할 때 냄). 다시 누르면 취소.</p>`:''}</section>`:''}
  <div class="bwrap"><section class="bpanel roster-p"><header class="bhd"><h2>명단</h2><span>ROSTER</span></header>
  <div class="cards roster">${CHARS.map(c=>{const i=sel.indexOf(c.id),cd=tp||!known(c.id)||!unl('mind')?'normal':condOf(c.id);
   return `<button class="rt ${i>=0?'on':''} ${ui.focus===c.id?'fo':''} ${lock(c.id)?'fixd':''}" style="--c:${c.col}" data-act="sel:${c.id}" aria-pressed="${i>=0}" aria-label="${c.name} ${c.code}${i>=0?` · ${i+1}번 자리`:''}${cd!=='normal'?` · ${COND_KR[cd]}`:''}" ${lock(c.id)?'aria-disabled="true"':''}>
@@ -2595,7 +2601,8 @@ $('#app').addEventListener('click',e=>{
  if(a==='go'){ui.screen=v;ui.enter=true;ui.msg='';render();window.scrollTo(0,0);return}
  if(a==='tab'){ui.tab=v;ui.msg='';render();return}
  if(a==='reroll'){if(!perk('reroll')||S.yen<REROLL_COST)return;const c=SCRIPT.days.filter(d=>d.id!==S.today);if(!c.length)return;S.yen-=REROLL_COST;S.today=pick(c).id;save();render();return}
- if(a==='resv'){ui.resv=ui.resv===v?null:v;render();return}
+ if(a==='resv'){ui.resv=ui.resv===v?null:v;ui.rvOpen=false;render();return}
+ if(a==='rvopen'){ui.rvOpen=!ui.rvOpen;render();return}
  if(a==='nudge'){nudge(v);return}
  if(a==='random'&&!S.tut)return;
  if(a==='sel'&&!S.tut){ui.focus=v;if(!TUT_FIX.includes(v))ui.sel[0]=v;render();return}/* 첫 판: 자유 자리만 바꾼다 */
