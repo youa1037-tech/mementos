@@ -1,3 +1,5 @@
+> **예전 관찰형 버전(legacy.html) 문서입니다.** 지금 게임(index.html)의 설계는 `docs/core-proto.md`를 보세요.
+
 # 밸런스 기록
 
 open-game-skills 팩의 `difficulty-design` · `balance-design` 계약 형식에 맞춰, 바꾼 규칙과 근거를 남깁니다.

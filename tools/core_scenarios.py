@@ -1,7 +1,7 @@
 """새 코어 기능별 확인 (core_smoke.py가 못 누르는 흐름)
   1 이어하기: 판 도중 새로고침 → CONTINUE → 같은 층·위치·템으로 돌아오나
   2 기록 슬롯: 저장 → 지갑 바꿈 → 불러오기 → 되돌아오나
-  3 거두는 자: 위험도를 최대 직전으로 두고 한 칸 → 거두는 자 전투가 열리나, RETURN NOW로 나가지나
+  3 거두는 자: 경계도를 최대 직전으로 두고 한 칸 → 거두는 자 전투가 열리나, RETURN NOW로 나가지나
   4 전투 중 새로고침: 이어하기가 지도에서 다시 시작하나 (전투 중엔 저장 안 함)
   python3 tools/core_scenarios.py
 """
@@ -77,7 +77,7 @@ async def main():
         await start_run(pg)
         await pg.evaluate("G.risk=RISK_MAX-1;render()")
         await pg.evaluate("(()=>{const nb=G.map.adj(G.at).filter(i=>G.map.T[i]!=='boss');move(nb[0])})()"); await pg.wait_for_timeout(400)
-        k = await pg.evaluate("G.battle&&G.battle.kind"); ok('위험도 최대에서 거두는 자 전투', k == 'reaper', str(k))
+        k = await pg.evaluate("G.battle&&G.battle.kind"); ok('경계도 최대에서 거두는 자 전투', k == 'reaper', str(k))
         r = await pg.query_selector('[data-a="ret"]'); ok('거두는 자 전투에 RETURN NOW', r)
         if r:
             await r.click(); await pg.wait_for_timeout(300)
