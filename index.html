@@ -796,6 +796,8 @@ function vStory(){const s=G.story;if(!s)return '';const Q=(id,q)=>q?`<q><b style
  return `<div class="dlg"><span class="who">${esc(s.tag||'SCENE')}</span><p><b>${esc(s.title||'')}</b></p><p>${esc(fillT(s.n))}</p>${(s.qs||[]).map(([id,q])=>Q(id,q)).join('')}${s.res?`<p class="tip">${esc(s.res)}</p>`:''}${s.isNew?'<p class="tip" style="color:var(--gold)">새 장면 — 르블랑 장면 목록에 기록</p>':''}</div><button class="go" data-a="storyok">OK</button>`}
 const known=i=>G.map.vis.has(i)||[...G.map.vis].some(v=>G.map.adj(v).includes(i)||(achDone('route')&&G.map.adj(v).some(w=>G.map.adj(w).includes(i))));/* 노선 완전 정복: 두 칸 앞까지 */
 /* 경계도: 이동마다 +1(왔던 역으로 돌아가도), 쇠사슬 파편 +1 더, 개찰구 열쇠류 ×2, 일부 기벽 ±1. 층을 내려가도 이어짐(-6) */
+/* 층을 내려갈 때 깎이는 경계도: 본편 -6, 심층(B4~) -12. 심층에서 매 층 거두는 자를 만나던 문제 */
+const riskDrop=()=>G.fl>=2?12:6;
 const riskPrev=id=>{if(id!=='chain'&&id!=='gate')return '';const st=(1+cnt('chain')+(id==='chain'?1:0))*((cnt('gate')||id==='gate')?2:1),now=riskLeft(),aft=Math.max(0,Math.ceil((RISK_MAX-G.risk)/st));return ` — 거두는 자까지 ${now}역 → <b>${aft}역</b>`};
 const riskStep=()=>(1+cnt('chain'))*(cnt('gate')?2:1),riskLeft=()=>Math.max(0,Math.ceil((RISK_MAX-G.risk)/riskStep()));
 function addRisk(d,why){const b=G.risk;G.risk=Math.max(0,Math.min(RISK_MAX,G.risk+d));if(G.risk>=RISK_MAX&&cnt('gate'))G.rkGate=1;const v=G.risk-b;if(!v)return;ui.rk={v,why,at:Date.now()};setTimeout(render,1900);if(why)log(`경계도 ${v>0?'+':''}${v} (${why}) → ${G.risk}/${RISK_MAX}`)}
@@ -1164,14 +1166,14 @@ function checkWin(){const B=G.battle;if(!B||foeAlive().length)return false;ui.bu
   if(questClear())setTimeout(()=>flash('REQUEST CLEAR','g'),60);/* 전투가 끝난 뒤 보상 화면 위에 (전투 화면을 다시 그리다 멈추던 문제) */
   if(G.fl===2){G.cleared=true;SV.wins++;SV.endless=1}G.floorDone=true;/* B3을 넘으면 무한 모드가 열린다: 바로 RETURN 또는 B4 심층 */
   if(G.fl>=3){G.deepBonus=(G.deepBonus||0)+DEEP_Y*DEEP();const rec=G.fl+1>(SV.deep||0);if(rec)setTimeout(()=>flash('NEW RECORD','g'),900);log(`심층 ${DEEP()} 관문 돌파! 심층 보너스 +¥${DEEP_Y*DEEP()} (상한과 따로)${rec?' · 최고 기록!':''}`)}save();runSave(true,G.cleared?{clear:1}:{floor:1});offer(`${jo(B.foes[0].n,'이','가')} 떨어뜨린 것 (확정)`,1,G.fl>=1?'evo':'boom');return true}
- if(B.kind==='reaper'){G.reaperKill=1;SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
+ if(B.kind==='reaper'){G.reaperKill=1;addRisk(-Math.ceil(G.risk/2),'거두는 자 격퇴 — 추적이 끊겼다');SV.reaper=(SV.reaper||0)+1;save();flash('REAPER DOWN','g');offer('거두는 자가 남긴 것 (전설)',1,'evo');return true}
  const el=B.foes.some(f=>f.tier==='e');offer(el?'정예 섀도가 남긴 것 (증폭기)':'섀도가 남긴 것 (발동기)',cnt('blank')?2:1,el?'amp':'trig');return true}
 /* 층 끝: 르블랑 귀환(엔 전부) vs 다음 층 하강(경계도 -6 · HP 30% · SP 50% 회복). B1 → B2는 모나 버스 Lv.2가 있어야 선로가 뚫린다 */
 const canDescend=()=>G.fl>=2?!!G.cleared:(SV.up.bus||0)>=G.fl+1;/* B3 이후는 무한 모드 *//* B1→B2 버스 Lv.2, B2→B3 버스 Lv.3 */
 function eatCurry(){if(G.curry<=0||G.battle)return;G.curry--;for(const m of G.party){if(m.hp<=0)continue;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.35));m.sp=Math.min(m.msp,m.sp+8)}log('르블랑 카레 도시락! 전원 HP 35% · SP +8');say(pick(alive()).id,'chat');render()}
 function descendWalk(){ui.walk=Date.now();setTimeout(render,1000)}
 function descend(){if(!canDescend())return;descendWalk();G.grd=Math.min(.4,(G.grd||0)+.05);for(const m of G.party){const g=Math.round(m.max*.1);m.max+=g;if(m.hp>0)m.hp+=g;if(m.hp<=0)m.hp=Math.round(m.max*.25);m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+Math.round(m.msp*.5))}
- addRisk(-6,'층을 내려감 — 경계도는 이어짐');log(`단련: 전원 최대 HP +10% · 받는 피해 -${Math.round(G.grd*100)}%`);say('joker','gambit');newFloor(G.fl+1)}
+ addRisk(-riskDrop(),G.fl>=2?'심층으로 내려감 — 추적이 크게 흐려짐':'층을 내려감 — 경계도는 이어짐');log(`단련: 전원 최대 HP +10% · 받는 피해 -${Math.round(G.grd*100)}%`);say('joker','gambit');newFloor(G.fl+1)}
 /* 자동 전투 토글: 약점을 알면 찌르고, 다친 동료가 있으면 회복, 못 쓰면 자리를 옮긴다 */
 function autoGo(){if(!G.battle||ui.busy||!G.auto||tutCur||ui.autoHold)return;setTimeout(()=>{if(!G.auto||!G.battle||ui.busy||tutCur||ui.autoHold)return;const B=G.battle,m=actor();if(!m)return;
  if(B.extra&&!B.extra.baton&&!G.autoHeld){G.autoHeld=1;ui.autoHold=1;log('첫 1 MORE — 바톤이나 총공격은 직접 골라 보세요. 고르고 나면 자동이 이어집니다.');render();return}/* 판마다 처음 한 번은 손맛을 직접 */
@@ -1520,7 +1522,7 @@ function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
  <div class="dlg"><span class="who">FUSION</span><p>${G.benchUsed?'합성 완료':`위 템 칸에서 <b>2개</b>를 골라 넣으면 <b>진화 템</b> 3개 중 하나`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
-function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% · 보상 <b>+¥${QUESTS[n-1].y.toLocaleString()}</b> (르블랑 지갑으로)</p><p class="tip">${esc(questGuide().t)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · <b>최대 HP +10% · 받는 피해 -5%</b>(누적 최대 -40%) · 경계도 -6 (지금 ${G.risk} → ${Math.max(0,G.risk-6)}, 다음 층으로 이어짐) · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
+function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.deal==='give'&&G.fl===n-1?'<p class="tip">보물을 내주고 지나왔다 — 의뢰 2는 다음 판에</p>':''}${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% · 보상 <b>+¥${QUESTS[n-1].y.toLocaleString()}</b> (르블랑 지갑으로)</p><p class="tip">${esc(questGuide().t)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLR(n).n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · <b>최대 HP +10% · 받는 피해 -5%</b>(누적 최대 -40%) · 경계도 -${riskDrop()} (지금 ${G.risk} → ${Math.max(0,G.risk-riskDrop())}, 다음 층으로 이어짐) · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
  ${n>=3?`<p class="tip">∞ <b>무한 모드</b> — 심층은 한 층마다 적이 세지고, 관문마다 <b>심층 보너스</b>(상한과 따로)가 쌓입니다. 전멸하면 심층 보너스는 사라집니다.${G.deepBonus?` 지금 <b>+¥${G.deepBonus}</b>`:''} · 최고 기록 B${Math.max(SV.deep||0,n)}</p>`:''}<div class="row2"><button class="go ${ok?'sub':''}" data-a="ret">${n>=3?'ALL CLEAR':'RETURN'}</button>${ok?`<button class="go" data-a="down">${n>=3?'∞ ENDLESS ↓':'GO DEEPER ↓'}</button>`:''}</div>`}
 function vMap(){const m=G.map,nb=m.adj(G.at),sz=100/4;
  const lk=m.edges.filter(([a,b])=>known(a)&&known(b)&&(m.vis.has(a)||m.vis.has(b))).map(([a,b])=>{const [r1,c1,r2,c2]=[a>>2,a%4,b>>2,b%4],h=r1===r2;
