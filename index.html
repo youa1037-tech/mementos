@@ -756,6 +756,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .hman:not(:hover) .hmark{animation:hbob 1.6s steps(2) infinite}
 @keyframes hbob{50%{transform:translateY(-3px)}}
 .hsay{position:absolute;bottom:calc(100% + 6px);width:max-content;max-width:180px;background:var(--ink);color:#141012;font-size:13px;line-height:1.4;padding:6px 9px;border-radius:9px;text-align:left;z-index:3;white-space:normal}
+.hsay.l{left:-4px}.hsay.l::after{left:24px}.hsay.r{right:-4px}.hsay.r::after{left:auto;right:18px}/* 양끝 캐릭터의 말풍선은 방 안쪽으로 펼쳐서 잘리지 않게 */
 .hsay::after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-5px;border:6px solid transparent;border-bottom:0;border-top-color:var(--ink)}
 .hman:focus-visible{outline:2px solid #fff}
 .hpan{margin:-4px 0 0;text-align:center;font-size:12px;color:var(--faint)}
@@ -2282,7 +2283,7 @@ function vHub(){const bg=hubBg(),h=S.hub||{},cast=hubCast(),sp=HUB_SPOTS[bg?bg.k
  const marked=cast.filter(id=>!(ui.hubRead||[]).includes(id)&&(h.after||[]).some(l=>l.who===id)).slice(0,2);/* ! 는 새 대사가 있는 최대 2명만 */
  const people=cast.map((id,i)=>{const c=CH[id],[x,y]=sp.stand[i%sp.stand.length],unread=marked.includes(id),q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';
   const hk=Math.max(1,Math.floor(sc/2))*((devicePixelRatio||1)>=1.5?HUB_MAN:1)/* 캐릭터 크기: 고해상도 폰에선 72%. 화면 픽셀 기준으론 늘 확대라 점이 빠지지 않는다 */,a=artOf('sprites',id),body=a?(px?`<img class="art sprites stand" src="img/sprites/${id}.png" width="${Math.round(a.w*hk)}" height="${Math.round(a.h*hk)}" alt="" draggable="false">`:art('sprites',id,Math.round(H*(bg&&bg.k==='custom'?.26:.15)),'stand')):`<span class="hph">${emb(id,c.col)}</span>`;/* 스프라이트는 @2x 저장: 정수 배율로만 키워야 얼굴이 안 비뚤어진다 (배경 2배면 원본 그대로) */
-  return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-act="htalk:${id}" aria-label="${c.name}${unread?' · 할 말 있음':''}">${q?`<span class="hsay">${esc(q)}</span>`:unread?'<span class="hmark">!</span>':''}<i class="hshd" aria-hidden="true"></i>${body}<span class="hcode">${c.code}</span></button>`}).join('');
+  return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-act="htalk:${id}" aria-label="${c.name}${unread?' · 할 말 있음':''}">${q?`<span class="hsay${x<30?' l':x>70?' r':''}">${esc(q)}</span>`:unread?'<span class="hmark">!</span>':''}<i class="hshd" aria-hidden="true"></i>${body}<span class="hcode">${c.code}</span></button>`}).join('');
  const act=S.props.filter(id=>sp.props[id]||(sp.px&&sp.px[id])).slice(0,2).map((id,i)=>{const p=PROPS.find(q=>q.id===id),w=CH[cast[(i+3)%cast.length]];return `<p class="n">— ${ig(w.name)} ${esc(p.name)} 앞을 차지했다</p>`}).join('');
  const LG=(h.after||[]).filter(l=>l.who||l.n).slice(0,8),lgOpen=!!ui.hubLog,more=LG.length-3;
  const lg=(lgOpen?LG:LG.slice(0,3)).map(l=>l.who?`<p><b style="color:${CH[l.who].col}">${CH[l.who].code}</b>${esc(l.q)}</p>`:`<p class="n">${esc(l.n)}</p>`).join('')+(lgOpen||more<=0?act:'');
