@@ -230,6 +230,114 @@ ICONS = {
   "..kGkkkGk.......", "..kGGGGGkr...r..", "..kGgGgGk.r.r...", "..kGGGGGk..r....",
   "..kGgGgGk.r.r...", "..kGGGGGkr...r..", "..kkkkkkk.......", "................",
  ],
+
+ # ---------- 배수진 ----------
+ 'knuckle': [  # 피 묻은 너클
+  "", "", "", "..kkkkkkkkkkkk..", ".ksskssksskssk..", ".ksgksgksgksgk..", ".kssksskssksskk.",
+  ".kkkkkkkkkkkkssk", ".ksssssssssssssk", ".kssssssssssssk.", "..kkkkkkkkkkkk..", "...kr...kr......",
+  "...kr....k......", "....r...........", "", "",
+ ],
+ 'vampmask': [  # 흡혈의 가면
+  "", "...kkkkkkkkkk...", "..kddddddddddk..", ".kddkkddddkkddk.", ".kdkwwkddkwwkdk.", ".kddkkddddkkddk.",
+  ".kddddddddddddk.", ".kdddddkkdddddk.", "..kddddddddddk..", "..kdkwkkkkwkdk..", "...kdwddddwdk...",
+  "....kkddddkk....", "......kkkk......", ".......r........", ".......r........", "",
+ ],
+ 'brink': [  # 벼랑 끝 예고장
+  "", "", ".kkkkkkkkkkkkkk.", ".kwwwwwwwwwwwwk.", ".kwrrwwwwwwrrwk.", ".kwwrrwwwwrrwwk.",
+  ".kwwwrrkkrrwwwk.", ".kwwwwkrrkwwwwk.", ".kwwwwwrrwwwwwk.", ".kwkkkwwwwkkkwk.", ".kwwwwwwwwwwwwk.",
+  ".kkkkkkkkkkkkkk.", "...kdk..........", "..kdddk.........", "...kdk..........", "",
+ ],
+ # ---------- SP 폭주 ----------
+ 'cell': [  # 충전식 건전지
+  "", ".....kkkkkk.....", "....kkkkkkkk....", "....kccccccck...", "....kccccccck...", "....kcwkkwcck...",
+  "....kcckkccck...", "....kccwwccck...", "....kbbbbbbbk...", "....kbbbbbbbk...", "....kbbwwbbbk...",
+  "....kbbbbbbbk...", "....kbbbbbbbk...", "....kkkkkkkkk...", "", "",
+ ],
+ 'oclock': [  # 오버클럭 칩
+  "", "..k.k.k.k.k.k...", ".kkkkkkkkkkkkk..", "kkooooooooooookk", ".koyyyyyyyyyyok.", "kkoykkkkkkkyokk.",
+  ".koykrrrrrkyok..", "kkoykreeerkyokk.", ".koykrrrrrkyok..", "kkoykkkkkkkyokk.", ".koyyyyyyyyyyok.",
+  "kkooooooooooookk", ".kkkkkkkkkkkkk..", "..k.k.k.k.k.k...", "", "",
+ ],
+ 'infbat': [  # 무한 배터리
+  "", ".....kkkkkk.....", "....kkkkkkkk....", "....kyyyyyyyk...", "....kyeeeeeyk...", "....kyekkkeyk...",
+  "....kykeekkyk...", "....kykeekkyk...", "....kyekkkeyk...", "....kyeeeeeyk...", "....kyyyyyyyk...",
+  "....kYYYYYYYk...", "....kYYYYYYYk...", "....kkkkkkkkk...", "", "",
+ ],
+ # ---------- 크리티컬 연타 ----------
+ 'tdice': [  # 속임수 주사위
+  "", "", "..kkkkkkkk......", ".kppppppppk.....", ".kpwkppwkpkkkkk.", ".kppppppppkppppk",
+  ".kppppppppkpwkpk", ".kpwkppwkpkppppk", ".kppppppppkpwkpk", ".kkkkkkkkkkppppk", "..........kpwkpk",
+  "..........kppppk", "..........kkkkkk", "", "", "",
+ ],
+ 'trigger': [  # 연쇄 방아쇠
+  "", "", "", ".kkkkkkkkkkkkk..", ".kggggggggggggk.", ".kgsssssssssssk.", ".kkkkkkkkkkgsk..",
+  "......kk..kgsk..", ".....krk.kgssk..", ".....krkkgsssk..", "......kkgssssk..", ".......kgssssk..",
+  ".......kkkkkkk..", "", "", "",
+ ],
+ 'revolver': [  # 황금 리볼버
+  "", "", "", "..kkkkkkkkkkkkkk", ".kyyyyyyyyyyyyyk", ".kyeeeeeeeeeyyk.", ".kkkkyyyykkkkk..",
+  "...kYkyyyk......", "...kYYkkyk......", "..kYYYk.kk......", "..kYYYk.........", ".kYYYk..........",
+  ".kkkkk..........", "", "", "",
+ ],
+ # ---------- 왜곡된 인지 ----------
+ 'gate': [  # 깨진 개찰구 표
+  "", "", "", ".kkkkkkkkkkkkkk.", ".kyyyyykyyyyyyk.", ".kywwwyykyyyyyk.", ".kywkwyyykyyyyk.",
+  ".kywwwyyykyrryk.", ".kyyyyyykyyyyyk.", ".kkkkkkkkkkkkkk.", "....k..k..k.....", "...PPk.kPP......",
+  "....PPPPP.......", "", "", "",
+ ],
+ 'oneway': [  # 편도 급행권
+  "", "", "", ".kkkkkkkkkkkkkk.", ".kooooooooooook.", ".kowwwwwwwwwwok.", ".kowkkkkkkkkwok.",
+  ".kowwwwwwwkwwok.", ".kowkkkkkkkkwok.", ".kowwwwwwwwwwok.", ".kooooooooooook.", ".kkkkkkkkkkkkkk.",
+  "...kPk..kPk.....", "...kkk..kkk.....", "", "",
+ ],
+ 'contract': [  # 금단의 계약서
+  "", "..kkkkkkkkkkk...", ".kwwwwwwwwwwwk..", ".kwkkkkkkkkkwk..", ".kwwwwwwwwwwwk..", ".kwkkkkkkkwwwk..",
+  ".kwwwwwwwwwwwk..", ".kwkkkkkkkkkwk..", ".kwwwwwwwwwwwk..", ".kwwwwwwwkPPPk..", ".kwwwwwwkPPPPPk.",
+  ".kwwwwwwkPPrPPk.", ".kkkkkkkkPPPPPk.", ".........kPPPk..", "..........kkk...", "",
+ ],
+ # ---------- 자본주의 ----------
+ 'wallet': [  # 황금 동전지갑
+  "", "", "....kkkkkkkk....", "...kyyyyyyyyk...", "..kyykkkkkkyyk..", ".kkkkkkkkkkkkkk.",
+  ".kYYYYYYYYYYYYk.", ".kYyyyyyyyyykYk.", ".kYyyyyyyyykekk.", ".kYyyyyyyyykeek.", ".kYyyyyyyyykekk.",
+  ".kYyyyyyyyyykYk.", ".kYYYYYYYYYYYYk.", ".kkkkkkkkkkkkkk.", "", "",
+ ],
+ 'card': [  # 고급 명함
+  "", "", "", "", ".kkkkkkkkkkkkkk.", ".kwwwwwwwwwwwwk.", ".kwykwwwwwwwwwk.",
+  ".kwyywkkkkkkwwk.", ".kwwwwwwwwwwwwk.", ".kwwwwkkkkkkkwk.", ".kwwwwkkkkwwwwk.", ".kwwwwwwwwwwwwk.",
+  ".kkkkkkkkkkkkkk.", "", "", "",
+ ],
+ 'checks': [  # 수표 다발
+  "", "", "", "....kkkkkkkkkkk.", "...kllllllllllk.", "..kkkkkkkkkkkkk.", ".kllllllllllllk.",
+  ".klwwlllllllllk.", ".kllllkkkkklllk.", ".klllllllllllkk.", ".kllllllkkkkllk.", ".kllllllllllllk.",
+  ".kkkkkkkkkkkkkk.", "", "", "",
+ ],
+ # ---------- 실드 · 반격 · 상태이상 ----------
+ 'spshield': [  # 가시 방패
+  "", "...k...kk...k...", "..kskkkbbkkksk..", "..kbbbbbbbbbbk..", "kskbbwbbbbbbbksk", "..kbwbbbbbbbbk..",
+  "..kbbbbbbbbbbk..", "kskbbbbbbbbbbksk", "...kbbbbbbbbk...", "...kbbbbbbbbk...", "..skkbbbbbbkks..",
+  ".....kbbbbk.....", "......kbbk......", ".......kk.......", "", "",
+ ],
+ 'censer': [  # 촉매 향로
+  "......p.........", ".....p..p.......", "......pp.p......", ".......p........", "....kkkkkkkk....", "...kyyyyyyyyk...",
+  "..kkkkkkkkkkkk..", "..kYyyyyyyyyYk..", "..kYyrryyrryYk..", "...kYyyyyyyYk...", "....kYYYYYYk....",
+  ".....kkkkkk.....", "....kYk..kYk....", "....kkk..kkk....", "", "",
+ ],
+ 'hourglass': [  # 역전의 모래시계
+  "", "...kkkkkkkkkk...", "...knnnnnnnnk...", "....kccccccck....", "....kcyyyyyck....", ".....kcyyyck.....",
+  "......kcyck......", ".......kyk.......", "......kcyck......", ".....kcccyck.....", "....kcccyyyck....",
+  "....kcyyyyyyck...", "...knnnnnnnnk...", "...kkkkkkkkkk...", "", "",
+ ],
+ # ---------- 팀워크 ----------
+ 'rbaton': [  # 릴레이 바톤
+  "", "", "............kk..", "...........kllk.", "..........kllk..", ".........kllk...",
+  "........kwwk....", ".......kllk.....", "......kllk......", ".....kwwk.......", "....kllk........",
+  "...kllk.........", "..kllk..........", "..kkk...........", "", "",
+ ],
+ 'flag': [  # 괴도단의 깃발
+  "", "..kkkkkkkkkkk...", "..kkrrrrrrrrrk..", "..kkrwwrrrwwrrk.", "..kkrrwwrwwrrk..", "..kkrrrwwwrrrrk.",
+  "..kkrrwwrwwrrk..", "..kkrwwrrrwwrrk.", "..kkrrrrrrrrrk..", "..kkkkkkkkkkk...", "..kk............",
+  "..kk............", "..kk............", "..kk............", ".kkkk...........", "",
+ ],
 }
 
 
