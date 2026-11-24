@@ -95,6 +95,13 @@ COND = {'최상': 'fresh', '상쾌': 'fresh', '보통': 'normal', '지침': 'tir
 MEMS = ['MEM_SAVED', 'MEM_SPLASH', 'MEM_CRITFAIL', 'MEM_REAPER', 'MEM_JACKPOT', 'MEM_BOLD_WIN', 'MEM_BOLD_FAIL', 'MEM_CHOICE']
 
 
+def need(d, where):
+    """'필요 캐릭터' 칸 → 파티 조건 (쉼표·+·· 로 여러 명). 그 사람들이 파티에 있을 때만 나온다"""
+    ids = [name_id(x, where) for x in re.split(r'[,+·/]', s(d.get('필요 캐릭터'))) if x.strip()]
+    ids = [i for i in ids if i]
+    return [{'k': 'party', 'v': ids}] if ids else []
+
+
 def conds(text, where):
     out = []
     for tok in [t.strip() for t in SEP.split(s(text)) if t.strip()]:
@@ -300,7 +307,7 @@ def new_tabs(wb, out):
     for d in tab('혼잣말'):
         w = f"혼잣말 {d['_row']}행"; who = name_id(d['캐릭터'], w)
         if who and s(d['혼잣말']):
-            out['idle'].append({'who': who, 'n': s(d.get('딴짓 서술(선택)')), 'q': s(d['혼잣말']), 'c': conds(d.get('조건(선택)'), w)})
+            out['idle'].append({'who': who, 'n': s(d.get('딴짓 서술(선택)')), 'q': s(d['혼잣말']), 'c': conds(d.get('조건(선택)'), w) + need(d, w)})
     out['reaper'] = []
     for d in tab('거두는 자'):
         w = f"거두는 자 {d['_row']}행"; st = RSTAGE.get(s(d['단계']))
@@ -442,7 +449,7 @@ def main():
         if (who, k, t) in seen:
             unknown.append(f'{w}: 같은 대사가 이미 있어 건너뜀 "{t}"'); continue
         seen.add((who, k, t))
-        out['lines'].append({'who': who, 'k': k, 't': t, 'c': conds(d.get('조건(선택)'), w)})
+        out['lines'].append({'who': who, 'k': k, 't': t, 'c': conds(d.get('조건(선택)'), w) + need(d, w)})
     for d in rows(wb['단독행동']):
         w = f"단독행동 {d['_row']}행"
         who = name_id(d['캐릭터'], w)
@@ -450,7 +457,7 @@ def main():
             fx = d['효과']
             if '대실패(본인)' in s(fx) and s(d['캐릭터']) in SOLO_BALANCE:
                 fx = SOLO_BALANCE[s(d['캐릭터'])]
-            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(fx, w)})
+            out['solo'].append({'who': who, 'n': s(d['서술']), 'q': s(d['대사']), 'fx': effects(fx, w), 'c': need(d, w)})
     for d in rows(wb['쌍대사']):
         w = f"쌍대사 {s(d['ID'])}"
         a = name_id(d['캐릭터 A'], w); b = name_id(d['캐릭터 B'], w)

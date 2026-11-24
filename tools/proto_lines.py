@@ -28,13 +28,14 @@ lines = {}
 for l in S['lines']:
     if l['who'] in PARTY and ok(l.get('c')):
         tg = next((c['v'] for c in l.get('c') or [] if c.get('k') == 'target'), None)
-        lines.setdefault(l['who'], {}).setdefault(l['k'], []).append([l['t'], tg] if tg else l['t'])
+        nd = sorted({i for c in l.get('c') or [] if c.get('k') == 'party' for i in c['v']} - {l['who']})
+        lines.setdefault(l['who'], {}).setdefault(l['k'], []).append([l['t'], tg, nd] if (tg or nd) else l['t'])
 
 pairs = [{'a': p['a'], 'b': p['b'], 'qa': p['qa'], 'qb': p['qb'], 'end': p.get('end')}
          for p in S['pairs'] if p['a'] in PARTY and p['b'] in PARTY and ok(p.get('c'))]
 chem = [{'a': c['a'], 'b': c['b'], 'qa': c['qa'], 'qb': c['qb'], 'end': c.get('end')}
         for c in S['chem']['lines'] if c['a'] in PARTY and c['b'] in PARTY]
-solo = [{'who': x['who'], 'n': x['n'], 'q': x['q']} for x in S['solo'] if x['who'] in PARTY]
+solo = [{'who': x['who'], 'n': x['n'], 'q': x['q'], 'need': sorted({i for c in x.get('c') or [] if c.get('k') == 'party' for i in c['v']} - {x['who']})} for x in S['solo'] if x['who'] in PARTY]
 reaper = [x['t'] for x in S['reaper'] if not x.get('who')]
 
 data = {'lines': lines, 'pairs': pairs, 'chem': chem, 'solo': solo, 'reaper': reaper}
