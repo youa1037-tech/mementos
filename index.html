@@ -48,7 +48,7 @@ button:disabled{opacity:.35;cursor:default}
 .unit.ko{opacity:.35;transform:translateY(8px) rotate(-8deg)}.unit.ko img{animation:none}
 @keyframes bob{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .stage.walk .unit:not(.ko) img{animation:walk .32s steps(1,end) infinite}@keyframes walk{0%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
-.unit.lunge{animation:lunge .56s linear}@keyframes lunge{0%{transform:none}28%{transform:translateX(-9px) scale(.94,1.05) rotate(-4deg)}36%{transform:translateX(48px) scale(1.16,.92) skewX(-8deg)}62%{transform:translateX(42px) scale(1.06)}100%{transform:none}}/* 예비 동작 → 튀어나감(찌그러짐) → 맞는 순간 멈춤 → 복귀 */
+.unit.lunge{animation:lunge .56s linear}@keyframes lunge{0%{transform:none}28%{transform:translateX(-9px) scale(.94,1.05) rotate(-4deg)}36%{transform:translateX(92px) scale(1.16,.92) skewX(-8deg)}62%{transform:translateX(84px) scale(1.06)}100%{transform:none}}/* 예비 동작 → 튀어나감(찌그러짐) → 맞는 순간 멈춤 → 복귀 */
 .unit.cast img{animation:cast .5s steps(2,end)}@keyframes cast{50%{filter:drop-shadow(0 0 10px #fff) brightness(1.6)}}
 .unit.hop img{animation:hop .5s steps(4,end) 2}@keyframes hop{50%{transform:translateY(-12px)}}
 .unit.act:not(.ko) img{animation:bob .55s steps(1,end) infinite}
@@ -75,7 +75,7 @@ button:disabled{opacity:.35;cursor:default}
 .foe.boss .bd,.foe.reap .bd{animation-duration:2.4s}
 .stage .bg{display:none}@media (prefers-reduced-motion:reduce){.unit img,.foe .bd,.stage.quake{animation:none!important}}
 .foe.gone{visibility:hidden}
-.foe .nm{font:12px/1.15 var(--kr);margin-top:5px;text-align:center;word-break:keep-all}.foe .fr{position:absolute;top:-12px;left:2px;font:12px/1 var(--kr);color:var(--mut)}.foe .wk{font-size:12px;padding:1px 3px}
+.foe .wk{white-space:nowrap}.foe .nm{font:12px/1.15 var(--kr);margin-top:5px;text-align:center;word-break:keep-all}.foe .fr{position:absolute;top:-12px;left:2px;font:12px/1 var(--kr);color:var(--mut)}.foe .wk{font-size:12px;padding:1px 3px}
 .foe .hb{width:44px;height:5px;background:#3a2a2e;margin-top:3px}.foe .hb i{display:block;height:100%;background:var(--red)}
 .wk{font:12px/1 var(--kr);padding:2px 4px;margin-top:3px;background:#2a1e22;color:var(--mut)}
 .wk.k{color:#141012}
@@ -685,7 +685,7 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;cons
  if(s.sp)for(let k=0;k<cnt('battery');k++)if(chance(.3)){m.sp=Math.min(m.msp,m.sp+s.sp);log('배터리 팩: SP 환급');glow('battery');break}
  const bat=B.extra&&B.extra.baton;B.lastBat=bat?B.extra:null;B.extra=null;const f=target();
  if(s.type){act(m.id,'cast',520);/* 보조 스킬 */
-  if(s.type==='healAll'){for(const t of alive()){const v=Math.min(t.max-t.hp,s.pow);t.hp+=v;if(v)pop(t.id,'+'+v,'h');fxPlay('heal',unitSel(t.id),{foot:true})}say(m.id,'support');log(`${m.c.name}의 ${s.n}: 전원 HP +${s.pow}`);if(s.back)await shift(m,1)}
+  if(s.type==='healAll'){for(const t of alive()){const v=Math.min(t.max-t.hp,s.pow);t.hp+=v;if(v)pop(t.id,'+'+v,'h')}{const al=[...alive()].sort((a,b)=>a.row-b.row),mid=al[Math.floor(al.length/2)];if(mid)fxPlay('heal',unitSel(mid.id),{foot:true})}say(m.id,'support');log(`${m.c.name}의 ${s.n}: 전원 HP +${s.pow}`);if(s.back)await shift(m,1)}
   else if(s.type==='command'){log(`${m.c.name}의 ${s.n}: 이번 전투 공격력 +15%`);B.atk+=.15;await shift(m,-1)}
   else if(s.type==='taunt'){m.taunt=1;log(`${m.c.name}의 ${s.n}: 이번 턴 적의 공격을 끌어모은다`);say(m.id,'protect',alive().find(x=>x!==m)?.id)}
   else if(s.type==='stance'){m.stance=1;log(`${m.c.name}의 ${s.n}: 반격 자세`)}
@@ -885,22 +885,30 @@ function endRun(kind){try{localStorage.removeItem('mm-run')}catch(e){}const keep
    무대 위에 무대와 같은 해상도(1 CSS px = 이펙트 1픽셀, 캐릭터 도트와 비슷한 크기)의 캔버스를 겹친다. 속성마다 다른 효과 + 맞으면 스파크(약점·크리면 크게) + 쓰러지면 연기.
    히트스톱 동안은 이펙트도 멈춘다. 동작 줄이기 설정이면 끈다 */
 const RMQ=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-const FXC={cv:null,fr:null,img:null,list:[],last:0,run:false,ok:!!window.PXFX&&!RMQ};
+/* 두 겹: 작은 이펙트는 1픽셀 = 2 CSS px(캐릭터 도트와 같은 굵기), 원래 큰 이펙트는 1픽셀 = 1 CSS px */
+const FXC={L:[{s:2,cv:null,fr:null,img:null,list:[]},{s:1,cv:null,fr:null,img:null,list:[]}],last:0,run:false,ok:!!window.PXFX&&!RMQ};
 const EL_FX={물리:'slash',화염:'fire',빙결:'ice',전격:'zap',질풍:'wind',염동:'psy',핵열:'nuke',축복:'holy',주원:'curse'};
-const FX_STOP={fire:.8,ice:1,wind:.8,holy:1.1,curse:1.1,nuke:.9,psy:.9,heal:1.3};
-const FX_OPT={slash:{radius:26},fire:{height:84},wind:{height:70},heal:{reach:40},crit:{height:20}};/* 무대(높이 300px)에 맞춘 크기 */
+const FX_1X={nuke:1,psy:1,curse:1,holy:1,heal:1};
+const FX_PRE={fire:.42,holy:.48,curse:.3,ice:.12,psy:.15,heal:.1};/* 앞부분(예열)을 건너뛰어 맞는 순간에 터지게 */
+const FX_STOP={fire:.4,ice:.75,wind:.2,holy:.45,curse:.45,nuke:.55,psy:.45,heal:.55};/* 건너뛴 뒤 몇 초에 흐려지기 시작 */
+const FX_AT={slash:{dx:-14,dy:18},fire:{foot:1},ice:{foot:1,dy:4},wind:{foot:1},curse:{foot:1,dy:6},holy:{foot:1}};/* 이펙트별 위치 보정(CSS px) */
+const FX_OPT={slash:{radius:26},fire:{height:60},wind:{height:56},crit:{height:20}};
 const foeSel=i=>`.foe[data-a="sel:${i}"] .bd`,unitSel=id=>`.unit[data-u="${id}"] img`;
 function fxAt(sel){const st=$('.stage');if(!st)return null;const a=st.getBoundingClientRect();if(!sel)return {x:a.width/2,y:a.height/2,b:a.height};const e=st.querySelector(sel);if(!e)return null;const b=e.getBoundingClientRect();return {x:b.left+b.width/2-a.left,y:b.top+b.height/2-a.top,b:b.bottom-a.top}}
-function fxPlay(key,sel,o={}){if(!FXC.ok)return;const P=fxAt(sel),mod=PXFX.fx[key];if(!P||!mod)return;
- try{const f=PXFX.createFx(mod,{x:Math.round(P.x+(o.dx||0)),y:Math.round((o.foot?P.b:P.y)+(o.dy||0)),seed:R(1,9999),flip:!!o.flip,...(FX_OPT[key]||{}),...(o.opt||{})});f.stopAt=o.stop??FX_STOP[key]??null;FXC.list.push(f);fxLoop()}catch(e){}}
+function fxPlay(key,sel,o={}){if(!FXC.ok)return;const P=fxAt(sel),mod=PXFX.fx[key];if(!P||!mod)return;o={...(FX_AT[key]||{}),...o};
+ const Ly=FXC.L[FX_1X[key]?1:0],k=Ly.s,pre=o.pre??FX_PRE[key]??0;
+ try{const f=PXFX.createFx(mod,{x:Math.round((P.x+(o.dx||0))/k),y:Math.round(((o.foot?P.b:P.y)+(o.dy||0))/k),seed:R(1,9999),flip:!!o.flip,...(FX_OPT[key]||{}),...(o.opt||{})});
+  if(pre)f.update(pre);const sp=o.stop??FX_STOP[key];f.stopAt=sp!=null?pre+sp:null;Ly.list.push(f);fxLoop()}catch(e){}}
 function fxLoop(){if(FXC.run)return;FXC.run=true;FXC.last=performance.now();requestAnimationFrame(fxTick)}
-function fxTick(t){const st=$('.stage');if(!st||!FXC.list.length){FXC.run=false;FXC.list=[];if(FXC.cv)FXC.cv.getContext('2d').clearRect(0,0,FXC.cv.width,FXC.cv.height);return}
+function fxTick(t){const st=$('.stage'),any=FXC.L.some(L=>L.list.length);
+ if(!st||!any){FXC.run=false;for(const L of FXC.L){L.list=[];if(L.cv)L.cv.getContext('2d').clearRect(0,0,L.cv.width,L.cv.height)}return}
  let dt=Math.min(.05,Math.max(0,(t-FXC.last)/1000));FXC.last=t;if(ui.hs&&Date.now()-ui.hs<90)dt=0;
- const W=Math.max(1,Math.round(st.clientWidth)),H=Math.max(1,Math.round(st.clientHeight)),cv=FXC.cv||(FXC.cv=Object.assign(document.createElement('canvas'),{className:'fxcv'}));
- if(cv.width!==W||cv.height!==H||!FXC.fr){cv.width=W;cv.height=H;FXC.fr=PXFX.createFrame(W,H);FXC.img=new ImageData(W,H)}
- if(cv.parentNode!==st)st.appendChild(cv);
- try{PXFX.clearFrame(FXC.fr);for(const f of FXC.list){f.update(dt);if(f.stopAt&&f.t>f.stopAt&&!f._s){f._s=1;f.stop()}f.draw(FXC.fr)}
-  FXC.list=FXC.list.filter(f=>!f.done());PXFX.composite(FXC.fr,FXC.img.data,null);cv.getContext('2d').putImageData(FXC.img,0,0)}catch(e){FXC.list=[]}
+ for(const L of FXC.L){if(!L.list.length){if(L.cv&&L.cv.parentNode)L.cv.remove();continue}
+  const W=Math.max(1,Math.round(st.clientWidth/L.s)),H=Math.max(1,Math.round(st.clientHeight/L.s)),cv=L.cv||(L.cv=Object.assign(document.createElement('canvas'),{className:'fxcv'}));
+  if(cv.width!==W||cv.height!==H||!L.fr){cv.width=W;cv.height=H;L.fr=PXFX.createFrame(W,H);L.img=new ImageData(W,H)}
+  if(cv.parentNode!==st)st.appendChild(cv);
+  try{PXFX.clearFrame(L.fr);for(const f of L.list){f.update(dt);if(f.stopAt!=null&&f.t>f.stopAt&&!f._s){f._s=1;f.stop()}f.draw(L.fr)}
+   L.list=L.list.filter(f=>!f.done());PXFX.composite(L.fr,L.img.data,null);cv.getContext('2d').putImageData(L.img,0,0)}catch(e){L.list=[]}}
  requestAnimationFrame(fxTick)}
 /* ============ 연출 도우미 ============ */
 function flash(t,c=''){ui.fx={t,c};if(c==='g'||t==='BREAK')ui.quake=Date.now();render();setTimeout(()=>{ui.fx=null;render()},700)}
@@ -1008,7 +1016,7 @@ document.addEventListener('pointerdown',()=>{if(!BG_.ok){BG_.ok=true;bgmSync()}}
 function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen==='title')return A.innerHTML=vTitle();if(ui.screen==='manual')return A.innerHTML=vManual();if(ui.screen==='party'||ui.screen==='hub')return A.innerHTML=vHub();if(ui.screen==='result')return A.innerHTML=vHud()+vResult();
  const body=ui.screen==='story'?vStory():ui.screen==='battle'?vBattle():ui.screen==='event'?vEvent():ui.screen==='pick'?vPick():ui.screen==='bench'?vBench():ui.screen==='floor'?vFloor():vMap();
  A.innerHTML=vHud()+vStage()+`<div class="panel">${vParty()}${vSlots()}${body}${vLog()}</div>`;
- {const st=$('.stage');if(st){st.prepend(PX.cv);if(FXC.cv&&FXC.list.length)st.appendChild(FXC.cv)}}
+ {const st=$('.stage');if(st){st.prepend(PX.cv);for(const L of FXC.L)if(L.cv&&L.list.length)st.appendChild(L.cv)}}
  const l=$('.log');if(l)l.scrollTop=l.scrollHeight;runSave()}
 function vPartyGrid(sel){
  const els=[...new Set(sel.flatMap(id=>CH[id].sk.filter(s=>!s.type).map(s=>s.el)))],rec=[...new Set(sel.flatMap(id=>CH[id].rec))];
