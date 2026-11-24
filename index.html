@@ -289,6 +289,7 @@ details.card>summary{cursor:pointer;list-style:none;min-height:32px}details.card
 .nextu.ok{border-color:var(--gold)}.nextu.ok em{color:var(--gold)}
 .shopb{font-style:normal;font:400 12px var(--en);background:var(--red);color:#fff;padding:1px 6px;letter-spacing:.05em;animation:pulse 1.2s infinite}
 .tog .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}.scg{display:grid;grid-template-columns:1fr 1fr;gap:4px}.scc{background:var(--p2);padding:7px 8px;min-width:0}.scc small{display:block;font:11px/1.2 var(--en);color:var(--mut);letter-spacing:.04em}.scc b{display:block;font-size:13px;line-height:1.25;word-break:keep-all;margin-top:2px}.sce{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.sce .nx{display:inline-block;width:9px;height:9px;background:#3a2a2e}.sce .tog{padding:3px 6px;font-size:11px;min-height:0}
+.pk.awk{border-left-color:var(--c)}.pk.awk.on{background:#221a1e}.pk.awk .pxi{width:30px;height:auto;image-rendering:pixelated}.awb{font-style:normal;font-size:10px;padding:0 4px;background:var(--gold);color:#141012;vertical-align:1px}.fx b.awk{font:400 clamp(30px,9vw,46px)/1 var(--hd);color:#fff;background:#141012;padding:8px 16px;box-shadow:6px 6px 0 var(--red);transform:rotate(-4deg)}
 .tabs{gap:4px}.tabs .tog{flex:1;min-width:0;padding:9px 2px;position:relative;white-space:nowrap;font-size:13px}.tabs .tog .dot{position:absolute;top:4px;right:4px;margin:0}
 .card.sub{border-color:var(--gold)}.card.sub .en{color:var(--gold);font-size:13px;letter-spacing:.06em;margin-right:4px}
 .pk.risk,.slot.f.risk{border-color:#ff4fd8!important}.rk{color:#ff7ae3}.pk .price{font-family:var(--en);color:var(--gold);white-space:nowrap;align-self:center}
@@ -367,6 +368,19 @@ const CH={
   A('검의 춤','물리',15,0,[1,2],'한 칸 나가며 베기 · 크리티컬 40%',{adv:1,crit:.4}),A('코우가온','축복',18,6,[1,2,3],'축복 공격'),
   S_('브레이브 스텝','brave',5,[1,2,3],'이번 전투 파티 크리티컬 +20% · 한 칸 뒤로')]}};
 const IDS=Object.keys(CH);
+/* 각성 스킬: 르블랑에서 엔으로 여는 캐릭터별 필살기 (네 번째 스킬) */
+const AWK={
+ joker:{c:5000,s:A('마하에이가온','주원',15,14,[1,2,3],'적 전체 주원 공격',{all:1,awk:1})},
+ mona:{c:4000,s:S_('메디아라한','healAll',16,[1,2,3],'전원 HP 50 회복',{pow:50,el:'회복',awk:1})},
+ ryuji:{c:5000,s:A('갓 핸드','물리',42,0,[1],'1열 전용 초강타 · 크리티컬 25% · 자기 HP -8',{crit:.25,self:8,awk:1})},
+ ann:{c:5000,s:A('마하라기다인','화염',15,14,[1,2,3],'적 전체 화염 공격 + 화상(2턴 6 피해)',{all:1,dot:6,awk:1})},
+ yusuke:{c:5000,s:A('니플하임','빙결',36,14,[1,2,3],'적 1체에 강력한 빙결 공격',{awk:1})},
+ makoto:{c:5000,s:A('마하프레이다인','핵열',15,14,[1,2,3],'적 전체 핵열 공격',{all:1,awk:1})},
+ futaba:{c:6000,s:S_('얼티밋 서포트','ultsup',12,[1,2,3],'전원 HP +15 · 이번 전투 공격력 +20% · 크리티컬 +10%',{awk:1})},
+ haru:{c:5000,s:A('사이코 포스','염동',38,14,[1,2,3],'적 1체에 강력한 염동 공격',{awk:1})},
+ akechi:{c:6000,s:A('레바테인','물리',44,0,[1,2],'초강타 · 크리티컬 20% · 자기 HP -10',{crit:.2,self:10,awk:1})},
+ kasumi:{c:5000,s:A('마하코우가온','축복',15,14,[1,2,3],'적 전체 축복 공격',{all:1,awk:1})}};
+const awoke=id=>(SV.awk||[]).includes(id),chOf=id=>awoke(id)&&AWK[id]?{...CH[id],sk:[...CH[id].sk,AWK[id].s]}:CH[id];
 const SPR=.72;/* 무대 위 캐릭터 크기 (원본 대비) */
 /* 적: 유저 표 「적·보스·거두는 자 정리」 기준. tier n=일반 · e=정예, fl=나오는 층, row=선호 열, p=패턴 */
 const FOES={
@@ -441,9 +455,9 @@ for(const [T,o] of [[ITEMS,0],[EVO,0]])for(const [k,v] of Object.entries(T)){con
 const ROOM={start:{ic:'IN',n:'개찰구',en:'TICKET GATE'},battle:{ic:'S',n:'섀도 역',en:'SHADOW'},chest:{ic:'¥',n:'금고 차량',en:'VAULT CAR'},curio:{ic:'?',n:'수상한 역',en:'SUSPICIOUS'},bench:{ic:'V',n:'벨벳 룸 출장소',en:'VELVET ROOM'},boss:{ic:'!',n:'관문',en:'GATE'}};
 const RISK_MAX=16,RISK_HOT=12;/* 경계도: 16에서 거두는 자 (12부터 경고) */
 /* ============ 저장 (mm-core · 시제품 때 저장 mm-proto는 처음 한 번 이어받음) ============ */
-let SV={runs:0,wins:0,best:0,deep:0,weak:{},yen:0,unl:[],up:{bus:0,reroll:0,fund:0,warp:0},q:0,bond:{},set:{start:null,neg:false,bet:false}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-core')||localStorage.getItem('mm-proto')||'{}'))}catch(e){}
+let SV={awk:[],runs:0,wins:0,best:0,deep:0,weak:{},yen:0,unl:[],up:{bus:0,reroll:0,fund:0,warp:0},q:0,bond:{},set:{start:null,neg:false,bet:false}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-core')||localStorage.getItem('mm-proto')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('mm-core',JSON.stringify(SV))}catch(e){}};
-function svFix(){SV.up=Object.assign({bus:0,reroll:0,fund:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
+function svFix(){SV.awk=SV.awk||[];SV.up=Object.assign({bus:0,reroll:0,fund:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
 svFix();
 /* ============ 르블랑 메타: 판 밖의 돈은 세 군데에 쓴다 — ① 모나 버스 개조 ② 벨벳 룸 템 해금 ③ 유대(동료 둘) ============ */
 const LOCK={oil:3000,coat:3000,chip:3000,battery:3000,clock:3000,crack:3000,badge:4000,fuse:4000,express:5000,contra:5000,radio:5000,envelope:6000,dice:6000,mask:7000,seal:7000};/* 처음엔 잠긴 템과 해금 값 */
@@ -464,6 +478,7 @@ function nextUnlock(){const L=[];
  {const b=SV.up.bus||0;if((SV.q||0)>b&&b<2)L.push({n:`모나 버스 Lv.${b+2} — B${b+2} 선로 개방`,e:`MONA BUS LV.${b+2}`,c:UPG.bus.cost[b],t:'up'})}
  for(const k of Object.keys(SV.bond))if(bondReady(k)){const [a,b]=k.split('|'),x=SV.bond[k];L.push({n:`유대 ${CH[a].name}·${CH[b].name} ${x.lv+1}단계`,e:`BOND ${CH[a].code}·${CH[b].code} LV.${x.lv+1}`,c:BOND.cost[x.lv],t:'bond'})}
  for(const k of ['reroll','fund','warp'])if(upgOk(k))L.push({n:`${UPG[k].n} ${(SV.up[k]||0)+1}`,e:`${UPG[k].en} LV.${(SV.up[k]||0)+1}`,c:UPG[k].cost[SV.up[k]||0],t:'up'});
+ for(const id of IDS)if(!awoke(id))L.push({n:`각성 ${CH[id].name} 「${AWK[id].s.n}」`,e:`AWAKEN ${CH[id].code}`,c:AWK[id].c,t:'awk'});
  for(const [k,c] of Object.entries(LOCK))if(!SV.unl.includes(k))L.push({n:`템 해금 「${ITEMS[k].n}」`,e:'NEW ITEM',c,t:'pool'});
  if(!L.length)return null;const pr=L[0].t==='up'&&L[0].n.startsWith('모나')?L[0]:L.sort((a,b)=>a.c-b.c)[0];return {...pr,can:L.filter(x=>SV.yen>=x.c).length}}
 function vNext(){const x=nextUnlock();if(!x)return '';return `<button class="nextu ${SV.yen>=x.c?'ok':''}" data-a="ht:${x.t}"><b class="en">NEXT UNLOCK</b><span>${esc(x.n)}</span><em>¥${SV.yen.toLocaleString()} / ¥${x.c.toLocaleString()}</em>${x.can?`<i class="shopb">SHOP ${x.can}</i>`:''}</button>`}
@@ -511,7 +526,7 @@ function say(id,k,tg,ms=2200){const t=KEYS.has(k)?line(id,k,tg):k;/* 상황 키�
 /* ============ 판 시작 · 층 ============ */
 function newRun(ids){ids=[...ids].sort((a,b)=>CH[a].pref-CH[b].pref||CH[b].hp-CH[a].hp);/* 선호 열 순서로 1~3열 */
  const f0=Math.min(SV.set.warp||0,SV.up.warp||0,SV.q||0);
- Object.assign(G,{party:ids.map((id,i)=>({id,c:CH[id],hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
+ Object.assign(G,{party:ids.map((id,i)=>({id,c:chOf(id),hp:CH[id].hp,max:CH[id].hp,sp:CH[id].sp,msp:CH[id].sp,row:i+1})),
  fl:0,risk:0,yen:400*(SV.up.fund||0),items:[],kills:0,cmd:3,qk:0,log:[],bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,questHit:false,
  stats:{battles:0,maxMore:0,moreT:0,rooms:1,allout:0,showtime:0,evo:0,best:0,vault:0,weak:0,wins:0,quietGate:false,ko:0,bat:{}},auto:false,reroll:SV.up.reroll,curry:1,setup:{...SV.set},
  day:DAYS.find(d=>d.id===SV.today)||null,chain:null,combos:[],sub:subNow().id});
@@ -685,6 +700,7 @@ const powMul=bat=>{const B=G.battle,bx=bat&&B.lastBat?BOND.bat[bondOf(B.lastBat.
 async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;const s=m.c.sk[i];if(!canUse(m,s))return;ui.busy=true;m.sp-=s.sp;
  if(s.sp)for(let k=0;k<cnt('battery');k++)if(chance(.3)){m.sp=Math.min(m.msp,m.sp+s.sp);log('배터리 팩: SP 환급');glow('battery');break}
  const bat=B.extra&&B.extra.baton;B.lastBat=bat?B.extra:null;B.extra=null;const f=target();
+ if(s.awk){flash(s.n,'awk');fxPlay('charge',unitSel(m.id),{foot:true});await sleep(520)}
  if(s.type){act(m.id,'cast',520);/* 보조 스킬 */
   if(s.type==='healAll'){for(const t of alive()){const v=Math.min(t.max-t.hp,s.pow);t.hp+=v;if(v)pop(t.id,'+'+v,'h')}{const al=[...alive()].sort((a,b)=>a.row-b.row),mid=al[Math.floor(al.length/2)];if(mid)fxPlay('heal',unitSel(mid.id),{foot:true})}say(m.id,'support');log(`${m.c.name}의 ${s.n}: 전원 HP +${s.pow}`);if(s.back)await shift(m,1)}
   else if(s.type==='command'){fxPlay('charge',unitSel(m.id),{foot:true});log(`${m.c.name}의 ${s.n}: 이번 전투 공격력 +15%`);B.atk+=.15;await shift(m,-1)}
@@ -695,6 +711,7 @@ async function useSkill(i){const B=G.battle,m=actor();if(!m||ui.busy)return;cons
   else if(s.type==='scan'){for(const x of B.foes)if(x.hp>0)fxFoe(x,'scan');for(const x of B.foes)if(x.weak&&x.weak!=='rot'){x.seen=1;SV.weak[x.n]=1}save();log(`${m.c.name}의 ${s.n}: 적 전원의 약점이 드러났다!`);say(m.id,'find')}
   else if(s.type==='shield'){const t=[...alive()].sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];t.shield=(t.shield||0)+20;fxPlay('dshield',unitSel(t.id));log(`${m.c.name}의 ${s.n}: ${t.c.name} 실드 +20`)}
   else if(s.type==='wall'){B.wall=1;fxMid('rune',{foot:true});log(`${m.c.name}의 ${s.n}: 다음 적 공격을 되돌린다`)}
+  else if(s.type==='ultsup'){for(const t of alive()){const v=Math.min(t.max-t.hp,15);t.hp+=v;if(v)pop(t.id,'+'+v,'h');fxPlay('bless',unitSel(t.id),{foot:true})}B.atk+=.2;B.crit=(B.crit||0)+.1;log(`${m.c.name}의 ${s.n}: 전원 HP +15 · 공격력 +20% · 크리티컬 +10%`);say(m.id,'support')}
   else if(s.type==='brave'){B.crit=(B.crit||0)+.2;fxPlay('charge',unitSel(m.id),{foot:true});log(`${m.c.name}의 ${s.n}: 이번 전투 크리티컬 +20%`);await shift(m,1)}
   else if((s.type==='sleep'||s.type==='hack')&&f&&f.immune){log(`${f.n}: 상태이상 저항 — ${s.n} 실패`)}
   else if(s.type==='sleep'&&f){f.sleep=1;fxFoe(f,'sleep');log(`${m.c.name}의 ${s.n}: ${jo(f.n,"이","가")} 잠들었다`)}
@@ -974,7 +991,7 @@ function runSave(force,pend){if(!G.map||G.end||(!force&&(G.battle||ui.screen!=='
  day:G.day&&G.day.id,chain:G.chain&&{id:G.chain.c.id,st:G.chain.st,shown:G.chain.shown,done:G.chain.done},reaperMet:G.reaperMet,flBattles:G.flBattles,log:G.log.slice(-30),pend:pend||null}))}catch(e){}}
 const runSaved=()=>{try{return JSON.parse(localStorage.getItem('mm-run')||'null')}catch(e){return null}};
 function runLoad(){const d=runSaved();if(!d)return;const N=d.map.edges;
- Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:CH[x.id]})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
+ Object.assign(G,{...d,stats:Object.assign({vault:0,weak:0,wins:0,ko:0,quietGate:false,bat:{}},d.stats),qk:d.qk||0,party:d.party.map(x=>({...x,c:chOf(x.id)})),map:{...d.map,adj:i=>N.filter(e=>e.includes(i)).map(e=>e[0]===i?e[1]:e[0]),vis:new Set(d.map.vis),done:new Set(d.map.done)},
   day:DAYS.find(x=>x.id===d.day)||null,chain:d.chain?{...d.chain,c:SCRIPT.chains.find(c=>c.id===d.chain.id)}:null,bub:{},battle:null,ev:null,pick:null,end:null,cleared:false,floorDone:false,auto:false});
  if(G.chain&&!G.chain.c)G.chain=null;ui.screen='map';log('— 이어서 탐사한다 —');delete G.pend;const P=d.pend;
  if(P&&P.reaper)return startBattle('reaper');/* 새로고침해도 들어선 방은 다시 열린다 */
@@ -1021,8 +1038,8 @@ function render(){const A=$('#app');setTimeout(tutDraw,0);bgmSync();if(ui.screen
  {const st=$('.stage');if(st){st.prepend(PX.cv);for(const L of FXC.L)if(L.cv&&L.list.length)st.appendChild(L.cv)}}
  const l=$('.log');if(l)l.scrollTop=l.scrollHeight;runSave()}
 function vPartyGrid(sel){
- const els=[...new Set(sel.flatMap(id=>CH[id].sk.filter(s=>!s.type).map(s=>s.el)))],rec=[...new Set(sel.flatMap(id=>CH[id].rec))];
- const card=id=>{const c=CH[id],o=sel.indexOf(id);return `<button class="psc ${o>=0?'on':''}" style="--c:${c.col}" data-a="ps:${id}">${o>=0?`<i class="po">${o+1}</i>`:''}<img src="${IMG}sprites/${id}.png" width="${Math.round(c.w/2)}" alt=""><span><b>${c.code}</b> ${c.name}<small>${c.ax}</small><span class="els">${c.sk.filter(s=>!s.type).map(s=>`<i style="background:${EL[s.el]}">${(s.el)}</i>`).join('')}${id==='futaba'?'<i style="background:#c9b8ff">지원</i>':''}</span></span></button>`};
+ const els=[...new Set(sel.flatMap(id=>chOf(id).sk.filter(s=>!s.type).map(s=>s.el)))],rec=[...new Set(sel.flatMap(id=>CH[id].rec))];
+ const card=id=>{const c=CH[id],o=sel.indexOf(id);return `<button class="psc ${o>=0?'on':''}" style="--c:${c.col}" data-a="ps:${id}">${o>=0?`<i class="po">${o+1}</i>`:''}<img src="${IMG}sprites/${id}.png" width="${Math.round(c.w/2)}" alt=""><span><b>${c.code}</b> ${c.name}${awoke(id)?' <i class="awb">각성</i>':''}<small>${c.ax}</small><span class="els">${c.sk.filter(s=>!s.type).map(s=>`<i style="background:${EL[s.el]}">${(s.el)}</i>`).join('')}${id==='futaba'?'<i style="background:#c9b8ff">지원</i>':''}</span></span></button>`};
  return `<div class="psg">${IDS.map(card).join('')}</div>
  <div class="card"><b>찌를 수 있는 속성</b> ${els.length?els.map(e=>`<span class="wk k" style="background:${EL[e]}">${(e)}</span>`).join(' '):'—'}</div>`}
 /* 르블랑 다락방 장면 (예전 버전 그림 img/bg/attic-default.png 180×136 · 가구를 누르면 탭으로) */
@@ -1034,7 +1051,8 @@ function vAttic(){const av=Math.min(innerWidth||390,600)-24,sc=Math.max(1,Math.f
  return `<header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${SV.runs+1}</span></div><span class="hhr"><button class="hsv" data-a="ht:rec">SAVE</button><b class="hyen">¥${SV.yen}</b></span></header>
  <section class="hscene" aria-label="르블랑 다락방"><div class="hroom" style="width:${W}px;height:${H}px"><img class="hbg def" src="${IMG}bg/attic-default.png" alt="밤의 르블랑 다락방" draggable="false">${[1,2,3].filter(n=>(SV.q||0)>=n).map(n=>`<img class="htro" src="${IMG}props/trophy${n}.png" style="left:${(77+n*6)/ATTIC.w*100}%;top:${74/ATTIC.h*100}%;width:${7/ATTIC.w*100}%" alt="의뢰 ${n} 전리품" title="${esc(QUESTS[n-1].n)}">`).join('')}${spots}${people}<i class="hlight" aria-hidden="true"></i></div></section>`}
 function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.yen>=UPG[k].cost[SV.up[k]||0]),canPool=Object.entries(LOCK).some(([k,c])=>!SV.unl.includes(k)&&SV.yen>=c),canBond=Object.keys(SV.bond).some(k=>bondReady(k)&&SV.yen>=BOND.cost[SV.bond[k].lv]);
- const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['scene','장면'],['rec','기록']];
+ const canAwk=IDS.some(id=>!awoke(id)&&SV.yen>=AWK[id].c);
+ const tabs=[['go','출발'],['up','버스',canUp],['pool','해금',canPool],['bond','유대',canBond],['awk','각성',canAwk],['scene','장면'],['rec','기록']];
  let body='';
  const dy=DAYS.find(d=>d.id===SV.today);const dayCard=dy?`<div class="card" style="border-color:var(--gold)"><b class="en" style="color:var(--gold)">TODAY · ${esc(dy.en||'')}</b> <b>${esc(dy.name)}</b><br><small>${esc(DAYRULE[dy.id].t)}</small></div>`:'';
  if(t==='go'){const sel=ui.ps||(ui.ps=(SV.last&&SV.last.length===3?SV.last:['ryuji','joker','mona']).slice()),cost=(SV.set.start?SET_START:0)+(SV.set.bet?SET_BET:0),sb=subNow(),wmax=Math.min(SV.up.warp||0,SV.q||0);
@@ -1050,6 +1068,7 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   body=`<p class="tip">함께 싸운 두 사람 사이에 바톤을 넘기면 유대가 쌓입니다(함께 살아 돌아오면 +1). 쌓이면 르블랑에서 시간을 보내 단계를 올리세요. 1단계 장면 · 2단계 바톤 +10% · 3단계 바톤 +25% · 둘째 장면</p>
   ${V?`<div class="dlg"><span class="who">BOND</span>${V}</div>`:''}
   <div class="pick">${K.length?K.map(k=>{const [a,b]=k.split('|'),x=SV.bond[k],need=BOND.need[x.lv],c=BOND.cost[x.lv];return `<div class="pk"><span class="ic" style="font-size:12px;width:auto">${CH[a].code}<br>${CH[b].code}</span><span style="flex:1"><b>${CH[a].name} · ${CH[b].name}</b> <span class="tg">${x.lv}단계</span><small>${x.lv<3?`바톤 ${Math.min(x.n,need)}/${need}`:'최고 단계'}${BOND.bat[x.lv]?` · 바톤 +${BOND.bat[x.lv]*100}%`:''}</small><div class="bar"><i style="width:${x.lv<3?Math.min(100,x.n/need*100):100}%"></i></div></span>${x.lv?`<button class="tog" data-a="bsee:${k}">장면</button>`:''}${x.lv<3?`<button class="tog" data-a="bond:${k}" ${x.n>=need&&SV.yen>=c?'':'disabled'}>${x.n>=need?`¥${c}`:'더 싸우기'}</button>`:''}</div>`}).join(''):'<p class="tip">아직 쌓인 유대가 없습니다. 전투에서 1 MORE 때 바톤을 넘겨 보세요.</p>'}</div>`}
+ if(t==='awk')body=`<p class="tip">동료의 필살기를 엽니다. 연 뒤로는 그 동료를 데려가면 전투에서 네 번째 스킬로 쓸 수 있습니다.</p><div class="pick">${IDS.map(id=>{const c=CH[id],x=AWK[id],k=x.s,on=awoke(id);return `<div class="pk awk ${on?'on':''}" style="--c:${c.col}"><img class="pxi" src="${IMG}sprites/${id}.png" alt=""><span style="flex:1;min-width:0"><b>${esc(k.n)}</b> <span class="tg">${k.type?'보조':k.el}${k.all?' 전체':''}</span><small><b class="en" style="color:${c.col};font-size:11px">${c.code}</b> ${c.name} · ${k.sp?`SP ${k.sp} · `:''}${esc(k.d)}</small></span>${on?'<span class="tg">각성</span>':`<button class="tog" data-a="awk:${id}" ${SV.yen>=x.c?'':'disabled'}>¥${x.c}</button>`}</div>`}).join('')}</div>`;
  if(t==='scene'){const sc=SV.scenes||[],cx=SV.chains||{},C=SCRIPT.combos||[],seen=C.reduce((n,x)=>n+x.ch.filter((_,i)=>sc.includes(x.id+':'+(i+1))).length,0),tot=C.reduce((n,x)=>n+x.ch.length,0);
   const V=ui.sv&&C.find(x=>x.id===ui.sv.id),Q=(id,q)=>q&&CH[id]?`<q><b style="color:${CH[id].col}">${CH[id].name}</b> ${esc(q)}</q>`:'';
   body=`<p class="tip">조합 사건 결말 ${seen} / ${tot} · 사슬 ${Object.values(cx).filter(v=>v>=3).length} / ${SCRIPT.chains.length}</p>
@@ -1167,7 +1186,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  if(a==='setneg'){SV.set.neg=!SV.set.neg;save();return render()}
  if(a==='setbet'){SV.set.bet=!SV.set.bet;save();return render()}
  if(a==='setstart'){SV.set.start=SV.set.start===v?null:v;save();return render()}
- if(a==='unl'){if(SV.yen>=LOCK[v]&&!SV.unl.includes(v)){SV.yen-=LOCK[v];SV.unl.push(v);save()}return render()}
+ if(a==='awk'){const x=AWK[v];if(x&&!awoke(v)&&SV.yen>=x.c){SV.yen-=x.c;SV.awk.push(v);save()}return render()}
+  if(a==='unl'){if(SV.yen>=LOCK[v]&&!SV.unl.includes(v)){SV.yen-=LOCK[v];SV.unl.push(v);save()}return render()}
  if(a==='upg'){const c=UPG[v].cost[SV.up[v]||0];if(c&&SV.yen>=c){SV.yen-=c;SV.up[v]=(SV.up[v]||0)+1;save()}return render()}
  if(a==='bond'){const x=SV.bond[v];if(x&&bondReady(v)&&SV.yen>=BOND.cost[x.lv]){SV.yen-=BOND.cost[x.lv];x.lv++;save();ui.bs=v}return render()}
  if(a==='bsee'){ui.bs=ui.bs===v?null:v;return render()}
