@@ -725,7 +725,7 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .pchip.on{background:var(--ink);color:#141012;border-color:var(--ink)}
 .polx{margin:4px 0 10px;font-size:13px;color:var(--mut);line-height:1.5}.polx b{color:var(--ink);font-weight:700}
 /* ===== 르블랑 다락방 허브 ===== */
-.hub{max-width:600px;margin:0 auto;padding:12px 12px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;height:100svh;min-height:560px;box-sizing:border-box}
+.hub{max-width:600px;margin:0 auto;padding:12px 12px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;min-height:100svh;box-sizing:border-box}/* 넘치면 잘리지 않고 스크롤 */
 .hhd{display:flex;align-items:baseline;justify-content:space-between;padding:2px 6px}
 .hhd b{font-family:var(--en);font-weight:400;font-size:24px;letter-spacing:.04em}.hhd span{font-family:var(--en);font-size:15px;color:var(--mut);letter-spacing:.04em}
 .hhd .hyen{font-family:var(--disp);font-size:18px;color:var(--gold)}
@@ -734,17 +734,20 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .hroom{position:relative;margin:0 auto}
 .hbg{position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-drag:none}.hbg.def{image-rendering:pixelated}
 .hspot{position:absolute;display:block;border:0;background:none;padding:0;min-width:44px;min-height:44px}
-.hspot .hl{position:absolute;left:0;bottom:-2px;font-family:var(--en);font-size:12px;letter-spacing:.05em;background:rgba(13,11,18,.85);color:var(--ink);padding:1px 6px;white-space:nowrap}
-.hspot:hover .hl,.hspot:focus-visible .hl{background:var(--red)}
+.hspot{cursor:pointer;transition:background .15s}.hspot:hover{background:rgba(255,200,120,.10);outline:1px dashed rgba(255,214,150,.45);outline-offset:-1px}
 .hspot:focus-visible{outline:2px solid #fff;outline-offset:-2px}
 .hprop{position:absolute;width:34px;height:34px;transform:translate(-50%,-50%);display:block}.hprop svg{width:100%;height:100%;filter:drop-shadow(0 2px 0 rgba(0,0,0,.55))}
 .hprop.empty{width:44px;height:44px;border:0;background:none;color:var(--ink);font-family:var(--en);font-size:15px;padding:0}.hprop.empty::before{content:'';position:absolute;inset:8px;border:2px dashed rgba(246,241,234,.7);background:rgba(13,11,18,.45);z-index:-1}
 .hprop.empty{isolation:isolate}.hprop.empty:hover,.hprop.empty:focus-visible{color:var(--gold)}.hprop.empty:hover::before,.hprop.empty:focus-visible::before{border-color:var(--gold)}
-.hman{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0 4px;min-width:44px;min-height:44px}
-.hman .art{display:block;filter:drop-shadow(0 3px 0 rgba(0,0,0,.5))}
+.hman{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border:0;background:none;padding:0 4px;min-width:44px;min-height:44px;z-index:2}
+.hman .art{position:relative;z-index:1;display:block;filter:sepia(.18) brightness(.9) contrast(.95)}/* 다락방 조명 톤 */
+.hman .hshd{position:absolute;left:50%;bottom:-3px;width:72%;max-width:44px;height:8px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.45);filter:blur(1.5px);z-index:0}
+.hman.on{z-index:5}
+.hlight{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 32%,rgba(255,176,90,.10),transparent 70%),radial-gradient(ellipse 85% 80% at 50% 50%,transparent 55%,rgba(12,6,10,.42) 100%)}/* 램프 빛 + 비네팅: 캐릭터도 같은 조명 안에 */
 .hman .hph{display:block;width:40px}.hman .hph svg{width:100%;height:auto}
-.hman .hcode{font-family:var(--en);font-size:11px;letter-spacing:.04em;color:var(--c);background:rgba(13,11,18,.8);padding:0 4px;margin-top:1px}
-.hmark{position:absolute;top:-24px;width:20px;height:20px;background:var(--ink);color:var(--ink2,#141012);font-family:var(--en);font-size:14px;line-height:20px;text-align:center}
+.hman .hcode{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-family:var(--en);font-size:11px;letter-spacing:.04em;color:var(--c);background:rgba(13,11,18,.85);padding:0 4px;white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none}
+.hman:hover .hcode,.hman:focus-visible .hcode,.hman.on .hcode{opacity:1}/* 이름표는 누르거나 올렸을 때만 */
+.hmark{position:absolute;top:-14px;z-index:2;width:12px;height:13px;background:var(--ink);color:var(--ink2,#141012);font-family:var(--en);font-size:10px;line-height:13px;text-align:center}
 .hman:not(:hover) .hmark{animation:hbob 1.6s steps(2) infinite}
 @keyframes hbob{50%{transform:translateY(-3px)}}
 .hsay{position:absolute;bottom:calc(100% + 6px);width:max-content;max-width:180px;background:var(--ink);color:#141012;font-size:13px;line-height:1.4;padding:6px 9px;border-radius:9px;text-align:left;z-index:3;white-space:normal}
@@ -752,7 +755,12 @@ body{background-image:radial-gradient(120% 50% at 50% -10%,#3d0a0e 0,transparent
 .hman:focus-visible{outline:2px solid #fff}
 .hpan{margin:-4px 0 0;text-align:center;font-size:12px;color:var(--faint)}
 .hday{background:var(--ink);color:#141012;padding:10px 12px;display:grid;gap:2px}.hday small{font-family:var(--en);letter-spacing:.05em;color:var(--red2)}.hday b{font-size:16px}.hday p{margin:0;font-size:14px}.hday .lnk{justify-self:start;color:#141012}
-.hlog{background:var(--p);border:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-height:96px;overflow-y:auto}/* 남는 높이를 로그가 채움 (페이지 스크롤 없음) */
+.hlog{background:var(--p);border:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:none}/* 접힌 3줄 요약 · 펼치면 페이지가 길어짐 (잘림 없음) */
+.hlog .hlmore{align-self:flex-start;min-height:36px;padding:0}
+.hnav{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:-4px}
+.hnav button{min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 2px;background:var(--p);border:1px solid var(--line);color:var(--ink)}
+.hnav b{font-family:var(--en);font-weight:400;font-size:13px;letter-spacing:.05em}.hnav small{font-size:11px;color:var(--mut)}
+.hnav button:hover,.hnav button:focus-visible,.hnav button[aria-pressed="true"]{border-color:var(--red);background:var(--p2)}
 .hlh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.hlh b{font-family:var(--en);font-weight:400;letter-spacing:.05em}.hlh small{font-size:12px;color:var(--faint);text-align:right}
 .hlog p{margin:0;font-size:14px;line-height:1.5}.hlog p b{font-family:var(--en);font-weight:400;margin-right:6px;letter-spacing:.03em}.hlog p.n{font-size:13px;color:var(--faint)}
 .hact{margin-top:auto;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
@@ -2220,33 +2228,37 @@ const HUB_SPOTS={
  custom:{desk:[36,45,15,22],codex:[83,48,7,16],shop:[89,38,11,44],window:[52,37,30,19],tv:[0,40,10,24],
   stand:[[24,80],[33,82],[47,76],[74,80],[60,90]],props:{game:[10,76],tea:[44,61],easel:[62,66],cushion:[40,92],dart:[29,38]}},
  def:{desk:[1,57,24,27],codex:[2,33,15,26],shop:[81,31,16,37],window:[35,20,29,27],tv:[23,47,12,14],stairs:[66,67,34,33],
-  stand:[[30,72],[46,70],[62,72],[38,93],[58,94]],props:{game:[30,63],tea:[54,79],easel:[76,62],cushion:[20,95],dart:[71,26]}}};
+  stand:[[24,87],[43,94],[63,92]],/* 빈 바닥만: 책상 앞 · 탁자 앞 러그 아래 · 계단 앞 (가구를 밟지 않게) */props:{game:[30,63],tea:[54,79],easel:[76,62],cushion:[20,95],dart:[71,26]}}};
 const HUB_LBL={desk:['DESK','지난 판 보고'],codex:['CODEX','도감'],shop:['SHOP','상점'],window:['TODAY','오늘의 메멘토스'],tv:['MENU','타이틀 · 설정'],stairs:['DEPLOY','출발']};
 const HUB_ACT={desk:'desk',codex:'go:codex',shop:'go:shop',window:'hubday',tv:'go:main',stairs:'again'};
 function hubBg(){const c=ART[BG.custom],d=ART[BG.def];return c?{k:'custom',src:BG.custom,...c}:d?{k:'def',src:BG.def,...d}:null}
-function hubCast(){const h=S.hub||{},ids=[...(h.ids||[])],rest=CHARS.map(c=>c.id).filter(id=>!ids.includes(id)),sd=(S.codex.reports||0)*7;
- for(let i=0;i<2&&rest.length;i++)ids.push(rest.splice((sd+i*3)%rest.length,1)[0]);return ids}/* 지난 판 3명 + 그날 다락방에 있는 2명 */
+function hubCast(){const h=S.hub||{},ids=(h.ids||[]).filter(id=>CH[id]).slice(0,3);return ids.length?ids:['joker','mona','ryuji']}/* 지난 판 파티 3명만 (처음엔 추천 3인) */
 function hubLine(id){const h=S.hub||{},mine=(h.after||[]).filter(l=>l.who===id),N=ui.hubN||(ui.hubN={}),n=N[id]||0;N[id]=n+1;return mine[n]?mine[n].q:say(CH[id],'chat')}
 function vHub(){const bg=hubBg(),h=S.hub||{},cast=hubCast(),sp=HUB_SPOTS[bg?bg.k:'def'];
  if(ui.hubK!==h.k){ui.hubK=h.k;ui.hubRead=[];ui.hubSay=null;ui.hubN={};ui.hubX=null}
  if(!ui.hubSz||ui.hubSz.w!==(innerWidth||390))ui.hubSz={w:innerWidth||390,h:Math.round(clamp((innerHeight||800)*.48,300,420))};/* 주소창이 숨고 나타나며 높이가 바뀌어도 방 크기는 그대로 (폭이 바뀔 때만 다시) */
  const av=Math.min(ui.hubSz.w,600)-24,H0=ui.hubSz.h,ar=bg?bg.w/bg.h:.93,pan=!!bg&&bg.k==='custom'&&H0*ar>av+40,Wd=pan?Math.round(H0*ar):av,H=pan?H0:Math.round(av/ar);/* 넓은 직접 넣은 그림만 옆으로 밀어서 둘러보기, 기본 그림은 폭에 맞춤 */
  const box=a=>`left:${a[0]}%;top:${a[1]}%;width:${a[2]}%;height:${a[3]}%`,dy=unl('day')&&SCRIPT.days.find(d=>d.id===S.today);
- const spots=Object.keys(HUB_LBL).filter(k=>sp[k]&&(k!=='window'||dy)).map(k=>`<button class="hspot ${k}" style="${box(sp[k])}" data-act="${HUB_ACT[k]}" aria-label="${HUB_LBL[k][1]}"><span class="hl">${HUB_LBL[k][0]}</span></button>`).join('');
+ const navK=['desk','codex','shop','window','tv'].filter(k=>(k!=='window'||dy)&&(k!=='desk'||S.lastRes));
+ const spots=navK.filter(k=>sp[k]).map(k=>`<button class="hspot ${k}" style="${box(sp[k])}" data-act="${HUB_ACT[k]}" aria-label="${HUB_LBL[k][1]}"></button>`).join('');/* 방 안 가구는 라벨 없는 탭 자리. 메뉴는 아래 hnav */
+ const nav=`<nav class="hnav" aria-label="다락방 메뉴">${navK.map(k=>`<button data-act="${HUB_ACT[k]}" aria-pressed="${k==='window'?!!ui.hubDay:false}"><b>${HUB_LBL[k][0]}</b><small>${HUB_LBL[k][1].split(' · ')[0]}</small></button>`).join('')}</nav>`;
  const props=Object.entries(sp.props).map(([id,[x,y]])=>{const p=PROPS.find(q=>q.id===id);if(!p)return '';
   return S.props.includes(id)?`<span class="hprop" style="left:${x}%;top:${y}%" role="img" aria-label="${esc(p.name)}"><svg viewBox="0 0 60 60" aria-hidden="true">${p.svg}</svg></span>`
    :`<button class="hprop empty" style="left:${x}%;top:${y}%" data-act="go:shop" aria-label="빈 소품 자리 · ${esc(p.name)} (상점)">+</button>`}).join('');
- const people=cast.map((id,i)=>{const c=CH[id],[x,y]=sp.stand[i%sp.stand.length],unread=!(ui.hubRead||[]).includes(id),q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';
+ const marked=cast.filter(id=>!(ui.hubRead||[]).includes(id)&&(h.after||[]).some(l=>l.who===id)).slice(0,2);/* ! 는 새 대사가 있는 최대 2명만 */
+ const people=cast.map((id,i)=>{const c=CH[id],[x,y]=sp.stand[i%sp.stand.length],unread=marked.includes(id),q=ui.hubSay&&ui.hubSay.id===id?ui.hubSay.q:'';
   const body=artOf('sprites',id)?art('sprites',id,Math.round(H*(bg&&bg.k==='custom'?.26:.15)),'stand'):`<span class="hph">${emb(id,c.col)}</span>`;
-  return `<button class="hman" style="left:${x}%;top:${y}%;--c:${c.col}" data-act="htalk:${id}" aria-label="${c.name}${unread?' · 할 말 있음':''}">${q?`<span class="hsay">${esc(q)}</span>`:unread?'<span class="hmark">!</span>':''}${body}<span class="hcode">${c.code}</span></button>`}).join('');
+  return `<button class="hman ${q?'on':''}" style="left:${x}%;top:${y}%;--c:${c.col}" data-act="htalk:${id}" aria-label="${c.name}${unread?' · 할 말 있음':''}">${q?`<span class="hsay">${esc(q)}</span>`:unread?'<span class="hmark">!</span>':''}<i class="hshd" aria-hidden="true"></i>${body}<span class="hcode">${c.code}</span></button>`}).join('');
  const act=S.props.filter(id=>sp.props[id]).slice(0,2).map((id,i)=>{const p=PROPS.find(q=>q.id===id),w=CH[cast[(i+3)%cast.length]];return `<p class="n">— ${ig(w.name)} ${esc(p.name)} 앞을 차지했다</p>`}).join('');
- const lg=(h.after||[]).filter(l=>l.who||l.n).slice(0,8).map(l=>l.who?`<p><b style="color:${CH[l.who].col}">${CH[l.who].code}</b>${esc(l.q)}</p>`:`<p class="n">${esc(l.n)}</p>`).join('')+act;
+ const LG=(h.after||[]).filter(l=>l.who||l.n).slice(0,8),lgOpen=!!ui.hubLog,more=LG.length-3;
+ const lg=(lgOpen?LG:LG.slice(0,3)).map(l=>l.who?`<p><b style="color:${CH[l.who].col}">${CH[l.who].code}</b>${esc(l.q)}</p>`:`<p class="n">${esc(l.n)}</p>`).join('')+(lgOpen||more<=0?act:'');
  const ids=h.ids||[],again=S.tut&&ids.length===3;
  return `<main class="hub"><header class="hhd"><div><b>LEBLANC</b> <span>ATTIC · DAY ${(S.codex.reports||0)+1}</span></div><b class="hyen">¥${fmt(S.yen)}</b></header>
- <section class="hscene${pan?' pan':''}" id="hscene" aria-label="르블랑 다락방${pan?' · 옆으로 밀어서 둘러보기':''}"><div class="hroom" style="width:${Wd}px;height:${H}px">${bg?`<img class="hbg ${bg.k}" src="${bg.src}" alt="밤의 르블랑 다락방" draggable="false">`:''}${spots}${props}${people}</div></section>
+ <section class="hscene${pan?' pan':''}" id="hscene" aria-label="르블랑 다락방${pan?' · 옆으로 밀어서 둘러보기':''}"><div class="hroom" style="width:${Wd}px;height:${H}px">${bg?`<img class="hbg ${bg.k}" src="${bg.src}" alt="밤의 르블랑 다락방" draggable="false">`:''}${spots}${props}${people}<i class="hlight" aria-hidden="true"></i></div></section>
+ ${nav}
  ${pan?'<p class="hpan" aria-hidden="true">← 밀어서 둘러보기 →</p>':''}
  ${ui.hubDay&&dy?`<aside class="hday"><small>TODAY'S MEMENTOS</small><b>${esc(dy.name)}</b><p>${esc(dy.rule)}</p><button class="lnk sm" data-act="hubday">닫기</button></aside>`:''}
- <section class="hlog" aria-label="다락방 로그"><div class="hlh"><b>LOG</b><small>${h.grade?`지난 판 ${h.grade} · ¥${fmt(h.inc||0)} · 보물 ${h.tre||0}`:'귀환 후 수다'}</small></div>${lg||'<p class="n">— 아직 조용하다</p>'}</section>
+ <section class="hlog ${lgOpen?'open':''}" aria-label="다락방 로그"><div class="hlh"><b>LOG</b><small>${h.grade?`지난 판 ${h.grade} · ¥${fmt(h.inc||0)} · 보물 ${h.tre||0}`:'귀환 후 수다'}</small></div>${lg||'<p class="n">— 아직 조용하다</p>'}${more>0||(act&&!lgOpen)?`<button class="lnk sm hlmore" data-act="hublog" aria-expanded="${lgOpen}">${lgOpen?'접기 ▴':`전체 보기 ▾${more>0?` (${more}줄 더)`:''}`}</button>`:''}</section>
  <div class="hact"><button class="hgo" data-act="again"><span><b>DEPLOY</b><small>${again?`같은 파티로 · ${ids.map(i=>CH[i].code).join(' · ')}`:'파티를 골라 출발'}</small></span><i aria-hidden="true">›</i></button>
  <button class="btn ghost sm" data-act="go:party">PARTY</button></div>${vTip()}</main>`}
 /* 귀환 보고 책상 (결과 화면 윗부분): 폴라로이드 · 이번 판 배지 · 영수증 · 등급 도장 · MVP 쪽지 */
@@ -2733,6 +2745,7 @@ $('#app').addEventListener('click',e=>{
  if(a==='start'&&ui.sel.length===3&&!ui.doorBusy){ui.doorBusy=true;doors(()=>{ui.doorBusy=false;startSel()});return}
  if(a==='desk'){if(S.lastRes){ui.res={...S.lastRes,shown:true};ui.copy='';ui.screen='result';ui.enter=true;render();window.scrollTo(0,0)}return}
  if(a==='hubday'){ui.hubDay=!ui.hubDay;render();return}
+ if(a==='hublog'){ui.hubLog=!ui.hubLog;render();return}
  if(a==='htalk'){const R0=ui.hubRead||(ui.hubRead=[]);if(!R0.includes(v))R0.push(v);ui.hubSay={id:v,q:hubLine(v)};sfx('talk');render();return}
  if(a==='move'){move(v);return}
  if(a==='choice'){choose(+v);return}
