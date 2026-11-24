@@ -457,7 +457,7 @@ const RISK_MAX=16,RISK_HOT=12;/* 경계도: 16에서 거두는 자 (12부터 경
 /* ============ 저장 (mm-core · 시제품 때 저장 mm-proto는 처음 한 번 이어받음) ============ */
 let SV={awk:[],runs:0,wins:0,best:0,deep:0,weak:{},yen:0,unl:[],up:{bus:0,reroll:0,fund:0,warp:0},q:0,bond:{},set:{start:null,neg:false,bet:false}};try{Object.assign(SV,JSON.parse(localStorage.getItem('mm-core')||localStorage.getItem('mm-proto')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('mm-core',JSON.stringify(SV))}catch(e){}};
-function svFix(){SV.awk=SV.awk||[];SV.up=Object.assign({bus:0,reroll:0,fund:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
+function svFix(){SV.awk=SV.awk||[];SV.up=Object.assign({bus:0,reroll:0,fund:0,disc:0,warp:0},SV.up);SV.set=Object.assign({start:null,neg:false,bet:false,warp:0},SV.set);SV.unl=SV.unl||[];SV.bond=SV.bond||{};SV.q=SV.q||0;SV.weak=SV.weak||{};delete SV.st}/* 예전 저장(스트레스 · 작업대 개조)을 새 구조로 */
 svFix();
 /* ============ 르블랑 메타: 판 밖의 돈은 세 군데에 쓴다 — ① 모나 버스 개조 ② 벨벳 룸 템 해금 ③ 유대(동료 둘) ============ */
 const LOCK={oil:3000,coat:3000,chip:3000,battery:3000,clock:3000,crack:3000,badge:4000,fuse:4000,express:5000,contra:5000,radio:5000,envelope:6000,dice:6000,mask:7000,seal:7000};/* 처음엔 잠긴 템과 해금 값 */
@@ -465,6 +465,7 @@ const unlocked=id=>!(id in LOCK)||SV.unl.includes(id);
 const UPG={bus:{n:'모나 버스 개조',d:'Lv.2: B2로 가는 막힌 선로를 뚫는다 · Lv.3: B3 최심부로 내려가는 선로를 뚫는다',cost:[5500,12000]},
  reroll:{n:'3지선다 리롤',en:'REROLL',d:'판마다 템 3지선다를 다시 뽑을 수 있는 횟수 +1',cost:[3000,6000]},
  fund:{n:'출발 자금',en:'STARTING FUNDS',d:'판마다 ¥400을 들고 출발 (출장소에서 쓸 돈)',cost:[2000,4000]},
+ disc:{n:'출장소 할인',en:'DISCOUNT',d:'벨벳 룸 출장소의 템 · 휴식 · 진열 바꾸기 값 Lv1 -10% · Lv2 -20%',cost:[3500,7000]},
  warp:{n:'선로 직행',en:'EXPRESS LINE',d:'Lv1: B2부터 출발 (의뢰 1 완료) · Lv2: B3부터 출발 (의뢰 2 완료)',cost:[6000,10000],need:[1,2]}};
 const upgOk=k=>{const U=UPG[k],lv=SV.up[k]||0;return U.cost[lv]!=null&&(!U.need||(SV.q||0)>=U.need[lv])};
 /* 유대: 전투에서 두 사람 사이에 바톤을 넘긴 횟수가 쌓이고, 르블랑에서 엔을 써서 함께 시간을 보내면 단계가 오른다.
@@ -477,7 +478,7 @@ const bondReady=k=>{const x=SV.bond[k]||{n:0,lv:0};return x.lv<3&&x.n>=BOND.need
 function nextUnlock(){const L=[];
  {const b=SV.up.bus||0;if((SV.q||0)>b&&b<2)L.push({n:`모나 버스 Lv.${b+2} — B${b+2} 선로 개방`,e:`MONA BUS LV.${b+2}`,c:UPG.bus.cost[b],t:'up'})}
  for(const k of Object.keys(SV.bond))if(bondReady(k)){const [a,b]=k.split('|'),x=SV.bond[k];L.push({n:`유대 ${CH[a].name}·${CH[b].name} ${x.lv+1}단계`,e:`BOND ${CH[a].code}·${CH[b].code} LV.${x.lv+1}`,c:BOND.cost[x.lv],t:'bond'})}
- for(const k of ['reroll','fund','warp'])if(upgOk(k))L.push({n:`${UPG[k].n} ${(SV.up[k]||0)+1}`,e:`${UPG[k].en} LV.${(SV.up[k]||0)+1}`,c:UPG[k].cost[SV.up[k]||0],t:'up'});
+ for(const k of ['reroll','fund','disc','warp'])if(upgOk(k))L.push({n:`${UPG[k].n} ${(SV.up[k]||0)+1}`,e:`${UPG[k].en} LV.${(SV.up[k]||0)+1}`,c:UPG[k].cost[SV.up[k]||0],t:'up'});
  for(const id of IDS)if(!awoke(id))L.push({n:`각성 ${CH[id].name} 「${AWK[id].s.n}」`,e:`AWAKEN ${CH[id].code}`,c:AWK[id].c,t:'awk'});
  for(const [k,c] of Object.entries(LOCK))if(!SV.unl.includes(k))L.push({n:`템 해금 「${ITEMS[k].n}」`,e:'NEW ITEM',c,t:'pool'});
  if(!L.length)return null;const pr=L[0].t==='up'&&L[0].n.startsWith('모나')?L[0]:L.sort((a,b)=>a.c-b.c)[0];return {...pr,can:L.filter(x=>SV.yen>=x.c).length}}
@@ -637,15 +638,15 @@ function resolveEv(mode){const e=G.ev;if(!e)return;if((mode==='stop'||mode==='bo
 /* ============ 벨벳 룸 출장소 (상점 역): 판 안의 엔을 이번 판 전투력으로 바꾸는 곳 ============
    템 3개 판매 · 진열 바꾸기 · 회복 · 합성(아무 템 2개 → 진화 템 3지선다, 한 번). 여기서 쓴 엔은 귀환 수익에서 빠진다 */
 const SHOP_P={발동:300,증폭:450,폭발:700},SHOP_HEAL=200,SHOP_RR=120;
-const shopPrice=id=>Math.round(SHOP_P[IT(id).r]*(1+.3*G.fl)/10)*10;
+const dsc=()=>1-.1*(SV.up.disc||0),shopPrice=id=>Math.round(SHOP_P[IT(id).r]*(1+.3*G.fl)*dsc()/10)*10,healP=()=>Math.round(SHOP_HEAL*dsc()/10)*10,rrP=()=>Math.round(SHOP_RR*(1+((G.shop&&G.shop.rr)||0))*dsc()/10)*10;/* 진열 바꾸기는 한 출장소에서 누를수록 ¥120 → 240 → 360… */
 function shopRoll(){const keys=Object.keys(ITEMS).filter(unlocked),w=id=>G.party.some(m=>m.c.rec.includes(id))||G.items.some(i=>IT(i).ax===ITEMS[id].ax)?2.5:1,ch=[];
  while(ch.length<3&&ch.length<keys.length){const c=keys.filter(x=>!ch.includes(x)),tot=c.reduce((t,x)=>t+w(x),0);let r=Math.random()*tot;for(const x of c){r-=w(x);if(r<=0){ch.push(x);break}}}
  G.shop={ch,sold:[],healed:false}}
 function openBench(){for(const m of alive())m.sp=Math.min(m.msp,m.sp+10);
  G.benchUsed=false;ui.bsel=[];shopRoll();ui.screen='bench';log('벨벳 룸 출장소 — 푸른 문 너머에서 누군가 손짓한다. (SP +10)');say(pick(alive()).id,'find');render()}
 function shopBuy(i){const S_=G.shop,id=S_&&S_.ch[i];if(!id||S_.sold.includes(i))return;const p=shopPrice(id);if(G.yen<p)return;G.yen-=p;S_.sold.push(i);G.items.push(id);log(`출장소: ${IT(id).n} 구입 (-¥${p})`);glow(id);render()}
-function shopHeal(){const S_=G.shop;if(!S_||S_.healed||G.yen<SHOP_HEAL)return;G.yen-=SHOP_HEAL;S_.healed=true;for(const m of G.party){if(m.hp<=0)m.hp=1;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+15)}log(`출장소: 휴식 (-¥${SHOP_HEAL}) · 전원 HP 30% · SP +15`);render()}
-function shopReroll(){if(!G.shop||G.yen<SHOP_RR)return;G.yen-=SHOP_RR;shopRoll();log(`출장소: 진열을 바꿨다 (-¥${SHOP_RR})`);render()}
+function shopHeal(){const S_=G.shop;if(!S_||S_.healed||G.yen<healP())return;G.yen-=healP();S_.healed=true;for(const m of G.party){if(m.hp<=0)m.hp=1;m.hp=Math.min(m.max,m.hp+Math.round(m.max*.3));m.sp=Math.min(m.msp,m.sp+15)}log(`출장소: 휴식 (-¥${SHOP_HEAL}) · 전원 HP 30% · SP +15`);render()}
+function shopReroll(){if(!G.shop)return;const p=rrP(),rr=(G.shop.rr||0)+1,h=G.shop.healed;if(G.yen<p)return;G.yen-=p;shopRoll();G.shop.rr=rr;G.shop.healed=h;log(`출장소: 진열을 바꿨다 (-¥${p})`);render()}
 function benchToggle(i){if(G.benchUsed||!G.items[i])return;const s=ui.bsel;const j=s.indexOf(i);if(j>=0)s.splice(j,1);else if(s.length<2)s.push(i);render()}
 function synth(){const s=ui.bsel;if(s.length!==2||G.benchUsed)return;const ax=s.map(i=>IT(G.items[i]).ax);log(`출장소 합성: ${s.map(i=>IT(G.items[i]).n).join(' + ')} → ?`);
  G.items=G.items.filter((_,i)=>!s.includes(i));G.benchUsed=true;ui.bsel=[];G.stats.evo++;offer('벨벳 룸에서 새로 짜 맞춘 것',1,'evo',ax)}
@@ -1062,7 +1063,7 @@ function vHub(){const t=ui.ht||'go',canUp=Object.keys(UPG).some(k=>upgOk(k)&&SV.
   <p class="tip" style="margin:8px 0 4px">시작 발동기 (¥${SET_START}) — 누르면 고름</p><div class="negs">${Object.keys(ITEMS).filter(k=>ITEMS[k].r==='발동'&&!ITEMS[k].risk&&unlocked(k)).map(k=>`<button class="tog ${SV.set.start===k?'on':''}" data-a="setstart:${k}">${ITEMS[k].ic} ${ITEMS[k].n}</button>`).join('')}</div></details>
   <button class="go" data-a="go" ${sel.length===3&&SV.yen>=cost?'':'disabled'}>${sel.length!==3?`${3-sel.length}명 더`:SV.yen<cost?`엔 부족 (¥${cost})`:`START →${cost?` (¥${cost})`:''}`}</button>`}
  if(t==='pool')body=`<p class="tip">벨벳 룸 템 해금 — 잠긴 템은 3지선다와 출장소에 나오지 않습니다. 해금하면 다음 판부터 나옵니다.</p><div class="pick">${Object.keys(ITEMS).map(k=>{const I=ITEMS[k],u=unlocked(k);return `<div class="pk ${u?'':'lock'} ${I.risk?'risk':''}"><span class="ic">${u?I.ic:'<b class="en lk">LOCK</b>'}</span><span style="flex:1"><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span><small>${I.d}${I.risk?` · <b class="rk">대가: ${I.risk}</b>`:''}</small></span>${u?'':`<button class="tog" data-a="unl:${k}" ${SV.yen>=LOCK[k]?'':'disabled'}>¥${LOCK[k]}</button>`}</div>`}).join('')}</div>`;
- if(t==='up')body=`<p class="tip">모나 버스 개조 — 더 깊은 선로와 판마다 쓸 여유.</p><div class="pick">${Object.entries(UPG).map(([k,U])=>{const lv=SV.up[k]||0,c=U.cost[lv],lockQ=U.need&&c!=null&&(SV.q||0)<U.need[lv];return `<div class="pk"><span class="ic en">${k==='bus'?'BUS':k==='reroll'?'RR':k==='fund'?'¥':'GO'}</span><span style="flex:1"><b>${U.n}</b> <span class="tg">LV ${lv}/${U.cost.length}</span><small>${U.d}</small></span>${c==null?'<span class="tg">MAX</span>':lockQ?`<span class="tg">의뢰 ${U.need[lv]} 완료 후</span>`:`<button class="tog" data-a="upg:${k}" ${SV.yen>=c?'':'disabled'}>¥${c}</button>`}</div>`}).join('')}</div>`;
+ if(t==='up')body=`<p class="tip">모나 버스 개조 — 더 깊은 선로와 판마다 쓸 여유.</p><div class="pick">${Object.entries(UPG).map(([k,U])=>{const lv=SV.up[k]||0,c=U.cost[lv],lockQ=U.need&&c!=null&&(SV.q||0)<U.need[lv];return `<div class="pk"><span class="ic en">${k==='bus'?'BUS':k==='reroll'?'RR':k==='fund'?'¥':k==='disc'?'%':'GO'}</span><span style="flex:1"><b>${U.n}</b> <span class="tg">LV ${lv}/${U.cost.length}</span><small>${U.d}</small></span>${c==null?'<span class="tg">MAX</span>':lockQ?`<span class="tg">의뢰 ${U.need[lv]} 완료 후</span>`:`<button class="tog" data-a="upg:${k}" ${SV.yen>=c?'':'disabled'}>¥${c}</button>`}</div>`}).join('')}</div>`;
  if(t==='bond'){const K=Object.keys(SV.bond).filter(k=>SV.bond[k].n||SV.bond[k].lv).sort((a,b)=>SV.bond[b].lv-SV.bond[a].lv||SV.bond[b].n-SV.bond[a].n);
   const V=ui.bs&&bondScene(ui.bs);
   body=`<p class="tip">함께 싸운 두 사람 사이에 바톤을 넘기면 유대가 쌓입니다(함께 살아 돌아오면 +1). 쌓이면 르블랑에서 시간을 보내 단계를 올리세요. 1단계 장면 · 2단계 바톤 +10% · 3단계 바톤 +25% · 둘째 장면</p>
@@ -1152,7 +1153,7 @@ function vPick(){const P=G.pick;if(!P)return '';return `<div class="tip"><b>${es
 function vBench(){const s=ui.bsel,S_=G.shop||{ch:[],sold:[]};
  return `<div class="dlg"><span class="who">VELVET ROOM</span><p>"어서 오시게, 손님." · <b>¥${G.yen}</b></p></div>
  <div class="pick">${S_.ch.map((id,i)=>{const I=IT(id),p=shopPrice(id),sold=S_.sold.includes(i);return `<button class="pk ${I.risk?'risk':''}" data-a="buy:${i}" ${sold||G.yen<p?'disabled':''}><span class="ic">${I.ic}</span><span style="flex:1"><b>${I.n}</b><span class="tg">${I.r}</span><span class="tg">${I.ax}</span>${cnt(id)?`<span class="tg">×${cnt(id)+1}</span>`:''}<small>${I.d}${I.risk?` · <b class="rk">대가: ${I.risk}</b>`:''}</small></span><b class="price">${sold?'SOLD':'¥'+p}</b></button>`}).join('')}</div>
- <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<SHOP_HEAL?'disabled':''}>휴식 ¥${SHOP_HEAL} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<SHOP_RR?'disabled':''}>진열 바꾸기 ¥${SHOP_RR}</button></div>
+ <div class="row2" style="flex-wrap:wrap;gap:6px"><button class="tog" data-a="shopheal" ${S_.healed||G.yen<healP()?'disabled':''}>휴식 ¥${healP()} · HP 30% · SP +15</button><button class="tog" data-a="shoprr" ${G.yen<rrP()?'disabled':''}>진열 바꾸기 ¥${rrP()}</button></div>
  <div class="dlg"><span class="who">FUSION</span><p>${G.benchUsed?'합성 완료':`위 템 칸에서 <b>2개</b>를 골라 넣으면 <b>진화 템</b> 3개 중 하나`}</p>${!G.benchUsed&&s.length?`<p class="tip">넣을 것: ${s.map(i=>IT(G.items[i]).n).join(' + ')}</p>`:''}</div>
  <div class="row2">${G.benchUsed?'':`<button class="go" data-a="synth" ${s.length===2?'':'disabled'}>FUSE</button>`}<button class="go sub" data-a="leave">LEAVE</button></div>`}
 function vFloor(){const n=G.fl+1,ok=canDescend();return `<div class="dlg"><span class="who">B${n} CLEAR</span>${G.questNew===n?`<p style="color:var(--gold)"><b>의뢰 ${n} 완료!</b> 괴도 채널 지지율 ${QUESTS[n-1].sup}% — ${esc(QUESTS[n-1].next)}</p>`:''}<p>${ok?`<b>B${n+1} ${FLOORS[n].n}</b> — 더 세지고 보상도 커짐<br><small>내려가면 HP 30% · SP 50% 회복 · 전멸하면 엔 절반</small>`:`<b>B${n+1} 선로가 막혀 있다</b> — 모나 버스 Lv.${n+1} 필요 (¥${UPG.bus.cost[n-1]})`}</p></div>
